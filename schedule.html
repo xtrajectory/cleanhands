@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>排班日曆</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 在這裡加入您的 CSS 樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+       .calendar {
+            margin-bottom: 24px;
+            width: 500px;
+            text-align: center;
+        }
+
+       .calendar table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+       .shift-label {
+            font-size: 12px;
+            margin-left: 2px;
+            padding: 3px 3px;
+            border-radius: 24px;
+        }
+
+       .shift-A {
+            background-color: #2fe82f;
+        }
+
+       .shift-B {
+            background-color: #269bc2;
+        }
+
+       .shift-C {
+            background-color: #dd4e4e;
+        }
+
+       .other-month {
+            color: #999;
+        }
+
+       .shift-buttons {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+       .shift-button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 20px; /* 按钮文字大小为 24px */
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px; /* 增大圆角半径，让边角更圆润 */
+        }
+
+       .shift-A-button {
+            background-color: #2fe82f;
+        }
+
+       .shift-B-button {
+            background-color: #269bc2;
+        }
+
+       .shift-C-button {
+            background-color: #dd4e4e;
+        }
+
+        /* 添加當前週的樣式 */
+       .current-week {
+            background-color: #9ec0c5;
+            font-weight: bold;
+        }
+
+        /* 在小於 768px 的螢幕上調整日曆寬度 */
+        @media screen and (max-width: 768px) {
+           .calendar {
+                width: 400px;
+            }
+
+            th,
+            td {
+                font-size: 13px;
+            }
+
+           .shift-button {
+                font-size: 14px;
+                border-radius: 10px; /* 小屏幕上也设置合适的圆角半径 */
+            }
+
+           .month-title {
+                font-size: 20px;
+            }
+
+            /* 针对手机屏幕，设置按钮在同一行 */
+           .shift-buttons {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>更表</h1>
+    <div class="shift-buttons">
+        <button class="shift-button shift-A-button" onclick="setCurrentShift('A')">目前是 A 班</button>
+        <button class="shift-button shift-B-button" onclick="setCurrentShift('B')">目前是 B 班</button>
+        <button class="shift-button shift-C-button" onclick="setCurrentShift('C')">目前是 C 班</button>
+    </div>
+    <div id="calendars"></div>
+    <div class="disclaimer">更表預測僅供參考</div>
+
+    <script>
+        function getMonthName(month) {
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月",
+                "七月", "八月", "九月", "十月", "十一月", "十二月"
+            ];
+            return monthNames[month];
+        }
+
+        function getShiftType(weekNumber, initialShift) {
+            const shiftSequence = {
+                'A': ['A', 'C', 'B'],
+                'B': ['B', 'A', 'C'],
+                'C': ['C', 'B', 'A']
+            };
+            return shiftSequence[initialShift][weekNumber % 3];
+        }
+
+        function createCalendar(year, month, firstWeekShift, initialShift) {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            const currentDate = today.getDate();
+            const currentDay = today.getDay();
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            let html = `<div class="calendar">
+                    <div class="month-title">${year}年 ${getMonthName(month)}</div>
+                    <table>
+                        <tr>
+                            <th>週日</th>
+                            <th>週一</th>
+                            <th>週二</th>
+                            <th>週三</th>
+                            <th>週四</th>
+                            <th>週五</th>
+                            <th>週六</th>
+                        </tr>`;
+
+            const firstDayOfWeek = firstDay.getDay();
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            let date = 1;
+            let weekNumber = firstWeekShift;
+
+            for (let i = 0; i < 6; i++) {
+                html += '<tr>';
+
+                for (let j = 0; j < 7; j++) {
+                    const cellDate = new Date(year, month, date);
+                    if (i === 0 && j < firstDayOfWeek) {
+                        const prevDate = prevMonthLastDay - firstDayOfWeek + j + 1;
+                        html += `<td class="other-month">${prevDate}</td>`;
+                    } else if (date > lastDay.getDate()) {
+                        html += `<td class="other-month">${date - lastDay.getDate()}</td>`;
+                        date++;
+                    } else {
+                        if (j === 0) {
+                            weekNumber++;
+                        }
+                        // 不顯示班次標籤
+                        const shiftLabel = cellDate >= today && initialShift? `<span class="shift-label shift-${getShiftType(weekNumber, initialShift)}"><b>(${getShiftType(weekNumber, initialShift)})</b></span>` : '';
+                        const tdClass = (year === currentYear && month === currentMonth && date === currentDate) ? 'current-week' : '';
+                        html += `<td class="${tdClass}"><span>${date}</span>${shiftLabel}</td>`;
+                        date++;
+                    }
+                }
+
+                html += '</tr>';
+                if (date > lastDay.getDate()) break;
+            }
+
+            html += '</table></div>';
+            return {
+                html,
+                nextWeekShift: weekNumber
+            };
+        }
+
+        function setCurrentShift(shift) {
+            initializeCalendars(shift);
+        }
+
+        function initializeCalendars(initialShift = 'A') {
+            const today = new Date();
+            let currentYear = today.getFullYear();
+            let currentMonth = today.getMonth();
+            let weekShift = 0;
+            let html = '';
+
+            // 從當前週開始計算
+            const startOfYear = new Date(currentYear, 0, 1);
+            weekShift = Math.floor((today - startOfYear) / (7 * 24 * 60 * 60 * 1000));
+
+            // 修改循環條件，顯示到今年12月
+            while (currentMonth <= 11) {
+                const result = createCalendar(currentYear, currentMonth, weekShift, initialShift);
+                html += result.html;
+                weekShift = result.nextWeekShift;
+
+                currentMonth++;
+                if (currentMonth > 11) {
+                    break; // 只顯示到12月
+                }
+            }
+
+            document.getElementById('calendars').innerHTML = html;
+        }
+        // 初始化時不設置初始班次
+        initializeCalendars('');
+    </script>
+</body>
+
+</html>
