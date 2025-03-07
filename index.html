@@ -16,6 +16,11 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            /* 禁止選取文字 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         #result {
             font-size: 20px;
@@ -126,7 +131,7 @@
   gtag('config', 'G-EZTW98Q8GK');
 </script> 
 
-<body>
+<body oncontextmenu="return false;">
     <h1 id="randomTitle">日期計算</h1>
     <p id="currentDateTime"></p>
     <p id="result"></p>
@@ -144,6 +149,9 @@
         <a href="schedule.html" target="_blank">
             <button class="map-button">📅 Schedule</button>
         </a>
+        <a href="age_calculator.html" target="_blank">
+            <button class="map-button">🧮 年齡計算</button>
+        </a>
         <a href="https://www.google.com/maps/d/u/0/edit?mid=1smbxbgyDyi21YkzAcOjm2j5B3Ru5KhY&ll=22.196278957288584%2C113.54682999548615&z=16" target="_blank">
             <button class="map-button">🗺️地圖</button>
         </a>
@@ -152,6 +160,63 @@
     <div id="lastUpdated"></div>
 
     <script>
+    // 禁止右鍵菜單
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止選取文字
+    document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止複製
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止剪切
+    document.addEventListener('cut', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止粘貼
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止鍵盤快捷鍵
+    document.addEventListener('keydown', function(e) {
+        // 禁止 Ctrl+A (全選)
+        if (e.ctrlKey && e.keyCode === 65) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 Ctrl+C (複製)
+        if (e.ctrlKey && e.keyCode === 67) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 Ctrl+V (粘貼)
+        if (e.ctrlKey && e.keyCode === 86) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 F12 (開發者工具)
+        if (e.keyCode === 123) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
     // 定義特別假期
     const specialHolidays = {
         "2025-01-01": "元旦",
