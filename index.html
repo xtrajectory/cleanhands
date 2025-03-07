@@ -284,6 +284,14 @@
 
     function showFutureDates() {
         const futureDatesTable = document.getElementById('futureDatesTable');
+        const verificationResult = document.getElementById('verificationResult');
+        
+        // 如果驗算結果正在顯示，先隱藏它
+        if (verificationResult.style.display === 'block') {
+            verificationResult.style.display = 'none';
+        }
+        
+        // 切換未來五天計算結果的顯示狀態
         if (futureDatesTable.style.display === 'block') {
             futureDatesTable.style.display = 'none';
         } else {
@@ -383,6 +391,14 @@
     }
     function verifyCalculation() {
         const verificationResult = document.getElementById('verificationResult');
+        const futureDatesTable = document.getElementById('futureDatesTable');
+        
+        // 如果未來五天計算結果正在顯示，先隱藏它
+        if (futureDatesTable.style.display === 'block') {
+            futureDatesTable.style.display = 'none';
+        }
+        
+        // 切換驗算結果的顯示狀態
         if (verificationResult.style.display === 'none') {
             const today = new Date();
             let originalDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
