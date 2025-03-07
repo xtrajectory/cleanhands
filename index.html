@@ -26,6 +26,15 @@
             font-size: 20px;
             color: red;
             margin-top: 18px;
+            padding: 15px;
+            border: 2px solid #C6A300;
+            border-radius: 10px;
+            background-color: rgba(198, 163, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-weight: bold;
+            max-width: 90%;
+            display: inline-block;
         }
         button {
             background-color: orange;
@@ -134,7 +143,7 @@
 <body oncontextmenu="return false;">
     <h1 id="randomTitle">日期計算</h1>
     <p id="currentDateTime"></p>
-    <p id="result"></p>
+    <div id="result"></div>
     
     <div class="button-container">
         <button onclick="showFutureDates()">未來五天計算結果</button>
@@ -272,7 +281,7 @@
             }
 
             const result = `15天的日期：${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月${targetDate.getDate()}日 ${weekdays[targetDate.getDay()]}`;
-            document.getElementById('result').textContent = result;
+            document.getElementById('result').innerHTML = result;
             
             // 在控制台輸出調試信息
             console.log(debugInfo);
