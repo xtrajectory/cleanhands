@@ -13,6 +13,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         h1 {
@@ -123,7 +127,7 @@
     </style>
 </head>
 
-<body>
+<body oncontextmenu="return false;">
     <h1>更表</h1>
     <div class="shift-buttons">
         <button class="shift-button shift-A-button" onclick="setCurrentShift('A')">目前是 A 班</button>
@@ -243,6 +247,89 @@
         }
         // 初始化時不設置初始班次
         initializeCalendars('');
+
+        // 禁止右鍵菜單
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止選取文字
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止複製
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止剪切
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止粘貼
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            // 禁止 Ctrl+A (全選)
+            if (e.ctrlKey && e.keyCode === 65) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+C (複製)
+            if (e.ctrlKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+V (粘貼)
+            if (e.ctrlKey && e.keyCode === 86) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 F12 (開發者工具)
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // 禁止拖拽
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止滑鼠右鍵菜單（額外保障）
+        window.oncontextmenu = function() {
+            return false;
+        };
+        
+        // 禁止查看源代碼快捷鍵
+        document.onkeydown = function(e) {
+            // 禁止 Ctrl+U (查看源代碼)
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+S (保存頁面)
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                return false;
+            }
+        };
     </script>
 </body>
 
