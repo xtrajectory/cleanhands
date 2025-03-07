@@ -102,6 +102,12 @@
             background-color: rgba(255, 165, 0, 0.3);
             color: #ffaa33;
         }
+        .disclaimer {
+            font-size: 14px;
+            color: #888;
+            margin-top: 15px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -119,6 +125,7 @@
             <input type="date" id="birthDateInput" min="1900-01-01" max="2100-12-31">
             <button onclick="calculateAge()">🔍 計算年齡</button>
             <div id="ageResult"></div>
+            <div class="disclaimer">計算結果僅供參考</div>
         </div>
     </div>
 
