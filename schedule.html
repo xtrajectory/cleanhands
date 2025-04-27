@@ -98,6 +98,11 @@
             background-color: #9ec0c5;
             font-weight: bold;
         }
+        
+        /* 添加當前週的標記 */
+       .current-week-row {
+            background-color: #f0f8ff;
+        }
 
         /* 在小於 768px 的螢幕上調整日曆寬度 */
         @media screen and (max-width: 768px) {
@@ -153,13 +158,63 @@
             };
             return shiftSequence[initialShift][weekNumber % 3];
         }
+        
+        // 獲取當前週的開始日期（週日）和結束日期（週六）
+        function getCurrentWeekDates() {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 是週日，6 是週六
+            
+            // 計算本週的週日日期
+            const sunday = new Date(today);
+            sunday.setDate(today.getDate() - currentDay);
+            
+            // 計算本週的週六日期
+            const saturday = new Date(today);
+            saturday.setDate(today.getDate() + (6 - currentDay));
+            
+            return { sunday, saturday };
+        }
+        
+        // 計算指定日期是一年中的第幾週
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            // 確保從週日開始計算週數
+            const dayOffset = firstDayOfYear.getDay();
+            // 調整第一週的開始日期至上一年最後一個週日
+            const firstSundayOfYear = new Date(firstDayOfYear);
+            firstSundayOfYear.setDate(firstDayOfYear.getDate() - dayOffset);
+            
+            // 計算從年初第一個週日到指定日期的毫秒數
+            const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+            const diff = date - firstSundayOfYear;
+            
+            // 計算週數（從0開始）
+            return Math.floor(diff / millisecondsPerWeek);
+        }
+        
+        // 根據選擇的班次，計算當前週的週日應該是哪個班次
+        function calculateCurrentWeekShift(selectedShift) {
+            // 獲取當前週的週日日期
+            const { sunday } = getCurrentWeekDates();
+            // 獲取當前週的週數
+            const currentWeekNumber = getWeekNumber(sunday);
+            
+            // 根據選擇的班次和當前週數，計算出當前週的班次
+            // 由於我們選擇的是「本週期是X班」，所以這個週期的班次就是選擇的班次
+            // 不需要額外計算
+            return selectedShift;
+        }
 
-        function createCalendar(year, month, firstWeekShift, initialShift) {
+        function createCalendar(year, month, initialShift) {
             const today = new Date();
             const currentYear = today.getFullYear();
             const currentMonth = today.getMonth();
             const currentDate = today.getDate();
-            const currentDay = today.getDay();
+            
+            // 獲取本週的日期範圍
+            const { sunday, saturday } = getCurrentWeekDates();
+            // 獲取當前週的週數
+            const currentWeekNumber = getWeekNumber(sunday);
 
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
@@ -180,26 +235,86 @@
             const firstDayOfWeek = firstDay.getDay();
             const prevMonthLastDay = new Date(year, month, 0).getDate();
             let date = 1;
-            let weekNumber = firstWeekShift;
+            
+            // 追蹤當前渲染的週是否是當前週
+            let isCurrentWeekRow = false;
 
             for (let i = 0; i < 6; i++) {
-                html += '<tr>';
+                // 計算本行第一天的日期（即週日）
+                let rowStartDate;
+                if (i === 0) {
+                    // 第一行可能包含上個月的日期
+                    rowStartDate = new Date(year, month, 1 - firstDayOfWeek);
+                } else {
+                    // 其他行從當月第一週的週日開始，每行加7天
+                    rowStartDate = new Date(year, month, 1 - firstDayOfWeek + (i * 7));
+                }
+                
+                // 檢查這一行是否是當前週
+                isCurrentWeekRow = (
+                    sunday.getFullYear() === rowStartDate.getFullYear() &&
+                    sunday.getMonth() === rowStartDate.getMonth() &&
+                    sunday.getDate() === rowStartDate.getDate()
+                );
+                
+                html += isCurrentWeekRow ? '<tr class="current-week-row">' : '<tr>';
+                
+                // 計算這一週的週數（基於週日）
+                const weekNumber = getWeekNumber(rowStartDate);
+                
+                // 計算該週應該是哪個班次
+                let rowShiftType;
+                if (initialShift) {
+                    // 計算周與當前週的差距
+                    const weekDiff = weekNumber - currentWeekNumber;
+                    
+                    // 初始班次就是當前週的班次（即用戶選擇的班次）
+                    if (weekDiff === 0) {
+                        rowShiftType = initialShift;
+                    } else {
+                        // 計算其他週的班次
+                        // 根據A→C→B的循環
+                        const shiftCycle = {
+                            'A': ['A', 'C', 'B'],
+                            'B': ['B', 'A', 'C'],
+                            'C': ['C', 'B', 'A']
+                        };
+                        
+                        // 確保weekDiff為正數並對3取餘數，然後在循環中找到對應的班次
+                        const cyclePosition = ((weekDiff % 3) + 3) % 3; // 確保結果為正數
+                        rowShiftType = shiftCycle[initialShift][cyclePosition];
+                    }
+                }
 
                 for (let j = 0; j < 7; j++) {
-                    const cellDate = new Date(year, month, date);
+                    let cellDate;
                     if (i === 0 && j < firstDayOfWeek) {
+                        // 上個月的日期
                         const prevDate = prevMonthLastDay - firstDayOfWeek + j + 1;
                         html += `<td class="other-month">${prevDate}</td>`;
+                        cellDate = new Date(year, month - 1, prevDate);
                     } else if (date > lastDay.getDate()) {
-                        html += `<td class="other-month">${date - lastDay.getDate()}</td>`;
+                        // 下個月的日期
+                        const nextDate = date - lastDay.getDate();
+                        html += `<td class="other-month">${nextDate}</td>`;
+                        cellDate = new Date(year, month + 1, nextDate);
                         date++;
                     } else {
-                        if (j === 0) {
-                            weekNumber++;
+                        // 當前月份的日期
+                        cellDate = new Date(year, month, date);
+                        
+                        // 只有今天和將來的日期才顯示班次標籤，且必須有初始班次
+                        const showShiftLabel = cellDate >= today && initialShift;
+                        let shiftLabel = '';
+                        
+                        if (showShiftLabel) {
+                            // 使用該行（週）的班次
+                            shiftLabel = `<span class="shift-label shift-${rowShiftType}"><b>(${rowShiftType})</b></span>`;
                         }
-                        // 不顯示班次標籤
-                        const shiftLabel = cellDate >= today && initialShift? `<span class="shift-label shift-${getShiftType(weekNumber, initialShift)}"><b>(${getShiftType(weekNumber, initialShift)})</b></span>` : '';
+                        
+                        // 突出顯示今天的日期
                         const tdClass = (year === currentYear && month === currentMonth && date === currentDate) ? 'current-week' : '';
+                        
                         html += `<td class="${tdClass}"><span>${date}</span>${shiftLabel}</td>`;
                         date++;
                     }
@@ -210,41 +325,39 @@
             }
 
             html += '</table></div>';
-            return {
-                html,
-                nextWeekShift: weekNumber
-            };
+            return html;
         }
 
         function setCurrentShift(shift) {
             initializeCalendars(shift);
         }
 
-        function initializeCalendars(initialShift = 'A') {
+        function initializeCalendars(initialShift = '') {
             const today = new Date();
             let currentYear = today.getFullYear();
             let currentMonth = today.getMonth();
-            let weekShift = 0;
             let html = '';
 
-            // 從當前週開始計算
-            const startOfYear = new Date(currentYear, 0, 1);
-            weekShift = Math.floor((today - startOfYear) / (7 * 24 * 60 * 60 * 1000));
-
-            // 修改循環條件，顯示到今年12月
+            // 顯示到今年12月
             while (currentMonth <= 11) {
-                const result = createCalendar(currentYear, currentMonth, weekShift, initialShift);
-                html += result.html;
-                weekShift = result.nextWeekShift;
-
+                html += createCalendar(currentYear, currentMonth, initialShift);
                 currentMonth++;
                 if (currentMonth > 11) {
-                    break; // 只顯示到12月
+                    break;
                 }
             }
 
             document.getElementById('calendars').innerHTML = html;
+            
+            // 如果有設置班次，滾動到當前週
+            if (initialShift) {
+                const currentWeekRow = document.querySelector('.current-week-row');
+                if (currentWeekRow) {
+                    currentWeekRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
         }
+        
         // 初始化時不設置初始班次
         initializeCalendars('');
 
