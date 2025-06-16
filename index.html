@@ -410,14 +410,13 @@
         // 切換驗算結果的顯示狀態
         if (verificationResult.style.display === 'none') {
             const today = new Date();
-            let originalDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
             const fifteenthWorkday = calculateFifteenthWorkday(today);
             const timeDiff = fifteenthWorkday - today;
             const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
     
-            // 收集第15天之後的假期資訊
+            // 收集從今天到第15天工作日之間的所有假期資訊
             let holidayInfo = [];
-            let currentDate = new Date(originalDate);
+            let currentDate = new Date(today);
             
             while (currentDate <= fifteenthWorkday) {
                 const dateStr = currentDate.toISOString().split('T')[0];
