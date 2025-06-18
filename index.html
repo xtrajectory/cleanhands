@@ -103,8 +103,8 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-top: 20px;
-            transition: margin-top 0.3s ease;
+            margin-top: 20px; /* 稍微調整原始的上邊距 */
+            transition: margin-top 0.3s ease; /* 添加過渡效果 */
         }
         .weekday-time {
             color: grey;
@@ -130,40 +130,81 @@
             background-color: rgba(128, 128, 128, 0.2);
         }
 
-        /* 當顯示結果時調整按鈕位置 */
-        .button-container.results-shown {
-            margin-top: 40px;
-        }
-
-        /* 手機適配 */
+        /* 新增媒體查詢以調整手機上的按鈕佈局 */
         @media (max-width: 768px) {
             .map-button-container {
                 position: fixed;
                 right: 0;
-                bottom: 0;
-                left: 0;
+                bottom: 0; /* 調整到底部 */
+                left: 0; /* 擴展到整個寬度 */
                 display: flex;
-                justify-content: space-around;
-                background-color: black;
-                padding: 10px 0;
-                z-index: 1000;
+                justify-content: space-around; /* 平均分配空間 */
+                background-color: black; /* 可選：添加背景以避免與內容重疊 */
+                padding: 10px 0; /* 添加一些內邊距 */
+                z-index: 1000; /* 確保在最上層 */
             }
             .map-button {
-                padding: 8px 12px;
-                font-size: 14px;
-                margin: 0 5px;
+                padding: 8px 12px; /* 調整按鈕大小 */
+                font-size: 14px; /* 調整字體大小 */
+                margin: 0 5px; /* 添加按鈕間距 */
             }
             #lastUpdated {
-                bottom: 60px;
+                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
             }
             .button-container {
-                margin-top: 20px;
+                margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
             }
-            
-            /* 當顯示結果時在手機上進一步調整 */
-            .button-container.results-shown {
-                margin-top: 60px;
+        }
+        }
+        .weekday-time {
+            color: grey;
+            font-size: 20px;
+        }
+        #lastUpdated {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+        .button-container button {
+            background-color: transparent;
+            color: grey;
+            font-size: 14px;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        /* 新增媒體查詢以調整手機上的按鈕佈局 */
+        @media (max-width: 768px) {
+            .map-button-container {
+                position: fixed;
+                right: 0;
+                bottom: 0; /* 調整到底部 */
+                left: 0; /* 擴展到整個寬度 */
+                display: flex;
+                justify-content: space-around; /* 平均分配空間 */
+                background-color: black; /* 可選：添加背景以避免與內容重疊 */
+                padding: 10px 0; /* 添加一些內邊距 */
+                z-index: 1000; /* 確保在最上層 */
             }
+            .map-button {
+                padding: 8px 12px; /* 調整按鈕大小 */
+                font-size: 14px; /* 調整字體大小 */
+                margin: 0 5px; /* 添加按鈕間距 */
+            }
+            #lastUpdated {
+                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
+            }
+            .button-container {
+                margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
+            }
+        }
         }
     </style>
 
@@ -334,7 +375,6 @@
     function showFutureDates() {
         const futureDatesTable = document.getElementById('futureDatesTable');
         const verificationResult = document.getElementById('verificationResult');
-        const buttonContainer = document.querySelector('.button-container');
         
         // 如果驗算結果正在顯示，先隱藏它
         if (verificationResult.style.display === 'block') {
@@ -344,8 +384,6 @@
         // 切換未來五天計算結果的顯示狀態
         if (futureDatesTable.style.display === 'block') {
             futureDatesTable.style.display = 'none';
-            // 隱藏結果時移除CSS類
-            buttonContainer.classList.remove('results-shown');
         } else {
             const tableContent = generateFutureDatesTable();
             futureDatesTable.innerHTML = `
@@ -362,8 +400,6 @@
                 </table>
             `;
             futureDatesTable.style.display = 'block';
-            // 顯示結果時添加CSS類
-            buttonContainer.classList.add('results-shown');
         }
     }
 
@@ -446,7 +482,6 @@
     function verifyCalculation() {
         const verificationResult = document.getElementById('verificationResult');
         const futureDatesTable = document.getElementById('futureDatesTable');
-        const buttonContainer = document.querySelector('.button-container');
         
         // 如果未來五天計算結果正在顯示，先隱藏它
         if (futureDatesTable.style.display === 'block') {
@@ -487,12 +522,8 @@
     
             verificationResult.innerHTML = verificationMessage.replace(/\n/g, '<br>');
             verificationResult.style.display = 'block';
-            // 顯示結果時添加CSS類
-            buttonContainer.classList.add('results-shown');
         } else {
             verificationResult.style.display = 'none';
-            // 隱藏結果時移除CSS類
-            buttonContainer.classList.remove('results-shown');
         }
     }
     function export120DaysTable() {
