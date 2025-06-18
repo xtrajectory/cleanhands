@@ -228,6 +228,177 @@
         .cancel-btn:hover {
             background-color: #757575;
         }
+        
+        /* 響應式設計 - 手機適配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .content-area {
+                flex: none;
+            }
+            
+            .sidebar {
+                flex: none;
+                max-width: none;
+            }
+            
+            .page-title {
+                font-size: 24px;
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            textarea {
+                min-height: 200px;
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+            
+            .saved-item {
+                padding: 10px;
+                margin-bottom: 10px;
+                font-size: 13px;
+            }
+            
+            .saved-item h4 {
+                font-size: 18px;
+                margin-bottom: 6px;
+            }
+            
+            .saved-item p {
+                margin: 4px 0;
+                font-size: 12px;
+            }
+            
+            .saved-buttons {
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 8px;
+            }
+            
+            .restore-btn,
+            .export-btn,
+            .delete-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+                flex: 1;
+                min-width: 60px;
+            }
+            
+            .delete-all-btn {
+                padding: 12px;
+                font-size: 13px;
+                margin-top: 10px;
+            }
+            
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+                padding: 15px;
+            }
+            
+            .modal input {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .modal-buttons button {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .result {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .test-version {
+                font-size: 11px;
+                margin-top: 8px;
+            }
+        }
+        
+        /* 超小螢幕適配 */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            .page-title {
+                font-size: 22px;
+                padding: 10px;
+            }
+            
+            h1, h2 {
+                font-size: 18px;
+            }
+            
+            textarea {
+                min-height: 180px;
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            button {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+            
+            .saved-item {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            .saved-item h4 {
+                font-size: 16px;
+            }
+            
+            .saved-item p {
+                font-size: 11px;
+            }
+            
+            .restore-btn,
+            .export-btn,
+            .delete-btn {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+            
+            .result {
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 
