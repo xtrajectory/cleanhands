@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>總和計算機</title>
     <style>
         body {
@@ -13,6 +13,21 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            /* 防止手機縮放 */
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            /* 固定位置 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
         }
         .header-container {
             width: 100%;
@@ -24,6 +39,10 @@
             width: 100%;
             max-width: 1200px;
             gap: 20px;
+            /* 適應固定位置 */
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         .content-area {
             flex: 2;
@@ -72,6 +91,12 @@
             resize: none;
             overflow-y: auto;
             line-height: 1.5;
+            /* 允許在手機上正常輸入 */
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+            touch-action: auto;
         }
         .button-group {
             display: flex;
@@ -87,6 +112,13 @@
             border-radius: 4px;
             cursor: pointer;
             flex: 1;
+            /* 防止手機縮放 */
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         button:hover {
             background-color: #45a049;
@@ -233,11 +265,18 @@
         @media (max-width: 768px) {
             body {
                 padding: 10px;
+                /* 手機上保持固定位置 */
+                position: fixed;
+                overflow: hidden;
             }
             
             .main-container {
                 flex-direction: column;
                 gap: 15px;
+                /* 手機上的高度調整 */
+                height: calc(100vh - 60px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch; /* iOS平滑滾動 */
             }
             
             .content-area {
@@ -267,6 +306,10 @@
                 min-height: 200px;
                 font-size: 14px;
                 padding: 12px;
+                /* 確保手機上可以正常輸入 */
+                -webkit-user-select: text;
+                user-select: text;
+                touch-action: auto;
             }
             
             .button-group {
@@ -277,6 +320,10 @@
             button {
                 font-size: 14px;
                 padding: 12px 15px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .saved-item {
@@ -308,12 +355,20 @@
                 font-size: 11px;
                 flex: 1;
                 min-width: 60px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .delete-all-btn {
                 padding: 12px;
                 font-size: 13px;
                 margin-top: 10px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .modal-content {
@@ -325,6 +380,10 @@
             .modal input {
                 font-size: 14px;
                 padding: 12px;
+                /* 確保手機上可以正常輸入 */
+                -webkit-user-select: text;
+                user-select: text;
+                touch-action: auto;
             }
             
             .modal-buttons {
@@ -335,6 +394,10 @@
             .modal-buttons button {
                 font-size: 14px;
                 padding: 12px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .result {
@@ -352,6 +415,16 @@
         @media (max-width: 480px) {
             body {
                 padding: 8px;
+                /* 超小螢幕上保持固定位置 */
+                position: fixed;
+                overflow: hidden;
+            }
+            
+            .main-container {
+                /* 超小螢幕上的高度調整 */
+                height: calc(100vh - 50px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
             
             .page-title {
@@ -367,11 +440,19 @@
                 min-height: 180px;
                 font-size: 13px;
                 padding: 10px;
+                /* 確保超小螢幕上可以正常輸入 */
+                -webkit-user-select: text;
+                user-select: text;
+                touch-action: auto;
             }
             
             button {
                 font-size: 13px;
                 padding: 10px 12px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .saved-item {
@@ -392,6 +473,10 @@
             .delete-btn {
                 padding: 6px 8px;
                 font-size: 10px;
+                /* 防止手機縮放 */
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                user-select: none;
             }
             
             .result {
