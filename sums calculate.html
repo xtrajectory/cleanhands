@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>總和計算機</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-container {
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+        .main-container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            gap: 20px;
+        }
+        .content-area {
+            flex: 2;
+        }
+        .sidebar {
+            flex: 1;
+            max-width: 400px;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .page-title {
+            text-align: center;
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 0;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 0;
+            font-size: 24px; /* 输入区标题文字大小 */
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+            font-size: 24px; /* 储存数据标题文字大小 */
+        }
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            font-size: 16px; /* 输入区内容文字大小 */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .reset-btn {
+            background-color: #f44336;
+        }
+        .reset-btn:hover {
+            background-color: #d32f2f;
+        }
+        .save-btn {
+            background-color: #2196F3;
+        }
+        .save-btn:hover {
+            background-color: #1976D2;
+        }
+        .result {
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            margin-bottom: 15px;
+        }
+        .numbers {
+            margin-bottom: 10px;
+        }
+        .sum {
+            font-weight: bold;
+            color: #333;
+        }
+        .negative {
+            color: #f44336;
+        }
+        .positive {
+            color: #4CAF50;
+        }
+        .zero {
+            color: #666;
+        }
+        .test-version {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .saved-item {
+            background-color: #f9f9f9;
+            padding: 12px; /* 减少内边距 */
+            margin-bottom: 12px; /* 减少间距 */
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            line-height: 1.3; /* 减少行高 */
+        }
+        .saved-item h4 {
+            margin: 0 0 8px 0; /* 减少底部间距 */
+            color: #333;
+            font-size: 22px; /* 标题字体缩小2px */
+        }
+        .saved-item p {
+            margin: 6px 0; /* 减少段落间距 */
+            color: #666;
+        }
+        .saved-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px; /* 减少顶部间距 */
+        }
+        .restore-btn {
+            background-color: #FF9800;
+            padding: 6px 10px; /* 减少按钮内边距 */
+            font-size: 12px;
+        }
+        .restore-btn:hover {
+            background-color: #F57C00;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            padding: 6px 10px; /* 减少按钮内边距 */
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .export-btn {
+            background-color: #4CAF50;
+            padding: 6px 10px; /* 减少按钮内边距 */
+            font-size: 12px;
+        }
+        .export-btn:hover {
+            background-color: #45a049;
+        }
+        .delete-all-btn {
+            background-color: #d32f2f;
+            width: 100%;
+            margin-top: 12px; /* 减少顶部间距 */
+            padding: 10px; /* 减少按钮内边距 */
+            font-size: 14px;
+        }
+        .delete-all-btn:hover {
+            background-color: #b71c1c;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .modal-buttons button {
+            flex: 1;
+        }
+        .cancel-btn {
+            background-color: #9e9e9e;
+        }
+        .cancel-btn:hover {
+            background-color: #757575;
+        }
+        
+        /* 響應式設計 - 手機適配 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .content-area {
+                flex: none;
+            }
+            
+            .sidebar {
+                flex: none;
+                max-width: none;
+            }
+            
+            .page-title {
+                font-size: 24px;
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            textarea {
+                min-height: 200px;
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+            
+            .saved-item {
+                padding: 10px;
+                margin-bottom: 10px;
+                font-size: 13px;
+            }
+            
+            .saved-item h4 {
+                font-size: 18px;
+                margin-bottom: 6px;
+            }
+            
+            .saved-item p {
+                margin: 4px 0;
+                font-size: 12px;
+            }
+            
+            .saved-buttons {
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 8px;
+            }
+            
+            .restore-btn,
+            .export-btn,
+            .delete-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+                flex: 1;
+                min-width: 60px;
+            }
+            
+            .delete-all-btn {
+                padding: 12px;
+                font-size: 13px;
+                margin-top: 10px;
+            }
+            
+            .modal-content {
+                width: 90%;
+                margin: 20% auto;
+                padding: 15px;
+            }
+            
+            .modal input {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .modal-buttons button {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .result {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .test-version {
+                font-size: 11px;
+                margin-top: 8px;
+            }
+        }
+        
+        /* 超小螢幕適配 */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+            
+            .page-title {
+                font-size: 22px;
+                padding: 10px;
+            }
+            
+            h1, h2 {
+                font-size: 18px;
+            }
+            
+            textarea {
+                min-height: 180px;
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            button {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+            
+            .saved-item {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            .saved-item h4 {
+                font-size: 16px;
+            }
+            
+            .saved-item p {
+                font-size: 11px;
+            }
+            
+            .restore-btn,
+            .export-btn,
+            .delete-btn {
+                padding: 6px 8px;
+                font-size: 10px;
+            }
+            
+            .result {
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body oncontextmenu="return false;" onkeydown="disableF12(event)">
+    <div class="header-container">
+        <div class="page-title">總和計算機</div>
+    </div>
+    
+    <div class="main-container">
+        <div class="content-area">
+            <div class="container">
+                <h1>輸入區</h1>
+                <textarea id="notes" placeholder="請在這裡輸入你的筆記內容..."></textarea>
+                <div class="button-group">
+                    <button id="save" class="save-btn">儲存數據</button>
+                    <button id="reset" class="reset-btn">重置結果</button>
+                </div>
+                
+                <div class="result" id="result">
+                    <h3>檢測結果</h3>
+                    <div class="numbers" id="detectedNumbers">
+                        檢測到的數字：
+                    </div>
+                    <div class="sum" id="sumResult">
+                        數字總和：<span id="totalSum">0</span>
+                    </div>
+                </div>
+                <div class="test-version">測試版本</div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="container">
+                <h2>儲存的數據</h2>
+                <div id="savedDataList">
+                    <!-- 儲存的數據項目將在這裡顯示 -->
+                </div>
+                <button id="deleteAllBtn" class="delete-all-btn" style="display: none;">刪除所有儲存數據</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 命名彈窗 -->
+    <div id="nameModal" class="modal">
+        <div class="modal-content">
+            <h3>為儲存項目命名</h3>
+            <input type="text" id="saveName" placeholder="請輸入儲存項目名稱..." maxlength="50">
+            <div class="modal-buttons">
+                <button id="confirmSave" class="save-btn">確認儲存</button>
+                <button id="cancelSave" class="cancel-btn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 禁用右键菜单
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // 禁用F12和其他开发者工具快捷键
+        function disableF12(event) {
+            // 禁用F12
+            if (event.key === 'F12') {
+                event.preventDefault();
+                return false;
+            }
+            
+            // 禁用Ctrl+Shift+I
+            if ((event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'i') ||
+                // 禁用Ctrl+Shift+J
+                (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'j') ||
+                // 禁用Ctrl+U
+                (event.ctrlKey && event.key.toLowerCase() === 'u') ||
+                // 禁用Ctrl+Shift+C
+                (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'c')) {
+                event.preventDefault();
+                return false;
+            }
+        }
+        
+        // 额外保护：定期检查是否打开了开发者工具
+        setInterval(function() {
+            checkDevTools();
+        }, 1000);
+        
+        function checkDevTools() {
+            const start = performance.now();
+            debugger;
+            const end = performance.now();
+            
+            // 如果debugger语句执行时间过长，说明可能打开了开发者工具
+            if (end - start > 100) {
+                alert('請勿嘗試查看或修改網頁代碼！');
+                window.close(); // 关闭窗口（某些浏览器可能阻止此操作）
+            }
+        }
+        
+        // 自動調整textarea高度
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('notes');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.max(300, textarea.scrollHeight) + 'px';
+        }
+        
+        // 重置結果
+        function resetResult() {
+            document.getElementById('detectedNumbers').innerHTML = '檢測到的數字：';
+            document.getElementById('totalSum').textContent = '0';
+            document.getElementById('totalSum').className = 'zero';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('notes').value = '';
+            autoResizeTextarea();
+        }
+        
+        // 更新總和顏色
+        function updateSumColor(sum) {
+            const sumElement = document.getElementById('totalSum');
+            sumElement.className = '';
+            if (sum > 0) {
+                sumElement.className = 'positive';
+            } else if (sum < 0) {
+                sumElement.className = 'negative';
+            } else {
+                sumElement.className = 'zero';
+            }
+        }
+        
+        // 自動計算函數
+        function autoCalculate() {
+            const notes = document.getElementById('notes').value;
+            const resultDiv = document.getElementById('result');
+            const numbersDiv = document.getElementById('detectedNumbers');
+            const sumResult = document.getElementById('totalSum');
+            
+            // 改進的正則表達式，可以匹配負數
+            const numberRegex = /-?\b\d+(\.\d+)?\b/g;
+            const numbers = notes.match(numberRegex);
+            
+            let total = 0;
+            let numberList = '';
+            
+            if (numbers && numbers.length > 0) {
+                numbers.forEach((num, index) => {
+                    const parsedNum = parseFloat(num);
+                    total += parsedNum;
+                    // 為負數添加紅色樣式
+                    const displayNum = parsedNum < 0 ? `<span style="color: #f44336;">${num}</span>` : num;
+                    numberList += index > 0 ? ', ' + displayNum : displayNum;
+                });
+                
+                numbersDiv.innerHTML = `檢測到的數字：${numberList}`;
+                sumResult.textContent = total;
+                updateSumColor(total);
+            } else {
+                numbersDiv.innerHTML = '檢測到的數字：未找到數字';
+                sumResult.textContent = '0';
+                updateSumColor(0);
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        // 獲取所有儲存的數據
+        function getSavedData() {
+            const savedData = localStorage.getItem('savedDataList');
+            return savedData ? JSON.parse(savedData) : [];
+        }
+        
+        // 保存數據到列表
+        function saveDataToList(name) {
+            const currentData = {
+                name: name,
+                notes: document.getElementById('notes').value,
+                numbers: document.getElementById('detectedNumbers').innerHTML,
+                sum: document.getElementById('totalSum').textContent,
+                timestamp: new Date().toLocaleString('zh-TW')
+            };
+            
+            // 檢查是否有重複的數據
+            if (isDataDuplicate(currentData)) {
+                console.log('重複數據，不保存');
+                return false;
+            }
+            
+            const savedDataList = getSavedData();
+            
+            // 檢查是否已有未儲存檔案，如果有則替換
+            const unsavedIndex = savedDataList.findIndex(item => item.name === '未儲存檔案');
+            if (unsavedIndex !== -1) {
+                savedDataList[unsavedIndex] = currentData;
+            } else {
+                savedDataList.unshift(currentData); // 新數據放在最前面
+            }
+            
+            localStorage.setItem('savedDataList', JSON.stringify(savedDataList));
+            renderSavedDataList();
+            return true;
+        }
+        
+        // 檢查數據是否重複
+        function isDataDuplicate(newData) {
+            const savedDataList = getSavedData();
+            
+            return savedDataList.some(data => 
+                data.notes === newData.notes && 
+                data.sum === newData.sum
+            );
+        }
+        
+        // 自動保存未儲存數據
+        function autoSaveUnsavedData() {
+            const notes = document.getElementById('notes').value.trim();
+            if (notes) {
+                return saveDataToList('未儲存檔案');
+            }
+            return false;
+        }
+        
+        // 解析文字和數字
+        function parseTextAndNumbers(notes) {
+            const lines = notes.split('\n').filter(line => line.trim());
+            const result = [];
+            let totalSum = 0;
+            
+            lines.forEach(line => {
+                const trimmedLine = line.trim();
+                if (trimmedLine) {
+                    // 提取數字
+                    const numberRegex = /-?\b\d+(\.\d+)?\b/g;
+                    const numbers = trimmedLine.match(numberRegex);
+                    
+                    // 提取文字（移除數字後的部分）
+                    const textPart = trimmedLine.replace(numberRegex, '').trim();
+                    
+                    if (numbers && numbers.length > 0) {
+                        numbers.forEach(num => {
+                            const parsedNum = parseFloat(num);
+                            totalSum += parsedNum;
+                            result.push({
+                                text: textPart || '無描述',
+                                number: parsedNum
+                            });
+                        });
+                    } else if (textPart) {
+                        result.push({
+                            text: textPart,
+                            number: null
+                        });
+                    }
+                }
+            });
+            
+            return { data: result, total: totalSum };
+        }
+        
+        // 導出Excel格式
+        function exportToExcel(index) {
+            const savedDataList = getSavedData();
+            const data = savedDataList[index];
+            
+            if (!data || !data.notes) {
+                alert('沒有可導出的數據');
+                return;
+            }
+            
+            const parsedResult = parseTextAndNumbers(data.notes);
+            
+            if (parsedResult.data.length === 0) {
+                alert('沒有可導出的數據');
+                return;
+            }
+            
+            // 創建CSV內容，添加BOM以支援中文
+            const BOM = '\uFEFF';
+            let csvContent = BOM + '文字,數字\n';
+            
+            parsedResult.data.forEach(item => {
+                const text = item.text.replace(/"/g, '""'); // 處理引號
+                const number = item.number !== null ? item.number : '';
+                csvContent += `"${text}","${number}"\n`;
+            });
+            
+            // 添加總和行
+            csvContent += `"總和","${parsedResult.total}"\n`;
+            
+            // 創建下載連結
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${data.name}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 渲染儲存的數據列表
+        function renderSavedDataList() {
+            const savedDataList = getSavedData();
+            const container = document.getElementById('savedDataList');
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            
+            if (savedDataList.length === 0) {
+                container.innerHTML = '<p>暫無儲存的數據</p>';
+                deleteAllBtn.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = '';
+            savedDataList.forEach((data, index) => {
+                const item = document.createElement('div');
+                item.className = 'saved-item';
+                
+                // 為未儲存檔案添加特殊樣式
+                const isUnsaved = data.name === '未儲存檔案';
+                const itemStyle = isUnsaved ? 'border-left: 4px solid #FF9800;' : '';
+                
+                item.innerHTML = `
+                    <div style="${itemStyle} padding-left: 10px;">
+                        <h4>${data.name}${isUnsaved ? ' <span style="color: #FF9800; font-size: 12px;">(未命名)</span>' : ''}</h4>
+                        <p>儲存時間：${data.timestamp}</p>
+                        <p>總和：${data.sum}</p>
+                        <div class="saved-buttons">
+                            <button class="restore-btn" onclick="restoreData(${index})">恢復</button>
+                            <button class="export-btn" onclick="exportToExcel(${index})">匯出Excel</button>
+                            <button class="delete-btn" onclick="deleteData(${index})">刪除</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            
+            // 顯示刪除所有按鈕
+            deleteAllBtn.style.display = 'block';
+        }
+        
+        // 恢復數據
+        function restoreData(index) {
+            const savedDataList = getSavedData();
+            const dataToRestore = savedDataList[index];
+            
+            // 檢查是否需要保存當前數據
+            const currentNotes = document.getElementById('notes').value.trim();
+            if (currentNotes && currentNotes !== dataToRestore.notes) {
+                autoSaveUnsavedData();
+            }
+            
+            document.getElementById('notes').value = dataToRestore.notes;
+            autoResizeTextarea();
+            // 重新計算總和而不是直接使用儲存的值
+            autoCalculate();
+        }
+        
+        // 刪除數據
+        function deleteData(index) {
+            if (confirm('確定要刪除這個儲存項目嗎？')) {
+                const savedDataList = getSavedData();
+                savedDataList.splice(index, 1);
+                localStorage.setItem('savedDataList', JSON.stringify(savedDataList));
+                renderSavedDataList();
+            }
+        }
+        
+        // 刪除所有儲存數據
+        function deleteAllData() {
+            if (confirm('確定要刪除所有儲存的數據嗎？此操作無法撤銷！')) {
+                localStorage.removeItem('savedDataList');
+                renderSavedDataList();
+            }
+        }
+        
+        // 顯示命名彈窗
+        function showNameModal() {
+            document.getElementById('nameModal').style.display = 'block';
+            document.getElementById('saveName').focus();
+        }
+        
+        // 隱藏命名彈窗
+        function hideNameModal() {
+            document.getElementById('nameModal').style.display = 'none';
+            document.getElementById('saveName').value = '';
+        }
+        
+        // 事件監聽器
+        document.getElementById('notes').addEventListener('input', function() {
+            autoCalculate();
+            autoResizeTextarea();
+        });
+        document.getElementById('reset').addEventListener('click', resetResult);
+        
+        // 儲存按鈕事件
+        document.getElementById('save').addEventListener('click', showNameModal);
+        
+        // 刪除所有按鈕事件
+        document.getElementById('deleteAllBtn').addEventListener('click', deleteAllData);
+        
+        // 確認儲存
+        document.getElementById('confirmSave').addEventListener('click', function() {
+            const name = document.getElementById('saveName').value.trim();
+            if (name) {
+                if (saveDataToList(name)) {
+                    hideNameModal();
+                    alert('數據已成功保存！');
+                } else {
+                    alert('此數據與已保存的數據重複，未保存。');
+                }
+            } else {
+                alert('請輸入儲存項目名稱');
+            }
+        });
+        
+        // 按Enter鍵確認儲存
+        document.getElementById('saveName').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const name = this.value.trim();
+                if (name) {
+                    if (saveDataToList(name)) {
+                        hideNameModal();
+                        alert('數據已成功保存！');
+                    } else {
+                        alert('此數據與已保存的數據重複，未保存。');
+                    }
+                } else {
+                    alert('請輸入儲存項目名稱');
+                }
+            }
+        });
+        
+        // 取消儲存
+        document.getElementById('cancelSave').addEventListener('click', hideNameModal);
+        
+        // 按ESC鍵關閉彈窗
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideNameModal();
+            }
+        });
+        
+        // 點擊彈窗外部關閉
+        document.getElementById('nameModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideNameModal();
+            }
+        });
+        
+        // 頁面加載時初始化
+        window.addEventListener('load', function() {
+            // 從本地存儲加載上次的數據
+            const savedNotes = localStorage.getItem('savedNotes');
+            if (savedNotes) {
+                document.getElementById('notes').value = savedNotes;
+                autoResizeTextarea();
+                autoCalculate();
+            }
+            
+            renderSavedDataList();
+        });
+        
+        // 頁面關閉時保存當前輸入
+        window.addEventListener('beforeunload', function() {
+            const notes = document.getElementById('notes').value;
+            if (notes.trim()) {
+                localStorage.setItem('savedNotes', notes);
+            }
+        });
+    </script>
+</body>
+</html>

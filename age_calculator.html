@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年齡計算器</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 10vh;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            /* 防止選取文字 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 24px;
+            background-color: #C6A300;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+        .date-display {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        .today-date {
+            color: orange;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .age-date {
+            color: #ddd;
+            margin: 10px 0;
+        }
+        .input-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 10px;
+            background-color: #222;
+        }
+        input[type="date"] {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-size: 16px;
+            width: auto;
+            height: 42px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: orange;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            height: 42px;
+            box-sizing: border-box;
+        }
+        #ageResult {
+            margin-top: 15px;
+            font-size: 18px;
+            color: orange;
+            font-weight: bold;
+        }
+        .warning {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .warning-red {
+            background-color: rgba(255, 0, 0, 0.3);
+            color: #ff6666;
+        }
+        .warning-orange {
+            background-color: rgba(255, 165, 0, 0.3);
+            color: #ffaa33;
+        }
+        .disclaimer {
+            font-size: 14px;
+            color: #888;
+            margin-top: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body oncontextmenu="return false;">
+    <div class="container">
+        <h1>年齡計算器</h1>
+        
+        <div class="date-display">
+            <div class="today-date" id="todayDate"></div>
+            <div class="age-date" id="age16Date"></div>
+            <div class="age-date" id="age18Date"></div>
+        </div>
+        
+        <div class="input-section">
+            <h3>計算特定出生日期的年齡</h3>
+            <input type="date" id="birthDateInput" min="1900-01-01" max="2100-12-31">
+            <button onclick="calculateAge()">🔍 計算年齡</button>
+            <div id="ageResult"></div>
+            <div class="disclaimer">計算結果僅供參考</div>
+        </div>
+    </div>
+
+    <script>
+        // 禁止右鍵菜單
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止選取文字
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止複製
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止剪切
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止粘貼
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            // 禁止 Ctrl+A (全選)
+            if (e.ctrlKey && e.keyCode === 65) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+C (複製)
+            if (e.ctrlKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+V (粘貼)
+            if (e.ctrlKey && e.keyCode === 86) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 F12 (開發者工具)
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // 禁止拖拽
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 更新當前日期和年齡日期
+        function updateDates() {
+            const today = new Date();
+            
+            // 顯示今天的日期
+            const todayStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+            document.getElementById('todayDate').textContent = `今天: ${todayStr}`;
+            
+            // 計算16歲的出生日期
+            const date16YearsAgo = new Date(today);
+            date16YearsAgo.setFullYear(today.getFullYear() - 16);
+            const date16Str = `${date16YearsAgo.getFullYear()}年${date16YearsAgo.getMonth() + 1}月${date16YearsAgo.getDate()}日`;
+            document.getElementById('age16Date').textContent = `16歲: ${date16Str}`;
+            
+            // 計算18歲的出生日期
+            const date18YearsAgo = new Date(today);
+            date18YearsAgo.setFullYear(today.getFullYear() - 18);
+            const date18Str = `${date18YearsAgo.getFullYear()}年${date18YearsAgo.getMonth() + 1}月${date18YearsAgo.getDate()}日`;
+            document.getElementById('age18Date').textContent = `18歲: ${date18Str}`;
+        }
+        // 為日期輸入框添加鍵盤事件監聽器
+        document.getElementById('birthDateInput').addEventListener('keypress', function(event) {
+            // 檢查是否按下了 Enter 鍵 (keyCode 13)
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                // 阻止表單默認提交行為
+                event.preventDefault();
+                // 調用計算年齡函數
+                calculateAge();
+            }
+        });
+        
+        // 計算特定出生日期的年齡
+        function calculateAge() {
+            const birthDateInput = document.getElementById('birthDateInput').value;
+            if (!birthDateInput) {
+                document.getElementById('ageResult').textContent = '請選擇出生日期';
+                return;
+            }
+            
+            // 驗證日期格式和範圍
+            const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+            if (!datePattern.test(birthDateInput) || 
+                new Date(birthDateInput).getFullYear() < 1900 || 
+                new Date(birthDateInput).getFullYear() > 2100) {
+                document.getElementById('ageResult').textContent = '請輸入有效的日期 (1900-2100年)';
+                return;
+            }
+            
+            const birthDate = new Date(birthDateInput);
+            const today = new Date();
+            
+            // 檢查出生日期是否在未來
+            if (birthDate > today) {
+                document.getElementById('ageResult').textContent = '出生日期不能在未來';
+                return;
+            }
+            
+            // 使用更精確的方法計算年齡
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            let days = today.getDate() - birthDate.getDate();
+            
+            // 調整天數和月份
+            if (days < 0) {
+                // 獲取上個月的總天數
+                const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                days += lastDayOfLastMonth;
+                months--;
+            }
+            
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            // 計算距離下一個生日的天數
+            const nextBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            if (nextBirthday < today) {
+                nextBirthday.setFullYear(nextBirthday.getFullYear() + 1);
+            }
+            
+            const daysToNextBirthday = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+            
+            // 顯示年齡和距離下一個生日的天數
+            document.getElementById('ageResult').innerHTML = `目前年齡: ${years}歲${months}個月<br>還差${daysToNextBirthday}天 ${years + 1}歲`;
+            
+            // 檢查年齡是否不足16歲或18歲
+            let warningElement = document.createElement('div');
+            
+            if (years < 16) {
+                warningElement.className = 'warning warning-red';
+                warningElement.textContent = '未夠16歲';
+                document.getElementById('ageResult').appendChild(warningElement);
+            } else if (years < 18) {
+                warningElement.className = 'warning warning-orange';
+                warningElement.textContent = '未夠18歲';
+                document.getElementById('ageResult').appendChild(warningElement);
+            }
+        }
+        // 頁面加載時更新日期
+        updateDates();
+        
+        // 設置每天更新一次
+        setInterval(updateDates, 86400000); // 24小時 = 86400000毫秒
+    </script>
+</body>
+</html>
