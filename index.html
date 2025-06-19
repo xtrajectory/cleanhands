@@ -149,19 +149,7 @@
                 margin: 0 5px; /* 添加按鈕間距 */
             }
             #lastUpdated {
-                position: fixed;
-                bottom: 35px; /* 調整到按鈕下方，考慮按鈕高度 */
-                left: 0;
-                right: 0;
-                font-size: 11px;
-                color: #888;
-                text-align: center;
-                background-color: rgba(0, 0, 0, 0.9);
-                padding: 3px 0;
-                z-index: 998;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
             }
             .button-container {
                 margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
@@ -434,24 +422,11 @@
     // 每分鐘更新一次所有數據
     setInterval(updateAllData, 60000);
 
-    // 監聽窗口大小改變，重新調整最後更新時間格式
-    window.addEventListener('resize', function() {
-        updateLastUpdated();
-    });
-
     function updateLastUpdated() {
         const now = new Date();
         const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
         const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false });
-        
-        // 檢查是否為手機版
-        if (window.innerWidth <= 768) {
-            // 手機版：只顯示一行，格式更簡潔
-            document.getElementById('lastUpdated').textContent = `更新：${now.getMonth() + 1}/${now.getDate()} ${timeStr}`;
-        } else {
-            // 桌面版：保持原有格式
-            document.getElementById('lastUpdated').textContent = `最後更新：${dateStr} ${timeStr}`;
-        }
+        document.getElementById('lastUpdated').textContent = `最後更新：${dateStr} ${timeStr}`;
     }
     function verifyCalculation() {
         const verificationResult = document.getElementById('verificationResult');
