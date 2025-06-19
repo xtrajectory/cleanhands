@@ -149,62 +149,21 @@
                 margin: 0 5px; /* 添加按鈕間距 */
             }
             #lastUpdated {
-                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
-            }
-            .button-container {
-                margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
-            }
-        }
-        }
-        .weekday-time {
-            color: grey;
-            font-size: 20px;
-        }
-        #lastUpdated {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            font-size: 12px;
-            color: #888;
-        }
-        .button-container button {
-            background-color: transparent;
-            color: grey;
-            font-size: 14px;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .button-container button:hover {
-            background-color: rgba(128, 128, 128, 0.2);
-        }
-
-        /* 新增媒體查詢以調整手機上的按鈕佈局 */
-        @media (max-width: 768px) {
-            .map-button-container {
                 position: fixed;
-                right: 0;
-                bottom: 0; /* 調整到底部 */
-                left: 0; /* 擴展到整個寬度 */
-                display: flex;
-                justify-content: space-around; /* 平均分配空間 */
-                background-color: black; /* 可選：添加背景以避免與內容重疊 */
-                padding: 10px 0; /* 添加一些內邊距 */
-                z-index: 1000; /* 確保在最上層 */
-            }
-            .map-button {
-                padding: 8px 12px; /* 調整按鈕大小 */
-                font-size: 14px; /* 調整字體大小 */
-                margin: 0 5px; /* 添加按鈕間距 */
-            }
-            #lastUpdated {
-                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
+                bottom: 50px; /* 調整到按鈕下方 */
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 12px;
+                color: #888;
+                text-align: center;
+                background-color: rgba(0, 0, 0, 0.8);
+                padding: 5px 10px;
+                border-radius: 5px;
+                z-index: 999;
             }
             .button-container {
                 margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
             }
-        }
         }
     </style>
 
