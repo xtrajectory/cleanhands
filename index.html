@@ -154,29 +154,57 @@
             .button-container {
                 margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
             }
-            
-            /* 為手機版添加底部間距，避免內容被固定按鈕遮擋 */
-            body {
-                padding-bottom: 80px; /* 為固定按鈕留出空間 */
+        }
+        }
+        .weekday-time {
+            color: grey;
+            font-size: 20px;
+        }
+        #lastUpdated {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+        .button-container button {
+            background-color: transparent;
+            color: grey;
+            font-size: 14px;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        /* 新增媒體查詢以調整手機上的按鈕佈局 */
+        @media (max-width: 768px) {
+            .map-button-container {
+                position: fixed;
+                right: 0;
+                bottom: 0; /* 調整到底部 */
+                left: 0; /* 擴展到整個寬度 */
+                display: flex;
+                justify-content: space-around; /* 平均分配空間 */
+                background-color: black; /* 可選：添加背景以避免與內容重疊 */
+                padding: 10px 0; /* 添加一些內邊距 */
+                z-index: 1000; /* 確保在最上層 */
             }
-            
-            /* 調整表格和驗算結果的顯示 */
-            #futureDatesTable, #verificationResult {
-                margin-bottom: 30px; /* 增加底部間距 */
-                max-height: 60vh; /* 限制最大高度 */
-                overflow-y: auto; /* 如果內容過長，允許滾動 */
+            .map-button {
+                padding: 8px 12px; /* 調整按鈕大小 */
+                font-size: 14px; /* 調整字體大小 */
+                margin: 0 5px; /* 添加按鈕間距 */
             }
-            
-            /* 調整表格在手機上的顯示 */
-            table {
-                font-size: 14px; /* 調整表格字體大小 */
-                width: 100%; /* 確保表格填滿容器 */
+            #lastUpdated {
+                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
             }
-            
-            th, td {
-                padding: 6px 4px; /* 調整表格內邊距 */
-                word-wrap: break-word; /* 允許文字換行 */
+            .button-container {
+                margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
             }
+        }
         }
     </style>
 
@@ -372,16 +400,6 @@
                 </table>
             `;
             futureDatesTable.style.display = 'block';
-            
-            // 在手機版上，滾動到表格位置確保可見
-            if (window.innerWidth <= 768) {
-                setTimeout(() => {
-                    futureDatesTable.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                    });
-                }, 100);
-            }
         }
     }
 
@@ -504,16 +522,6 @@
     
             verificationResult.innerHTML = verificationMessage.replace(/\n/g, '<br>');
             verificationResult.style.display = 'block';
-            
-            // 在手機版上，滾動到驗算結果位置確保可見
-            if (window.innerWidth <= 768) {
-                setTimeout(() => {
-                    verificationResult.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
-                    });
-                }, 100);
-            }
         } else {
             verificationResult.style.display = 'none';
         }
