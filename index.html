@@ -444,31 +444,27 @@
         const timeDiff = fifteenthWorkday - today;
         const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
         
-        // 收集需要順延的假期（僅保留影響第15天順延的關鍵假期）
+        // 收集從今天到第15天工作日之間的所有假期資訊
         let holidayInfo = [];
         let currentDate = new Date(today);
-        let workdayCount = 0;
+        const fifteenDaysLater = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
         
-        // 找到第15個工作日的過程中遇到的假期
-        while (workdayCount < 15) {
-            currentDate.setDate(currentDate.getDate() + 1);
+        while (currentDate <= fifteenthWorkday) {
             const dateStr = currentDate.toISOString().split('T')[0];
             const dayOfWeek = currentDate.getDay();
             
-            // 判斷是否為假期或週末（若是，則不算入工作日，並記錄為順延原因）
-            if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
+            // 新增过滤条件：只显示超过15天的假期
+            if ((dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) && currentDate > fifteenDaysLater) {
                 holidayInfo.push(`${dateStr} 為${dayOfWeek === 0 ? '星期日' : dayOfWeek === 6 ? '星期六' : specialHolidays[dateStr]}`);
-            } else {
-                workdayCount++;
             }
+            
+            currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        let verificationMessage = `第15個工作日為：${fifteenthWorkday.getFullYear()}年${fifteenthWorkday.getMonth() + 1}月${fifteenthWorkday.getDate()}日 ${weekdays[fifteenthWorkday.getDay()]}\n`;
+        let verificationMessage = `從今天到第15天的日期之間共有 ${daysDiff} 天。\n`;
         if (daysDiff > 15) {
-            verificationMessage += `因以下${daysDiff - 15}天假期需順延：\n`;
+            verificationMessage += "原本15天後的日期遇到以下假期，需要順延：\n";
             verificationMessage += holidayInfo.join('\n');
-        } else {
-            verificationMessage += "期間無額外假期，正常計算。";
         }
 
         verificationResult.innerHTML = verificationMessage.replace(/\n/g, '<br>');
