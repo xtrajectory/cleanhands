@@ -429,45 +429,52 @@
         document.getElementById('lastUpdated').textContent = `最後更新：${dateStr} ${timeStr}`;
     }
     function verifyCalculation() {
-    const verificationResult = document.getElementById('verificationResult');
-    const futureDatesTable = document.getElementById('futureDatesTable');
+    // ...（其他代码保持不变）
 
-    // 如果未来五天计算结果正在显示，先隐藏它
-    if (futureDatesTable.style.display === 'block') {
-        futureDatesTable.style.display = 'none';
-    }
-
-    // 切换验算结果的显示状态
     if (verificationResult.style.display === 'none') {
         const today = new Date();
-        const fifteenthWorkday = calculateFifteenthWorkday(today);
-        const timeDiff = fifteenthWorkday - today;
-        const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-        // 收集从今天到第15天工作日之间需要顺延的假期资讯
-        let holidayInfo = [];
-        let currentDate = new Date(today);
-        while (currentDate <= fifteenthWorkday) {
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const dayOfWeek = currentDate.getDay();
-            if ((dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) && currentDate < fifteenthWorkday) {
-                holidayInfo.push(`${dateStr} 为${dayOfWeek === 0? '星期日' : dayOfWeek === 6? '星期六' : specialHolidays[dateStr]}`);
+        let targetDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
+        
+        // 收集导致顺延的假期（只记录最终计算结果遇到的连续假期）
+        let delayReasons = [];
+        
+        while (true) {
+            const dayOfWeek = targetDate.getDay();
+            const dateStr = targetDate.toISOString().split('T')[0];
+            
+            if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
+                // 只记录导致顺延的假期
+                let reason = `${dateStr} `;
+                if (dayOfWeek === 0) reason += "（星期日）";
+                else if (dayOfWeek === 6) reason += "（星期六）";
+                else reason += `（${specialHolidays[dateStr]}）`;
+                
+                delayReasons.push(reason);
+                targetDate.setDate(targetDate.getDate() + 1);
+            } else {
+                break;
             }
-            currentDate.setDate(currentDate.getDate() + 1);
         }
-
-        let verificationMessage = `从今天到第15天的日期之间共有 ${daysDiff} 天。\n`;
-        if (daysDiff > 15) {
-            verificationMessage += "原本15天後的日期遇到以下假期，需要顺延：\n";
-            verificationMessage += holidayInfo.join('\n');
+        
+        // 计算实际天数差
+        const timeDiff = targetDate - today;
+        const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        
+        let verificationMessage = `原始15天日期遇到假期需顺延：`;
+        if (delayReasons.length > 0) {
+            verificationMessage += delayReasons.join(' → ');
+            verificationMessage += `<br>实际间隔：${daysDiff}天（含${delayReasons.length}个假期）`;
+        } else {
+            verificationMessage = "原始15天日期是工作日，无需顺延";
         }
-
-        verificationResult.innerHTML = verificationMessage.replace(/\n/g, '<br>');
+        
+        verificationResult.innerHTML = verificationMessage;
         verificationResult.style.display = 'block';
     } else {
         verificationResult.style.display = 'none';
     }
 }
+
     function export120DaysTable() {
         try {
             let excelContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
