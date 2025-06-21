@@ -459,9 +459,9 @@
             currentDate.setDate(currentDate.getDate() + 1);
         }
         
-        let verificationMessage = `從今天到第15天的日期之間共有 ${daysDiff} 天。\n`;
+        let verificationMessage = `第15日結果中間共有 ${daysDiff} 天。\n`;
         if (daysDiff > 15) {
-            verificationMessage += "原本15天後的日期遇到以下假期，需要順延：\n";
+            verificationMessage += "第15天日遇到以下假期，需要順延：\n";
             verificationMessage += holidayInfo.join('\n');
         }
         
