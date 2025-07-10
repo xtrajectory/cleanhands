@@ -509,7 +509,7 @@
                 <textarea id="notes" placeholder="請在這裡輸入你的筆記內容..."></textarea>
                 <div class="button-group">
                     <button id="save" class="save-btn">儲存數據</button>
-                    <button id="reset" class="reset-btn">重置結果</button>
+                    <button id="reset" class="reset-btn">清除</button>
                 </div>
                 
                 <div class="result" id="result">
@@ -600,7 +600,7 @@
             textarea.style.height = Math.max(300, textarea.scrollHeight) + 'px';
         }
         
-        // 重置結果
+        // 清除結果
         function resetResult() {
             document.getElementById('detectedNumbers').innerHTML = '檢測到的數字：';
             document.getElementById('totalSum').textContent = '0';
@@ -630,23 +630,27 @@
             const numbersDiv = document.getElementById('detectedNumbers');
             const sumResult = document.getElementById('totalSum');
             
-            // 改進的正則表達式，可以匹配負數
-            const numberRegex = /-?\b\d+(\.\d+)?\b/g;
-            const numbers = notes.match(numberRegex);
-            
+            // 將內容分行，對每一行分別抓數字
+            const lines = notes.split('\n');
             let total = 0;
-            let numberList = '';
+            let numberListArr = [];
+            const numberRegex = /(^-?\d+(\.\d+)?(?= |$))|((?<= )-?\d+(\.\d+)?(?= |$))/g;
             
-            if (numbers && numbers.length > 0) {
-                numbers.forEach((num, index) => {
-                    const parsedNum = parseFloat(num);
-                    total += parsedNum;
-                    // 為負數添加紅色樣式
-                    const displayNum = parsedNum < 0 ? `<span style="color: #f44336;">${num}</span>` : num;
-                    numberList += index > 0 ? ', ' + displayNum : displayNum;
-                });
-                
-                numbersDiv.innerHTML = `檢測到的數字：${numberList}`;
+            lines.forEach(line => {
+                const numbers = line.match(numberRegex);
+                if (numbers && numbers.length > 0) {
+                    numbers.forEach(num => {
+                        const parsedNum = parseFloat(num);
+                        total += parsedNum;
+                        // 為負數添加紅色樣式
+                        const displayNum = parsedNum < 0 ? `<span style=\"color: #f44336;\">${num}</span>` : num;
+                        numberListArr.push(displayNum);
+                    });
+                }
+            });
+            
+            if (numberListArr.length > 0) {
+                numbersDiv.innerHTML = `檢測到的數字：${numberListArr.join(', ')}`;
                 sumResult.textContent = total;
                 updateSumColor(total);
             } else {
@@ -719,21 +723,21 @@
             const lines = notes.split('\n').filter(line => line.trim());
             const result = [];
             let totalSum = 0;
+            const numberRegex = /(^-?\d+(\.\d+)?(?= |$))|((?<= )-?\d+(\.\d+)?(?= |$))/g;
             
             lines.forEach(line => {
                 const trimmedLine = line.trim();
                 if (trimmedLine) {
                     // 提取數字
-                    const numberRegex = /-?\b\d+(\.\d+)?\b/g;
                     const numbers = trimmedLine.match(numberRegex);
-                    
                     // 提取文字（移除數字後的部分）
-                    const textPart = trimmedLine.replace(numberRegex, '').trim();
-                    
+                    let textPart = trimmedLine;
                     if (numbers && numbers.length > 0) {
                         numbers.forEach(num => {
                             const parsedNum = parseFloat(num);
                             totalSum += parsedNum;
+                            // 移除該數字（只移除一次）
+                            textPart = textPart.replace(num, '').trim();
                             result.push({
                                 text: textPart || '無描述',
                                 number: parsedNum
