@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>澳門2025消費嘉年華 抽獎紀錄</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#141a2f; --muted:#8288a2; --text:#e8ecff; --accent:#78a6ff; --accent2:#67e8f9;
+      --card:#0f1528; --ring:#22315e; --good:#3ddc97; --warn:#ffcc66; --danger:#ff7a7a;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;padding:0;font-family:"Noto Sans TC", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background:linear-gradient(120deg,#0b1020,#0e1430 50%,#0b1226); color:var(--text)}
+    header{padding:20px 16px 6px; position:sticky; top:0; background:linear-gradient(120deg,#0b1020dd,#0e1430dd 50%,#0b1226dd); backdrop-filter:blur(8px); border-bottom:1px solid #1f2748}
+    h1{margin:0;font-weight:700; font-size:22px; letter-spacing:0.5px}
+    .sub{color:var(--muted); font-size:13px; margin-top:6px}
+    main{padding:18px; max-width:1100px; margin:0 auto}
+    .wrap{display:grid; grid-template-columns:1.2fr 1fr; gap:18px}
+    @media (max-width:980px){.wrap{grid-template-columns:1fr}}
+
+    .card{background:var(--panel); border:1px solid #1f2748; border-radius:18px; padding:16px; box-shadow:0 4px 16px #00000030}
+    .card h2{margin:0 0 8px; font-size:18px}
+    .toolbar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0 14px}
+    select, input[type="number"], button{background:var(--card); border:1px solid var(--ring); color:var(--text); border-radius:12px; padding:10px 12px; font-size:14px}
+    button{cursor:pointer; transition:transform .04s ease, background .2s}
+    button:hover{transform:translateY(-1px)}
+    .btn-primary{background:linear-gradient(135deg,#3158ff,#00e5ff); border:0; color:#00122a; font-weight:700}
+    .btn-ghost{background:transparent}
+    .btn-danger{background:linear-gradient(135deg,#ff6b6b,#ff9f80); border:0; color:#2b0a0a; font-weight:700}
+    .grid{display:grid; gap:10px}
+    .table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:14px}
+    .table th,.table td{border-bottom:1px solid #22315e; padding:10px; text-align:center}
+    .table thead th{background:#101630; position:sticky; top:0; z-index:1}
+    .badge{padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid #2b3b72; color:#a9b5ff}
+    details{border:1px solid #1f2748; border-radius:12px; padding:10px 12px; background:#0f1528}
+    details+details{margin-top:10px}
+    summary{cursor:pointer; color:#cdd7ff}
+    .muted{color:var(--muted)}
+    .footer-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px; flex-wrap:wrap}
+    .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+    @media (max-width:680px){.kpis{grid-template-columns:repeat(2,1fr)}}
+    .kpi{background:linear-gradient(180deg,#0e1633,#0a1228); border:1px solid #22315e; padding:12px; border-radius:14px}
+    .kpi .label{color:#a6b1d9; font-size:12px}
+    .kpi .val{font-size:20px; font-weight:700}
+    .hint{font-size:12px; color:#aab3da}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>澳門2025消費嘉年華｜抽獎紀錄系統</h1>
+    <div class="sub">支援：每週三次/機構、當期統計與所有期統計、HK時間週一 00:00 自動歸檔、Excel 匯出</div>
+  </header>
+  <main>
+    <section class="wrap">
+      <div class="card">
+        <h2>目前期數（依香港時間）</h2>
+        <div class="toolbar">
+          <span class="badge" id="currentPeriodLabel">—</span>
+          <span class="hint" id="currentDateHint"></span>
+          <button class="btn-primary" id="saveCurrent">儲存本期</button>
+          <button class="btn-danger" id="resetCurrent">重置此期資料</button>
+          <button id="downloadExcel">下載Excel</button>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="label">本期總額（合計）</div><div class="val" id="kpiThisSum">0</div><div class="hint">各機構三次加總</div></div>
+          <div class="kpi"><div class="label">本期消費金額=總額×3</div><div class="val" id="kpiThisSpend">0</div><div class="hint">依規則自動計算</div></div>
+          <div class="kpi"><div class="label">所有期總額</div><div class="val" id="kpiAllSum">0</div><div class="hint">含已歸檔期數</div></div>
+          <div class="kpi"><div class="label">已歸檔期數</div><div class="val" id="kpiArchived">0 / 13</div><div class="hint">倒序折疊顯示</div></div>
+        </div>
+
+        <div id="inputArea" class="grid" style="margin-top:14px"></div>
+        <div class="footer-actions">
+          <div class="muted">未輸入視為 0 元；允許金額：200、100、50、20、10、0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>圖表</h2>
+        <div class="hint">上：本期份額大餅圖；下：自記錄開始之總份額</div>
+        <div class="toolbar"><button id="toggleChartType">切換圖表類型</button><span class="muted" id="chartTypeLabel">目前：大餅圖</span></div>
+        <canvas id="pieThis" height="220"></canvas>
+        <div style="height:12px"></div>
+        <canvas id="pieAll" height="220"></canvas>
+      </div>
+    </section>
+
+    <section style="margin-top:18px" class="card">
+      <h2>歷史期數（倒序；自動折疊）</h2>
+      <div class="toolbar">
+        <label>前往輸入/修改某期：
+          <select id="jumpPeriod"></select>
+        </label>
+        <button id="saveSelected" class="btn-primary">將畫面資料儲存到所選期</button>
+      </div>
+      <div id="historyArea" class="grid"></div>
+    </section>
+
+    <section style="margin-top:18px" class="card">
+      <h2>說明</h2>
+      <ol>
+        <li>每機構每週有 3 次抽獎；未填者視為 0 元。</li>
+        <li>每期顯示三次抽獎合計，並同時計算「合計×3」的消費金額。</li>
+        <li>頁面僅顯示「目前這週」的輸入區；週日結束後（香港時間週一 00:00），會自動把本期資料歸檔到對應期數，並重置新一期的輸入。</li>
+        <li>可手動選擇某期進行補登，再按「將畫面資料儲存到所選期」。</li>
+        <li>按「下載Excel」可導出完整資料（每期、每機構、三次、合計、合計×3）。</li>
+        <li>「重置此期資料」只清除此期，不影響既有歸檔期數。</li>
+      </ol>
+      <div class="muted">時間基準：香港時間（Asia/Hong_Kong）。</div>
+    </section>
+  </main>
+
+  <script>
+  ;(() => {
+    const INSTITUTIONS = ["中國銀行","大豐銀行","工商銀行","國際銀行","廣發銀行","Mpay","支付寶","UePay"]
+    const ALLOWED = [200,100,50,20,10,0]
+
+    // 13 期定義（2025）
+    const PERIODS = [
+      {id:1,  start:"2025-09-01", end:"2025-09-05"},
+      {id:2,  start:"2025-09-08", end:"2025-09-12"},
+      {id:3,  start:"2025-09-15", end:"2025-09-19"},
+      {id:4,  start:"2025-09-22", end:"2025-09-26"},
+      {id:5,  start:"2025-09-29", end:"2025-10-03"},
+      {id:6,  start:"2025-10-06", end:"2025-10-10"},
+      {id:7,  start:"2025-10-13", end:"2025-10-17"},
+      {id:8,  start:"2025-10-20", end:"2025-10-24"},
+      {id:9,  start:"2025-10-27", end:"2025-10-31"},
+      {id:10, start:"2025-11-03", end:"2025-11-07"},
+      {id:11, start:"2025-11-10", end:"2025-11-14"},
+      {id:12, start:"2025-11-17", end:"2025-11-21"},
+      {id:13, start:"2025-11-24", end:"2025-11-28"},
+    ].map(p=>({
+      ...p,
+      label:`第${numToCN(p.id)}期（${p.start}－${p.end}）`
+    }))
+
+    function numToCN(n){
+      const map=["零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三"]
+      return map[n]||String(n)
+    }
+
+    const HK_TZ = "Asia/Hong_Kong"
+
+    function todayHK(){
+      // 取香港時區的今天 YYYY-MM-DD
+      const fmt = new Intl.DateTimeFormat('zh-Hant', { timeZone: HK_TZ, year:'numeric', month:'2-digit', day:'2-digit'})
+      const parts = fmt.formatToParts(new Date())
+      const y = parts.find(p=>p.type==='year').value
+      const m = parts.find(p=>p.type==='month').value
+      const d = parts.find(p=>p.type==='day').value
+      return `${y}-${m}-${d}`
+    }
+
+    function inRange(dateStr, start, end){
+      return dateStr >= start && dateStr <= end
+    }
+
+    function currentPeriodByDate(dateStr){
+      return PERIODS.find(p => inRange(dateStr, p.start, p.end)) || null
+    }
+
+    function makeEmptyPeriodData(){
+      const obj = {}
+      INSTITUTIONS.forEach(n=>{ obj[n] = { draws:[0,0,0] } })
+      return obj
+    }
+
+    function deepEqual(a, b) {
+      // 簡單深度比較（只針對本結構）
+      return JSON.stringify(a) === JSON.stringify(b)
+    }
+
+    const STORE_KEY = 'macao-carnival-2025'
+    const state = loadState()
+
+    function loadState(){
+      const raw = localStorage.getItem(STORE_KEY)
+      if(raw){
+        try{ return JSON.parse(raw) }catch(e){ console.warn('state parse error', e) }
+      }
+      return {
+        archived: {}, // { periodId: { institutions: { name:{draws:[]}}, savedAt:"ts" } }
+        current: { periodId: null, institutions: makeEmptyPeriodData(), startedAt: todayHK() },
+        lastAutoWeekToken: null,
+      }
+    }
+
+    function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)) }
+
+    function ensureCurrentPeriod(){
+      const today = todayHK()
+      const p = currentPeriodByDate(today)
+      state.current.periodId = p ? p.id : null
+      saveState()
+      return p
+    }
+
+    function renderPeriodLabel(p){
+      return p ? `目前：${p.label}` : '目前：不在 13 期範圍內（仍可記錄，將不會自動歸檔）'
+    }
+
+    // --- UI 构建：輸入區 ---
+    const inputArea = document.getElementById('inputArea')
+
+    function buildInputGrid(){
+      inputArea.innerHTML = ''
+      const table = document.createElement('table')
+      table.className = 'table'
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th style="text-align:left">機構</th>
+            <th>第1次</th><th>第2次</th><th>第3次</th>
+            <th>合計</th><th>合計×3</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `
+      const tb = table.querySelector('tbody')
+
+      INSTITUTIONS.forEach(name=>{
+        const tr = document.createElement('tr')
+        const tdName = document.createElement('td')
+        tdName.style.textAlign = 'left'
+        tdName.textContent = name
+        tr.appendChild(tdName)
+
+        const draws = state.current.institutions[name].draws
+
+        for(let i=0;i<3;i++){
+          const td = document.createElement('td')
+          const sel = document.createElement('select')
+          sel.dataset.inst = name
+          sel.dataset.idx = String(i)
+          ALLOWED.forEach(v=>{
+            const opt = document.createElement('option')
+            opt.value = String(v)
+            opt.textContent = String(v)
+            if(draws[i]===v) opt.selected = true
+            sel.appendChild(opt)
+          })
+          sel.addEventListener('change', e=>{
+            const inst = e.target.dataset.inst
+            const idx = +e.target.dataset.idx
+            const val = +e.target.value
+            state.current.institutions[inst].draws[idx] = val
+            saveState(); refreshKPIsAndCharts(); refreshTableRow(inst, tr)
+          })
+          td.appendChild(sel)
+          tr.appendChild(td)
+        }
+
+        const tdSum = document.createElement('td')
+        const tdSpend = document.createElement('td')
+        tdSum.className='sum'
+        tdSpend.className='spend'
+        tr.appendChild(tdSum)
+        tr.appendChild(tdSpend)
+        tb.appendChild(tr)
+
+        refreshTableRow(name, tr)
+      })
+
+      inputArea.appendChild(table)
+    }
+
+    function rowSum(draws){ return draws.reduce((a,b)=>a+b,0) }
+
+    function refreshTableRow(name, tr){
+      const draws = state.current.institutions[name].draws
+      const sum = rowSum(draws)
+      tr.querySelector('.sum').textContent = sum
+      tr.querySelector('.spend').textContent = sum*3
+    }
+
+    // KPIs & Charts
+    const kpiThisSum = document.getElementById('kpiThisSum')
+    const kpiThisSpend = document.getElementById('kpiThisSpend')
+    const kpiAllSum = document.getElementById('kpiAllSum')
+    const kpiArchived = document.getElementById('kpiArchived')
+
+    let pieThis, pieAll
+    let chartType = 'pie' // 'pie' 或 'bar'
+
+    function currentTotalsPerInst(){
+      return INSTITUTIONS.map(n => rowSum(state.current.institutions[n].draws))
+    }
+
+    function archivedTotalsPerInst(){
+      const sums = Object.fromEntries(INSTITUTIONS.map(n=>[n,0]))
+      for(const pid of Object.keys(state.archived)){
+        const item = state.archived[pid]
+        INSTITUTIONS.forEach(n=>{ sums[n] += rowSum(item.institutions[n].draws) })
+      }
+      // 不再加上本期輸入（如果本期已歸檔）
+      // return INSTITUTIONS.map(n=>sums[n])
+      return INSTITUTIONS.map(n=>sums[n])
+    }
+
+    function refreshKPIsAndCharts(){
+      const thisSum = currentTotalsPerInst().reduce((a,b)=>a+b,0)
+      kpiThisSum.textContent = thisSum
+      kpiThisSpend.textContent = thisSum*3
+
+      let allSum = 0
+      for(const pid of Object.keys(state.archived)){
+        const item = state.archived[pid]
+        for(const n of INSTITUTIONS){ allSum += rowSum(item.institutions[n].draws) }
+      }
+      // 若本期已歸檔，則不加上當前輸入
+      const curPid = state.current.periodId
+      if(curPid && !state.archived[curPid]){
+        allSum += thisSum
+      }
+      kpiAllSum.textContent = allSum
+      kpiArchived.textContent = `${Object.keys(state.archived).length} / 13`
+
+      const labels = INSTITUTIONS
+      const dataThis = currentTotalsPerInst()
+      // dataAll: 若本期已歸檔，則不加上當前輸入
+      let dataAll = archivedTotalsPerInst()
+      if(curPid && !state.archived[curPid]){
+        dataAll = dataAll.map((v,i)=>v + dataThis[i])
+      }
+
+      // 先清空 canvas，避免殘影
+      const pieThisCanvas = document.getElementById('pieThis')
+      const pieAllCanvas = document.getElementById('pieAll')
+      pieThisCanvas.getContext('2d').clearRect(0, 0, pieThisCanvas.width, pieThisCanvas.height)
+      pieAllCanvas.getContext('2d').clearRect(0, 0, pieAllCanvas.width, pieAllCanvas.height)
+
+      if(pieThis){ pieThis.destroy(); pieThis = null }
+      if(pieAll){ pieAll.destroy(); pieAll = null }
+
+      if(chartType==='pie'){
+        pieThis = new Chart(pieThisCanvas, {
+          type:'pie',
+          data: { labels, datasets:[{ data: dataThis }] },
+          options: { plugins:{ legend:{ position:'bottom' } } }
+        })
+        pieAll = new Chart(pieAllCanvas, {
+          type:'pie',
+          data: { labels, datasets:[{ data: dataAll }] },
+          options: { plugins:{ legend:{ position:'bottom' } } }
+        })
+      }else{
+        pieThis = new Chart(pieThisCanvas, {
+          type:'bar',
+          data: {
+            labels,
+            datasets:[{
+              label:'金額',
+              data: dataThis,
+              backgroundColor: '#78a6ff',
+              borderRadius: 8,
+              maxBarThickness: 40
+            }]
+          },
+          options: {
+            plugins:{ legend:{ display:false } },
+            scales:{
+              x: { grid: { color: '#22315e' }, ticks: { color: '#e8ecff' } },
+              y: { beginAtZero:true, grid: { color: '#22315e' }, ticks: { color: '#e8ecff' } }
+            }
+          }
+        })
+        // pieAll 改為 stacked bar（多期）
+        pieAll = new Chart(pieAllCanvas, {
+          type:'bar',
+          data: (() => {
+            // 取得所有期數（已歸檔，依期數排序）
+            const periodIds = Object.keys(state.archived).map(x=>+x).sort((a,b)=>a-b)
+            // 顏色組
+            const colors = [
+              '#78a6ff','#67e8f9','#ffcc66','#ff7a7a','#3ddc97','#a78bfa','#f472b6','#fbbf24',
+              '#60a5fa','#34d399','#f87171','#facc15','#a3e635'
+            ]
+            // 每期一個 dataset（只用已歸檔，不加未歸檔）
+            const datasets = periodIds.map((pid, i) => ({
+              label: PERIODS.find(p=>p.id===pid)?.label || `第${pid}期`,
+              data: INSTITUTIONS.map(n => rowSum(state.archived[pid].institutions[n].draws)),
+              backgroundColor: colors[i % colors.length],
+              stack: 'periods',
+              borderRadius: 8,
+              maxBarThickness: 40
+            }))
+            return {
+              labels: INSTITUTIONS,
+              datasets
+            }
+          })(),
+          options: {
+            plugins:{ 
+              legend:{ display:true, position:'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const inst = context.label
+                    const val = context.parsed.y
+                    const period = context.dataset.label
+                    return `${period}｜${inst}：${val} 元`
+                  }
+                }
+              }
+            },
+            scales:{
+              x: {
+                stacked:true,
+                grid: { color: '#22315e' },
+                ticks: {
+                  color: '#e8ecff',
+                  callback: function(value, index, ticks) {
+                    // value: label, index: 機構索引
+                    const inst = this.getLabelForValue(value)
+                    // 計算該機構所有已歸檔期數的總額
+                    let total = 0
+                    for(const pid of Object.keys(state.archived)){
+                      const draws = state.archived[pid].institutions[inst]?.draws || [0,0,0]
+                      total += draws.reduce((a,b)=>a+b,0)
+                    }
+                    return `${inst}\n($${total})`
+                  }
+                }
+              },
+              y: { stacked:true, beginAtZero:true, grid: { color: '#22315e' }, ticks: { color: '#e8ecff' } }
+            }
+          }
+        })
+      }
+      // 更新標籤
+      document.getElementById('chartTypeLabel').textContent = `目前：${chartType==='pie'?'大餅圖':'長柱圖'}`
+    }
+
+    // 歷史區
+    const historyArea = document.getElementById('historyArea')
+
+    function buildHistory(){
+      historyArea.innerHTML = ''
+      const ids = Object.keys(state.archived).map(x=>+x).sort((a,b)=>b-a) // 倒序
+      ids.forEach(pid=>{
+        const p = PERIODS.find(x=>x.id===pid)
+        // 計算該期總和
+        let total = 0
+        INSTITUTIONS.forEach(n=>{
+          const draws = state.archived[pid].institutions[n].draws
+          total += rowSum(draws)
+        })
+        const details = document.createElement('details')
+        details.innerHTML = `<summary>${p? p.label : `第${pid}期`} ｜ 總額：${total}</summary>`
+        const wrap = document.createElement('div')
+        const tbl = document.createElement('table')
+        tbl.className = 'table'
+        tbl.innerHTML = `<thead><tr><th style="text-align:left">機構</th><th>第1次</th><th>第2次</th><th>第3次</th><th>合計</th><th>合計×3</th></tr></thead><tbody></tbody>`
+        const tb = tbl.querySelector('tbody')
+        INSTITUTIONS.forEach(n=>{
+          const tr = document.createElement('tr')
+          const d = state.archived[pid].institutions[n].draws
+          tr.innerHTML = `<td style="text-align:left">${n}</td><td>${d[0]}</td><td>${d[1]}</td><td>${d[2]}</td><td>${rowSum(d)}</td><td>${rowSum(d)*3}</td>`
+          tb.appendChild(tr)
+        })
+        wrap.appendChild(tbl)
+        // 新增刪除按鈕
+        const delBtn = document.createElement('button')
+        delBtn.textContent = '刪除此期資料'
+        delBtn.className = 'btn-danger'
+        delBtn.style.marginTop = '10px'
+        delBtn.addEventListener('click', ()=>{
+          if(confirm(`確定要刪除 ${p? p.label : `第${pid}期`} 的所有資料嗎？此動作無法復原。`)){
+            delete state.archived[pid]
+            saveState(); buildHistory(); refreshKPIsAndCharts();
+          }
+        })
+        wrap.appendChild(delBtn)
+        details.appendChild(wrap)
+        historyArea.appendChild(details)
+      })
+    }
+
+    // 跳至某期補登
+    const jumpSelect = document.getElementById('jumpPeriod')
+    function buildJumpSelect(){
+      jumpSelect.innerHTML = '<option value="">選擇期數…</option>'
+      PERIODS.forEach(p=>{
+        const opt = document.createElement('option')
+        opt.value = String(p.id)
+        opt.textContent = p.label
+        jumpSelect.appendChild(opt)
+      })
+    }
+
+    // 儲存當前輸入到所選期
+    document.getElementById('saveSelected').addEventListener('click', ()=>{
+      const v = jumpSelect.value
+      if(!v){ alert('請先選擇期數'); return }
+      const pid = +v
+      state.archived[pid] = { institutions: JSON.parse(JSON.stringify(state.current.institutions)), savedAt: new Date().toISOString() }
+      saveState(); buildHistory(); refreshKPIsAndCharts(); alert(`已儲存到 ${PERIODS.find(p=>p.id===pid).label}`)
+    })
+
+    // 本期儲存
+    document.getElementById('saveCurrent').addEventListener('click', ()=>{
+      const pid = state.current.periodId
+      if(!pid){ alert('目前日期不在 13 期內，將不會歸檔。'); return }
+      state.archived[pid] = { institutions: JSON.parse(JSON.stringify(state.current.institutions)), savedAt: new Date().toISOString() }
+      saveState(); buildHistory(); refreshKPIsAndCharts(); alert(`已儲存：${PERIODS.find(p=>p.id===pid).label}`)
+    })
+
+    // 重置本期
+    document.getElementById('resetCurrent').addEventListener('click', ()=>{
+      if(!confirm('確定要重置「此期」的資料嗎？此動作無法復原。')) return
+      state.current.institutions = makeEmptyPeriodData()
+      saveState(); buildInputGrid(); refreshKPIsAndCharts()
+    })
+
+    // Excel 下載
+    document.getElementById('downloadExcel').addEventListener('click', ()=>{
+      const rows = []
+      function pushPeriod(pid, data){
+        INSTITUTIONS.forEach(n=>{
+          const d = data.institutions[n].draws
+          rows.push({
+            期數: `第${pid}期`, 機構: n, 第1次: d[0], 第2次: d[1], 第3次: d[2], 合計: rowSum(d), 合計x3: rowSum(d)*3
+          })
+        })
+      }
+      for(const pid of Object.keys(state.archived).sort((a,b)=>+a-+b)){
+        pushPeriod(pid, state.archived[pid])
+      }
+      // 也附上當期畫面資料（若目前日期屬於某期，以「第X期(未歸檔)」標示）
+      const labelPid = state.current.periodId ? `${state.current.periodId}(未歸檔)` : `0(未歸檔)`
+      pushPeriod(labelPid, { institutions: state.current.institutions })
+
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, '抽獎紀錄')
+      XLSX.writeFile(wb, '澳門2025消費嘉年華_抽獎紀錄.xlsx')
+    })
+
+    // 自動歸檔：香港時間每週一 00:00 觸發
+    function weekTokenHK(date = new Date()){
+      const z = new Date(date.toLocaleString('en-US', { timeZone: HK_TZ }))
+      // 取得該週的週一日期字串
+      const day = z.getDay() || 7 // 1..7 (Mon..Sun)
+      const monday = new Date(z)
+      monday.setDate(z.getDate() - (day-1))
+      return monday.toISOString().slice(0,10)
+    }
+
+    function autoArchiveIfNeeded(){
+      const token = weekTokenHK()
+      if(state.lastAutoWeekToken && state.lastAutoWeekToken !== token){
+        // 週切換：將上一週資料歸檔到對應期數
+        const lastToken = state.lastAutoWeekToken
+        // 找到上週「任何一天」所屬的期數：用上週五（週一+4）
+        const monday = new Date(`${lastToken}T00:00:00`)
+        const friday = new Date(monday)
+        friday.setDate(monday.getDate()+4)
+        const fridayHK = friday.toLocaleString('sv-SE', { timeZone: HK_TZ }).slice(0,10)
+        const p = currentPeriodByDate(fridayHK)
+        if(p){
+          const archived = state.archived[p.id]
+          const curData = JSON.parse(JSON.stringify(state.current.institutions))
+          if(!archived || !deepEqual(archived.institutions, curData)){
+            state.archived[p.id] = { institutions: curData, savedAt: new Date().toISOString() }
+          }
+        }
+        // 開啟新一期
+        state.current.institutions = makeEmptyPeriodData()
+        ensureCurrentPeriod()
+        saveState(); buildHistory(); buildInputGrid(); refreshKPIsAndCharts()
+      }
+      state.lastAutoWeekToken = token
+      saveState()
+    }
+
+    // 初始化
+    function init(){
+      const p = ensureCurrentPeriod()
+  document.getElementById('currentPeriodLabel').textContent = renderPeriodLabel(p)
+  document.getElementById('currentDateHint').textContent = `今天（香港）：${todayHK()}`
+  buildInputGrid(); buildHistory(); buildJumpSelect(); refreshKPIsAndCharts(); autoArchiveIfNeeded()
+
+  // 每 60 秒檢查一次是否跨週（HK）
+  setInterval(autoArchiveIfNeeded, 60*1000)
+
+  // ★ 新增這裡：切換圖表類型按鈕
+  document.getElementById('toggleChartType').addEventListener('click', () => {
+    chartType = (chartType === 'pie' ? 'bar' : 'pie')
+    refreshKPIsAndCharts()
+  })
+}
+
+    init()
+  })()
+  </script>
+</body>
+</html>
