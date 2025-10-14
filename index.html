@@ -232,25 +232,25 @@
     // 禁止鍵盤快捷鍵
     document.addEventListener('keydown', function(e) {
         // 禁止 Ctrl+A (全選)
-        if (e.ctrlKey && e.keyCode === 65) {
+        if (e.ctrlKey && e.key === 'a') {
             e.preventDefault();
             return false;
         }
         
         // 禁止 Ctrl+C (複製)
-        if (e.ctrlKey && e.keyCode === 67) {
+        if (e.ctrlKey && e.key === 'c') {
             e.preventDefault();
             return false;
         }
         
         // 禁止 Ctrl+V (粘貼)
-        if (e.ctrlKey && e.keyCode === 86) {
+        if (e.ctrlKey && e.key === 'v') {
             e.preventDefault();
             return false;
         }
         
         // 禁止 F12 (開發者工具)
-        if (e.keyCode === 123) {
+        if (e.key === 'F12') {
             e.preventDefault();
             return false;
         }
@@ -473,23 +473,22 @@
         const timeDiff = fifteenthWorkday - today;
         const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
         
-        // 收集從第15天起的假期資訊（排除15天內的日期）
         let holidayInfo = [];
-        let currentDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000); // 從第15天開始檢查
-        
+        let currentDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
+
         while (currentDate <= fifteenthWorkday) {
             const dateStr = currentDate.toISOString().split('T')[0];
             const dayOfWeek = currentDate.getDay();
-            
-            // 只記錄需要順延的假期（週末或特殊節日）
+
             if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
-                holidayInfo.push(`${dateStr} 為${dayOfWeek === 0 ? '星期日' : dayOfWeek === 6 ? '星期六' : specialHolidays[dateStr]}`);
+                const holidayName = dayOfWeek === 0 ? '星期日' : dayOfWeek === 6 ? '星期六' : specialHolidays[dateStr];
+                holidayInfo.push(`${dateStr} 為${holidayName}`);
             }
             currentDate.setDate(currentDate.getDate() + 1);
         }
         
         let verificationMessage = `第15日結果中間共有 ${daysDiff} 天。\n`;
-        if (daysDiff > 15) {
+        if (holidayInfo.length > 0) {
             verificationMessage += "第15天日遇到以下假期，需要順延：\n";
             verificationMessage += holidayInfo.join('\n');
         }
