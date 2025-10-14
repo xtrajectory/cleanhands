@@ -185,20 +185,19 @@
             return { sunday, saturday };
         }
         
-        // 計算指定日期是一年中的第幾週
+        // 建立一個參考的週日，用於連續計算週數
+        const referenceSunday = new Date(2023, 0, 1); // 2023年1月1日是週日
+        referenceSunday.setHours(0, 0, 0, 0);
+        
+        // 計算指定日期是相對於參考日期的第幾週
         function getWeekNumber(date) {
-            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-            // 確保從週日開始計算週數
-            const dayOffset = firstDayOfYear.getDay();
-            // 調整第一週的開始日期至上一年最後一個週日
-            const firstSundayOfYear = new Date(firstDayOfYear);
-            firstSundayOfYear.setDate(firstDayOfYear.getDate() - dayOffset);
+            const targetDate = new Date(date);
+            targetDate.setHours(0, 0, 0, 0);
             
-            // 計算從年初第一個週日到指定日期的毫秒數
             const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
-            const diff = date - firstSundayOfYear;
+            const diff = targetDate - referenceSunday;
             
-            // 計算週數（從0開始）
+            // 計算週數
             return Math.floor(diff / millisecondsPerWeek);
         }
         
@@ -348,12 +347,16 @@
             let currentMonth = today.getMonth();
             let html = '';
 
-            // 顯示到今年12月
-            while (currentMonth <= 11) {
+            // 顯示到2026年12月
+            const endYear = 2026;
+            const endMonth = 11; // 11 代表十二月
+
+            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
                 html += createCalendar(currentYear, currentMonth, initialShift);
                 currentMonth++;
                 if (currentMonth > 11) {
-                    break;
+                    currentMonth = 0;
+                    currentYear++;
                 }
             }
 
