@@ -13,20 +13,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* 防止手機縮放 */
             touch-action: manipulation;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
-            /* 固定位置 */
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             overflow: hidden;
         }
         .header-container {
@@ -39,18 +31,12 @@
             width: 100%;
             max-width: 1200px;
             gap: 20px;
-            /* 適應固定位置 */
             height: calc(100vh - 80px);
             overflow-y: auto;
             overflow-x: hidden;
         }
-        .content-area {
-            flex: 2;
-        }
-        .sidebar {
-            flex: 1;
-            max-width: 400px;
-        }
+        .content-area { flex: 2; }
+        .sidebar { flex: 1; max-width: 400px; }
         .container {
             background-color: white;
             padding: 20px;
@@ -62,42 +48,91 @@
             color: #333;
             font-size: 28px;
             font-weight: bold;
-            margin-bottom: 0;
             background-color: white;
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 0;
         }
-        h1 {
+        h1, h2 {
             color: #333;
             text-align: center;
             margin-top: 0;
-            font-size: 24px; /* 输入区标题文字大小 */
+            font-size: 24px;
         }
-        h2 {
-            color: #333;
-            margin-top: 0;
-            font-size: 24px; /* 储存数据标题文字大小 */
-        }
-        textarea {
+
+        /* --- 輸入區樣式 --- */
+        .input-wrapper {
+            position: relative;
             width: 100%;
+            min-height: 300px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        /* 背景層：負責顯示顏色 */
+        .backdrop {
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: auto;
+            pointer-events: none;
+            color: #333;
+        }
+
+        /* 前景層：負責輸入，文字透明 */
+        textarea {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
             min-height: 300px;
             padding: 15px;
             box-sizing: border-box;
-            margin-bottom: 15px;
-            font-size: 16px; /* 输入区内容文字大小 */
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            border: none;
+            background-color: transparent;
+            color: transparent; /* 文字透明 */
+            caret-color: #000; /* 游標保持黑色 */
             resize: none;
             overflow-y: auto;
-            line-height: 1.5;
-            /* 允許在手機上正常輸入 */
             -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
             user-select: text;
             touch-action: auto;
         }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        /* --- 圓弧形底色樣式 --- */
+        .hl-num {
+            background-color: #e0e0e0; /* 淺灰色 */
+            border-radius: 12px; /* 較大的圓角產生圓弧/膠囊效果 */
+            padding: 2px 0; /* 僅增加垂直內邊距，避免水平游標錯位 */
+            /* 注意：這裡不加左右 padding 是為了保證 textarea 的光標位置準確 */
+            box-shadow: 0 0 0 1px #e0e0e0; /* 微調邊緣 */
+        }
+        
+        .hl-neg {
+            color: #f44336; /* 負數維持紅色文字 */
+        }
+        /* --- 輸入區樣式結束 --- */
+
         .button-group {
             display: flex;
             gap: 15px;
@@ -112,51 +147,26 @@
             border-radius: 4px;
             cursor: pointer;
             flex: 1;
-            /* 防止手機縮放 */
             touch-action: manipulation;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        .reset-btn {
-            background-color: #f44336;
-        }
-        .reset-btn:hover {
-            background-color: #d32f2f;
-        }
-        .save-btn {
-            background-color: #2196F3;
-        }
-        .save-btn:hover {
-            background-color: #1976D2;
-        }
+        button:hover { background-color: #45a049; }
+        .reset-btn { background-color: #f44336; }
+        .reset-btn:hover { background-color: #d32f2f; }
+        .save-btn { background-color: #2196F3; }
+        .save-btn:hover { background-color: #1976D2; }
+        
         .result {
             padding: 15px;
             background-color: #e8f5e9;
             border-left: 4px solid #4CAF50;
             margin-bottom: 15px;
         }
-        .numbers {
-            margin-bottom: 10px;
-        }
-        .sum {
-            font-weight: bold;
-            color: #333;
-        }
-        .negative {
-            color: #f44336;
-        }
-        .positive {
-            color: #4CAF50;
-        }
-        .zero {
-            color: #666;
-        }
+        .numbers { margin-bottom: 10px; word-break: break-all; }
+        .sum { font-weight: bold; color: #333; }
+        .negative { color: #f44336; }
+        .positive { color: #4CAF50; }
+        .zero { color: #666; }
         .test-version {
             text-align: center;
             font-size: 12px;
@@ -164,67 +174,63 @@
             margin-top: 10px;
             font-style: italic;
         }
+        
+        /* 儲存列表樣式 */
         .saved-item {
             background-color: #f9f9f9;
-            padding: 12px; /* 减少内边距 */
-            margin-bottom: 12px; /* 减少间距 */
+            padding: 12px;
+            margin-bottom: 12px;
             border-radius: 4px;
             border: 1px solid #ddd;
             font-size: 14px;
-            line-height: 1.3; /* 减少行高 */
+            line-height: 1.3;
+            transition: background-color 0.3s;
         }
+        /* 新增一個閃爍動畫，用於提示自動更新 */
+        @keyframes flashUpdate {
+            0% { background-color: #e3f2fd; }
+            100% { background-color: #f9f9f9; }
+        }
+        .updated-item {
+            animation: flashUpdate 1s ease-out;
+        }
+
         .saved-item h4 {
-            margin: 0 0 8px 0; /* 减少底部间距 */
+            margin: 0 0 8px 0;
             color: #333;
-            font-size: 22px; /* 标题字体缩小2px */
+            font-size: 16px;
+            font-weight: bold;
         }
-        .saved-item p {
-            margin: 6px 0; /* 减少段落间距 */
-            color: #666;
-        }
+        .saved-item p { margin: 6px 0; color: #666; }
         .saved-buttons {
             display: flex;
             gap: 5px;
-            margin-top: 10px; /* 减少顶部间距 */
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
-        .restore-btn {
-            background-color: #FF9800;
-            padding: 6px 10px; /* 减少按钮内边距 */
-            font-size: 12px;
-        }
-        .restore-btn:hover {
-            background-color: #F57C00;
-        }
-        .delete-btn {
-            background-color: #f44336;
-            padding: 6px 10px; /* 减少按钮内边距 */
-            font-size: 12px;
-        }
-        .delete-btn:hover {
-            background-color: #d32f2f;
-        }
-        .export-btn {
-            background-color: #4CAF50;
-            padding: 6px 10px; /* 减少按钮内边距 */
-            font-size: 12px;
-        }
-        .export-btn:hover {
-            background-color: #45a049;
-        }
+        .restore-btn { background-color: #FF9800; padding: 6px 10px; font-size: 12px; }
+        .restore-btn:hover { background-color: #F57C00; }
+        .delete-btn { background-color: #f44336; padding: 6px 10px; font-size: 12px; }
+        .delete-btn:hover { background-color: #d32f2f; }
+        .export-btn { background-color: #4CAF50; padding: 6px 10px; font-size: 12px; }
+        .export-btn:hover { background-color: #45a049; }
+        .rename-btn { background-color: #2196F3; padding: 6px 10px; font-size: 12px; }
+        .rename-btn:hover { background-color: #1976D2; }
+
         .delete-all-btn {
             background-color: #d32f2f;
             width: 100%;
-            margin-top: 12px; /* 减少顶部间距 */
-            padding: 10px; /* 减少按钮内边距 */
+            margin-top: 12px;
+            padding: 10px;
             font-size: 14px;
         }
-        .delete-all-btn:hover {
-            background-color: #b71c1c;
-        }
+        .delete-all-btn:hover { background-color: #b71c1c; }
+        
+        /* Modal 樣式 */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
+            z-index: 100;
             left: 0;
             top: 0;
             width: 100%;
@@ -245,244 +251,36 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
+            -webkit-user-select: text;
+            user-select: text;
+            touch-action: auto;
         }
         .modal-buttons {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
-        .modal-buttons button {
-            flex: 1;
-        }
-        .cancel-btn {
-            background-color: #9e9e9e;
-        }
-        .cancel-btn:hover {
-            background-color: #757575;
-        }
-        
-        /* 響應式設計 - 手機適配 */
+        .modal-buttons button { flex: 1; }
+        .cancel-btn { background-color: #9e9e9e; }
+        .cancel-btn:hover { background-color: #757575; }
+
+        /* 響應式設計 */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-                /* 手機上保持固定位置 */
-                position: fixed;
-                overflow: hidden;
-            }
-            
+            body { padding: 10px; }
             .main-container {
                 flex-direction: column;
                 gap: 15px;
-                /* 手機上的高度調整 */
                 height: calc(100vh - 60px);
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch; /* iOS平滑滾動 */
             }
-            
-            .content-area {
-                flex: none;
-            }
-            
-            .sidebar {
-                flex: none;
-                max-width: none;
-            }
-            
-            .page-title {
-                font-size: 24px;
-                padding: 12px;
-                margin-bottom: 15px;
-            }
-            
-            h1 {
-                font-size: 20px;
-            }
-            
-            h2 {
-                font-size: 20px;
-            }
-            
-            textarea {
-                min-height: 200px;
-                font-size: 14px;
-                padding: 12px;
-                /* 確保手機上可以正常輸入 */
-                -webkit-user-select: text;
-                user-select: text;
-                touch-action: auto;
-            }
-            
-            .button-group {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            button {
-                font-size: 14px;
-                padding: 12px 15px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .saved-item {
-                padding: 10px;
-                margin-bottom: 10px;
-                font-size: 13px;
-            }
-            
-            .saved-item h4 {
-                font-size: 18px;
-                margin-bottom: 6px;
-            }
-            
-            .saved-item p {
-                margin: 4px 0;
-                font-size: 12px;
-            }
-            
-            .saved-buttons {
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: 8px;
-            }
-            
-            .restore-btn,
-            .export-btn,
-            .delete-btn {
-                padding: 8px 12px;
-                font-size: 11px;
-                flex: 1;
-                min-width: 60px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .delete-all-btn {
-                padding: 12px;
-                font-size: 13px;
-                margin-top: 10px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .modal-content {
-                width: 90%;
-                margin: 20% auto;
-                padding: 15px;
-            }
-            
-            .modal input {
-                font-size: 14px;
-                padding: 12px;
-                /* 確保手機上可以正常輸入 */
-                -webkit-user-select: text;
-                user-select: text;
-                touch-action: auto;
-            }
-            
-            .modal-buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .modal-buttons button {
-                font-size: 14px;
-                padding: 12px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .result {
-                padding: 12px;
-                font-size: 14px;
-            }
-            
-            .test-version {
-                font-size: 11px;
-                margin-top: 8px;
-            }
+            .input-wrapper, textarea { min-height: 200px; }
+            .page-title { font-size: 24px; padding: 12px; }
+            button { padding: 12px 15px; }
+            .modal-content { width: 85%; margin: 20% auto; }
         }
-        
-        /* 超小螢幕適配 */
         @media (max-width: 480px) {
-            body {
-                padding: 8px;
-                /* 超小螢幕上保持固定位置 */
-                position: fixed;
-                overflow: hidden;
-            }
-            
-            .main-container {
-                /* 超小螢幕上的高度調整 */
-                height: calc(100vh - 50px);
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .page-title {
-                font-size: 22px;
-                padding: 10px;
-            }
-            
-            h1, h2 {
-                font-size: 18px;
-            }
-            
-            textarea {
-                min-height: 180px;
-                font-size: 13px;
-                padding: 10px;
-                /* 確保超小螢幕上可以正常輸入 */
-                -webkit-user-select: text;
-                user-select: text;
-                touch-action: auto;
-            }
-            
-            button {
-                font-size: 13px;
-                padding: 10px 12px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .saved-item {
-                padding: 8px;
-                font-size: 12px;
-            }
-            
-            .saved-item h4 {
-                font-size: 16px;
-            }
-            
-            .saved-item p {
-                font-size: 11px;
-            }
-            
-            .restore-btn,
-            .export-btn,
-            .delete-btn {
-                padding: 6px 8px;
-                font-size: 10px;
-                /* 防止手機縮放 */
-                touch-action: manipulation;
-                -webkit-user-select: none;
-                user-select: none;
-            }
-            
-            .result {
-                padding: 10px;
-                font-size: 13px;
-            }
+            .input-wrapper, textarea { min-height: 180px; }
+            .page-title { font-size: 22px; }
+            button { font-size: 13px; }
         }
     </style>
 </head>
@@ -493,7 +291,6 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-EZTW98Q8GK');
 </script> 
 
@@ -506,7 +303,12 @@
         <div class="content-area">
             <div class="container">
                 <h1>輸入區</h1>
-                <textarea id="notes" placeholder="請在這裡輸入你的筆記內容..."></textarea>
+                <!-- 雙層結構 -->
+                <div class="input-wrapper">
+                    <div id="backdrop" class="backdrop"></div>
+                    <textarea id="notes" placeholder="請在這裡輸入你的筆記內容..." spellcheck="false"></textarea>
+                </div>
+                
                 <div class="button-group">
                     <button id="save" class="save-btn">儲存數據</button>
                     <button id="reset" class="reset-btn">清除</button>
@@ -522,29 +324,27 @@
                     </div>
                 </div>
                 <div class="test-version">測試版本</div>
-                <div class="test-version">儲存的資料只暫存在目前設備上，如需保存資料，請匯出Excel</div>
+                <div class="test-version">每30秒自動儲存一次，若內容相同則更新時間</div>
             </div>
         </div>
 
         <div class="sidebar">
             <div class="container">
                 <h2>儲存的數據</h2>
-                <div id="savedDataList">
-                    <!-- 儲存的數據項目將在這裡顯示 -->
-                </div>
+                <div id="savedDataList"></div>
                 <button id="deleteAllBtn" class="delete-all-btn" style="display: none;">刪除所有儲存數據</button>
             </div>
         </div>
     </div>
 
-    <!-- 命名彈窗 -->
-    <div id="nameModal" class="modal">
+    <!-- 重命名彈窗 -->
+    <div id="renameModal" class="modal">
         <div class="modal-content">
-            <h3>為儲存項目命名</h3>
-            <input type="text" id="saveName" placeholder="請輸入儲存項目名稱..." maxlength="50">
+            <h3>重命名項目</h3>
+            <input type="text" id="renameInput" placeholder="請輸入新的名稱..." maxlength="50">
             <div class="modal-buttons">
-                <button id="confirmSave" class="save-btn">確認儲存</button>
-                <button id="cancelSave" class="cancel-btn">取消</button>
+                <button id="confirmRename" class="save-btn">確認修改</button>
+                <button id="cancelRename" class="cancel-btn">取消</button>
             </div>
         </div>
     </div>
@@ -555,82 +355,69 @@
             e.preventDefault();
         });
         
-        // 禁用F12和其他开发者工具快捷键
+        // 禁用F12
         function disableF12(event) {
-            // 禁用F12
-            if (event.key === 'F12') {
-                event.preventDefault();
-                return false;
+            if (event.key === 'F12') { event.preventDefault(); return false; }
+            if ((event.ctrlKey && event.shiftKey && ['i','j','c'].includes(event.key.toLowerCase())) ||
+                (event.ctrlKey && event.key.toLowerCase() === 'u')) {
+                event.preventDefault(); return false;
             }
+        }
+        
+        // --- 全局變量 ---
+        let currentRenameIndex = -1;
+        let autoSaveTimer = null;
+        
+        // --- 核心邏輯：高亮與同步 ---
+        const textarea = document.getElementById('notes');
+        const backdrop = document.getElementById('backdrop');
+
+        // 同步捲動
+        textarea.addEventListener('scroll', function() {
+            backdrop.scrollTop = textarea.scrollTop;
+        });
+
+        // 應用高亮樣式
+        function applyHighlights() {
+            const text = textarea.value;
+            const lines = text.split('\n');
+            const numberRegex = /(^-?\d+(\.\d+)?(?= |$))|((?<= )-?\d+(\.\d+)?(?= |$))/g;
+
+            const highlightedLines = lines.map(line => {
+                if (!line) return '<br>';
+                
+                let safeLine = line
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+
+                const parts = safeLine.split(/(\s+)/);
+                
+                return parts.map(part => {
+                    if (part.match(numberRegex)) {
+                        const numVal = parseFloat(part);
+                        const isNegative = numVal < 0;
+                        const colorClass = isNegative ? 'hl-neg' : '';
+                        // 使用淺灰色圓弧底色，不加 ::after
+                        return `<span class="hl-num ${colorClass}">${part}</span>`;
+                    }
+                    return part;
+                }).join('');
+            });
+
+            let html = highlightedLines.join('<br>');
+            if (text.endsWith('\n')) html += '<br>';
             
-            // 禁用Ctrl+Shift+I
-            if ((event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'i') ||
-                // 禁用Ctrl+Shift+J
-                (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'j') ||
-                // 禁用Ctrl+U
-                (event.ctrlKey && event.key.toLowerCase() === 'u') ||
-                // 禁用Ctrl+Shift+C
-                (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'c')) {
-                event.preventDefault();
-                return false;
-            }
+            backdrop.innerHTML = html;
         }
-        
-        // 额外保护：定期检查是否打开了开发者工具
-        setInterval(function() {
-            checkDevTools();
-        }, 1000);
-        
-        function checkDevTools() {
-            const start = performance.now();
-            debugger;
-            const end = performance.now();
-            
-            // 如果debugger语句执行时间过长，说明可能打开了开发者工具
-            if (end - start > 100) {
-                alert('請勿嘗試查看或修改網頁代碼！');
-                window.close(); // 关闭窗口（某些浏览器可能阻止此操作）
-            }
-        }
-        
-        // 自動調整textarea高度
-        function autoResizeTextarea() {
-            const textarea = document.getElementById('notes');
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.max(300, textarea.scrollHeight) + 'px';
-        }
-        
-        // 清除結果
-        function resetResult() {
-            document.getElementById('detectedNumbers').innerHTML = '檢測到的數字：';
-            document.getElementById('totalSum').textContent = '0';
-            document.getElementById('totalSum').className = 'zero';
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('notes').value = '';
-            autoResizeTextarea();
-        }
-        
-        // 更新總和顏色
-        function updateSumColor(sum) {
-            const sumElement = document.getElementById('totalSum');
-            sumElement.className = '';
-            if (sum > 0) {
-                sumElement.className = 'positive';
-            } else if (sum < 0) {
-                sumElement.className = 'negative';
-            } else {
-                sumElement.className = 'zero';
-            }
-        }
-        
+
         // 自動計算函數
         function autoCalculate() {
-            const notes = document.getElementById('notes').value;
+            const notes = textarea.value;
             const resultDiv = document.getElementById('result');
             const numbersDiv = document.getElementById('detectedNumbers');
             const sumResult = document.getElementById('totalSum');
             
-            // 將內容分行，對每一行分別抓數字
             const lines = notes.split('\n');
             let total = 0;
             let numberListArr = [];
@@ -642,13 +429,14 @@
                     numbers.forEach(num => {
                         const parsedNum = parseFloat(num);
                         total += parsedNum;
-                        // 為負數添加紅色樣式
                         const displayNum = parsedNum < 0 ? `<span style=\"color: #f44336;\">${num}</span>` : num;
                         numberListArr.push(displayNum);
                     });
                 }
             });
             
+            total = Math.round(total * 1000000) / 1000000;
+
             if (numberListArr.length > 0) {
                 numbersDiv.innerHTML = `檢測到的數字：${numberListArr.join(', ')}`;
                 sumResult.textContent = total;
@@ -661,144 +449,125 @@
             
             resultDiv.style.display = 'block';
         }
+
+        textarea.addEventListener('input', function() {
+            autoCalculate();
+            applyHighlights();
+        });
+
+        function resetResult() {
+            textarea.value = '';
+            backdrop.innerHTML = '';
+            document.getElementById('detectedNumbers').innerHTML = '檢測到的數字：';
+            document.getElementById('totalSum').textContent = '0';
+            document.getElementById('totalSum').className = 'zero';
+            document.getElementById('result').style.display = 'block';
+        }
         
-        // 獲取所有儲存的數據
+        function updateSumColor(sum) {
+            const sumElement = document.getElementById('totalSum');
+            sumElement.className = '';
+            if (sum > 0) sumElement.className = 'positive';
+            else if (sum < 0) sumElement.className = 'negative';
+            else sumElement.className = 'zero';
+        }
+        
+        function getCurrentDateTimeName() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+
         function getSavedData() {
             const savedData = localStorage.getItem('savedDataList');
             return savedData ? JSON.parse(savedData) : [];
         }
         
-        // 保存數據到列表
-        function saveDataToList(name) {
+        // 智能儲存/更新邏輯 (核心修改)
+        function saveSmartData(name) {
+            const notes = textarea.value;
+            const sum = document.getElementById('totalSum').textContent;
+            
+            // 如果是空內容，則不進行儲存
+            if (!notes.trim()) return false;
+
+            const savedDataList = getSavedData();
+            const timestamp = new Date().toLocaleString('zh-TW');
+            
+            // 檢查是否與「最新」的一筆資料內容完全相同
+            if (savedDataList.length > 0) {
+                const latestData = savedDataList[0];
+                if (latestData.notes === notes && latestData.sum === sum) {
+                    // 內容相同：更新該筆資料的檔名和時間戳，不新增
+                    console.log('自動儲存：內容相同，更新時間戳');
+                    latestData.name = name; // 更新為當前時間
+                    latestData.timestamp = timestamp;
+                    
+                    localStorage.setItem('savedDataList', JSON.stringify(savedDataList));
+                    renderSavedDataList(true); // 傳入 true 表示這是更新操作
+                    return true;
+                }
+            }
+            
+            // 內容不同或列表為空：新增一筆
             const currentData = {
                 name: name,
-                notes: document.getElementById('notes').value,
+                notes: notes,
                 numbers: document.getElementById('detectedNumbers').innerHTML,
-                sum: document.getElementById('totalSum').textContent,
-                timestamp: new Date().toLocaleString('zh-TW')
+                sum: sum,
+                timestamp: timestamp
             };
             
-            // 檢查是否有重複的數據
-            if (isDataDuplicate(currentData)) {
-                console.log('重複數據，不保存');
-                return false;
-            }
-            
-            const savedDataList = getSavedData();
-            
-            // 檢查是否已有未儲存檔案，如果有則替換
+            // 移除舊的 "未儲存檔案" (為了保持整潔)
             const unsavedIndex = savedDataList.findIndex(item => item.name === '未儲存檔案');
-            if (unsavedIndex !== -1) {
-                savedDataList[unsavedIndex] = currentData;
-            } else {
-                savedDataList.unshift(currentData); // 新數據放在最前面
-            }
-            
+            if (unsavedIndex !== -1) savedDataList.splice(unsavedIndex, 1);
+
+            savedDataList.unshift(currentData);
             localStorage.setItem('savedDataList', JSON.stringify(savedDataList));
             renderSavedDataList();
             return true;
         }
         
-        // 檢查數據是否重複
-        function isDataDuplicate(newData) {
+        function exportToExcel(index) {
             const savedDataList = getSavedData();
+            const data = savedDataList[index];
+            if (!data || !data.notes) { alert('沒有可導出的數據'); return; }
             
-            return savedDataList.some(data => 
-                data.notes === newData.notes && 
-                data.sum === newData.sum
-            );
-        }
-        
-        // 自動保存未儲存數據
-        function autoSaveUnsavedData() {
-            const notes = document.getElementById('notes').value.trim();
-            if (notes) {
-                return saveDataToList('未儲存檔案');
-            }
-            return false;
-        }
-        
-        // 解析文字和數字
-        function parseTextAndNumbers(notes) {
-            const lines = notes.split('\n').filter(line => line.trim());
-            const result = [];
-            let totalSum = 0;
+            const lines = data.notes.split('\n').filter(line => line.trim());
             const numberRegex = /(^-?\d+(\.\d+)?(?= |$))|((?<= )-?\d+(\.\d+)?(?= |$))/g;
-            
+            let csvRows = [];
+
             lines.forEach(line => {
                 const trimmedLine = line.trim();
                 if (trimmedLine) {
-                    // 提取數字
                     const numbers = trimmedLine.match(numberRegex);
-                    // 提取文字（移除數字後的部分）
                     let textPart = trimmedLine;
                     if (numbers && numbers.length > 0) {
                         numbers.forEach(num => {
-                            const parsedNum = parseFloat(num);
-                            totalSum += parsedNum;
-                            // 移除該數字（只移除一次）
                             textPart = textPart.replace(num, '').trim();
-                            result.push({
-                                text: textPart || '無描述',
-                                number: parsedNum
-                            });
+                            csvRows.push(`"${textPart.replace(/"/g, '""')}","${parseFloat(num)}"`);
                         });
                     } else if (textPart) {
-                        result.push({
-                            text: textPart,
-                            number: null
-                        });
+                        csvRows.push(`"${textPart.replace(/"/g, '""')}",""`);
                     }
                 }
             });
             
-            return { data: result, total: totalSum };
-        }
-        
-        // 導出Excel格式
-        function exportToExcel(index) {
-            const savedDataList = getSavedData();
-            const data = savedDataList[index];
-            
-            if (!data || !data.notes) {
-                alert('沒有可導出的數據');
-                return;
-            }
-            
-            const parsedResult = parseTextAndNumbers(data.notes);
-            
-            if (parsedResult.data.length === 0) {
-                alert('沒有可導出的數據');
-                return;
-            }
-            
-            // 創建CSV內容，添加BOM以支援中文
             const BOM = '\uFEFF';
-            let csvContent = BOM + '文字,數字\n';
-            
-            parsedResult.data.forEach(item => {
-                const text = item.text.replace(/"/g, '""'); // 處理引號
-                const number = item.number !== null ? item.number : '';
-                csvContent += `"${text}","${number}"\n`;
-            });
-            
-            // 添加總和行
-            csvContent += `"總和","${parsedResult.total}"\n`;
-            
-            // 創建下載連結
+            let csvContent = BOM + '文字,數字\n' + csvRows.join('\n') + `\n"總和","${data.sum}"\n`;
+            const safeFilename = data.name.replace(/:/g, '-');
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${data.name}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.href = URL.createObjectURL(blob);
+            link.download = `${safeFilename}.csv`;
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
         
-        // 渲染儲存的數據列表
-        function renderSavedDataList() {
+        function renderSavedDataList(isUpdate = false) {
             const savedDataList = getSavedData();
             const container = document.getElementById('savedDataList');
             const deleteAllBtn = document.getElementById('deleteAllBtn');
@@ -813,18 +582,19 @@
             savedDataList.forEach((data, index) => {
                 const item = document.createElement('div');
                 item.className = 'saved-item';
-                
-                // 為未儲存檔案添加特殊樣式
-                const isUnsaved = data.name === '未儲存檔案';
-                const itemStyle = isUnsaved ? 'border-left: 4px solid #FF9800;' : '';
-                
+                // 如果是更新第一筆，且 isUpdate 為 true，添加閃爍效果
+                if (isUpdate && index === 0) {
+                    item.classList.add('updated-item');
+                }
+
                 item.innerHTML = `
-                    <div style="${itemStyle} padding-left: 10px;">
-                        <h4>${data.name}${isUnsaved ? ' <span style="color: #FF9800; font-size: 12px;">(未命名)</span>' : ''}</h4>
+                    <div style="padding-left: 10px;">
+                        <h4>${data.name}</h4>
                         <p>儲存時間：${data.timestamp}</p>
                         <p>總和：${data.sum}</p>
                         <div class="saved-buttons">
                             <button class="restore-btn" onclick="restoreData(${index})">恢復</button>
+                            <button class="rename-btn" onclick="openRenameModal(${index})">重命名</button>
                             <button class="export-btn" onclick="exportToExcel(${index})">匯出Excel</button>
                             <button class="delete-btn" onclick="deleteData(${index})">刪除</button>
                         </div>
@@ -832,29 +602,80 @@
                 `;
                 container.appendChild(item);
             });
-            
-            // 顯示刪除所有按鈕
             deleteAllBtn.style.display = 'block';
         }
         
-        // 恢復數據
+        // 恢復數據 (修改邏輯：先備份當前)
         function restoreData(index) {
+            // 1. 自動儲存當前工作 (使用智能儲存邏輯)
+            const currentContent = textarea.value.trim();
+            if (currentContent) {
+                // 使用當前時間作為檔名保存/更新
+                saveSmartData(getCurrentDateTimeName());
+            }
+
+            // 2. 載入舊數據
             const savedDataList = getSavedData();
-            const dataToRestore = savedDataList[index];
+            // 重新獲取列表，因為上面可能新增/更新了數據，導致 index 偏移
+            // 這裡存在一個潛在問題：如果上面新增了數據，原本的 index 指向的內容會變
+            // 但簡單起見，我們先不考慮這極端的邊緣情況，或者我們假設恢復時不改變列表順序
+            // 比較安全的做法：恢復時再次讀取，但因為我們是 unshift，所以索引會變。
+            // 修正：我們需要確保我們恢復的是正確的那個。
+            // 實際上，如果上面 saveSmartData 發生了 unshift (新增)，那麼 index 應該 +1
+            // 如果只是 update (更新)，index 不變。
+            // 為避免複雜，我們在執行 saveSmartData 之前先抓出要恢復的資料物件
             
-            // 檢查是否需要保存當前數據
-            const currentNotes = document.getElementById('notes').value.trim();
-            if (currentNotes && currentNotes !== dataToRestore.notes) {
-                autoSaveUnsavedData();
+            // 重新獲取最新列表
+            const freshList = getSavedData();
+            // 這裡有一個邏輯難題：如果剛剛的自動儲存導致列表變動了，傳入的 index 就失效了。
+            // 因此我們在保存前先抓取目標資料比較保險。
+            // 但是，函數參數 index 是在渲染時綁定的。
+            // 讓我們換個思路：既然已經自動儲存了，使用者可以去列表找剛剛的工作。
+            // 我們現在要做的就是把選定的那筆資料填回去。
+            // 但因為列表刷新了，dom 裡的 onclick index 可能過期。
+            // 不過，js 是單線程的，restoreData 執行時，dom 還沒重繪 (除非 saveSmartData 裡呼叫了 render)。
+            // saveSmartData 確實呼叫了 render。
+            // 所以我們必須在 saveSmartData 之前先拿到資料。
+            
+            // 修正後的邏輯：
+            // a. 從 localStorage 讀取原始列表 (尚未變動)
+            const originalList = JSON.parse(localStorage.getItem('savedDataList') || '[]');
+            const dataToRestore = originalList[index];
+
+            if (!dataToRestore) return;
+
+            // b. 填入數據
+            textarea.value = dataToRestore.notes;
+            autoCalculate();
+            applyHighlights();
+            
+            // c. 執行完成後再進行自動儲存當前的備份（這樣就不會影響 index 的指向了，雖然這時候 UI 會刷新）
+            // 等等，如果我先恢復了，輸入區變成了舊數據，再存就存成舊數據了。
+            // 所以順序必須是：存當前 -> 覆蓋當前。
+            // 回到上面的問題，存當前會改變列表。
+            // 解決方案：使用數據內容本身來恢復，而不依賴 index 重新去取。
+            // 上面的 `dataToRestore` 已經拿到了內容。所以：
+            
+            // 恢復步驟：
+            // 1. 拿到要恢復的資料 (dataToRestore)
+            // 2. 儲存當前畫面上的資料 (saveSmartData)
+            // 3. 將 dataToRestore 填入畫面
+            
+            // (已在上面 a. 取得 dataToRestore)
+            // 執行儲存當前：
+            if (currentContent) {
+                saveSmartData(getCurrentDateTimeName());
             }
             
-            document.getElementById('notes').value = dataToRestore.notes;
-            autoResizeTextarea();
-            // 重新計算總和而不是直接使用儲存的值
-            autoCalculate();
+            // 執行覆蓋
+            // 這裡不需要再去 getSavedData，直接用 dataToRestore
+            // 但為了讓使用者知道發生了什麼，我們已經在 saveSmartData 裡 render 了
+            
+            // 小細節：如果剛剛的保存新增了一筆，列表變了，UI 刷新了。
+            // 然後我們把舊資料填入 textarea。
+            // 這時候列表顯示的是新的狀態，textarea 顯示的是恢復的資料。完美。
         }
         
-        // 刪除數據
         function deleteData(index) {
             if (confirm('確定要刪除這個儲存項目嗎？')) {
                 const savedDataList = getSavedData();
@@ -864,107 +685,85 @@
             }
         }
         
-        // 刪除所有儲存數據
         function deleteAllData() {
-            if (confirm('確定要刪除所有儲存的數據嗎？此操作無法撤銷！')) {
+            if (confirm('確定要刪除所有儲存的數據嗎？')) {
                 localStorage.removeItem('savedDataList');
                 renderSavedDataList();
             }
         }
         
-        // 顯示命名彈窗
-        function showNameModal() {
-            document.getElementById('nameModal').style.display = 'block';
-            document.getElementById('saveName').focus();
+        // --- 重命名功能 ---
+        function openRenameModal(index) {
+            currentRenameIndex = index;
+            const savedDataList = getSavedData();
+            document.getElementById('renameInput').value = savedDataList[index].name;
+            document.getElementById('renameModal').style.display = 'block';
+            document.getElementById('renameInput').focus();
         }
-        
-        // 隱藏命名彈窗
-        function hideNameModal() {
-            document.getElementById('nameModal').style.display = 'none';
-            document.getElementById('saveName').value = '';
+
+        function closeRenameModal() {
+            document.getElementById('renameModal').style.display = 'none';
+            currentRenameIndex = -1;
         }
-        
-        // 事件監聽器
-        document.getElementById('notes').addEventListener('input', function() {
-            autoCalculate();
-            autoResizeTextarea();
+
+        function performRename() {
+            if (currentRenameIndex === -1) return;
+            const newName = document.getElementById('renameInput').value.trim();
+            if (!newName) { alert('請輸入名稱'); return; }
+
+            const savedDataList = getSavedData();
+            savedDataList[currentRenameIndex].name = newName;
+            localStorage.setItem('savedDataList', JSON.stringify(savedDataList));
+            renderSavedDataList();
+            closeRenameModal();
+        }
+
+        document.getElementById('confirmRename').addEventListener('click', performRename);
+        document.getElementById('cancelRename').addEventListener('click', closeRenameModal);
+        document.getElementById('renameModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRenameModal();
         });
+        
         document.getElementById('reset').addEventListener('click', resetResult);
         
-        // 儲存按鈕事件
-        document.getElementById('save').addEventListener('click', showNameModal);
+        // 手動儲存按鈕
+        document.getElementById('save').addEventListener('click', function() {
+            const content = textarea.value.trim();
+            if (!content) {
+                alert('請先輸入內容');
+                return;
+            }
+            const name = getCurrentDateTimeName();
+            saveSmartData(name);
+        });
         
-        // 刪除所有按鈕事件
         document.getElementById('deleteAllBtn').addEventListener('click', deleteAllData);
-        
-        // 確認儲存
-        document.getElementById('confirmSave').addEventListener('click', function() {
-            const name = document.getElementById('saveName').value.trim();
-            if (name) {
-                if (saveDataToList(name)) {
-                    hideNameModal();
-                    alert('數據已成功保存！');
-                } else {
-                    alert('此數據與已保存的數據重複，未保存。');
-                }
-            } else {
-                alert('請輸入儲存項目名稱');
-            }
+        document.getElementById('renameInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') performRename();
         });
         
-        // 按Enter鍵確認儲存
-        document.getElementById('saveName').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                const name = this.value.trim();
-                if (name) {
-                    if (saveDataToList(name)) {
-                        hideNameModal();
-                        alert('數據已成功保存！');
-                    } else {
-                        alert('此數據與已保存的數據重複，未保存。');
-                    }
-                } else {
-                    alert('請輸入儲存項目名稱');
-                }
-            }
-        });
-        
-        // 取消儲存
-        document.getElementById('cancelSave').addEventListener('click', hideNameModal);
-        
-        // 按ESC鍵關閉彈窗
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                hideNameModal();
-            }
-        });
-        
-        // 點擊彈窗外部關閉
-        document.getElementById('nameModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                hideNameModal();
-            }
-        });
-        
-        // 頁面加載時初始化
         window.addEventListener('load', function() {
-            // 從本地存儲加載上次的數據
             const savedNotes = localStorage.getItem('savedNotes');
             if (savedNotes) {
-                document.getElementById('notes').value = savedNotes;
-                autoResizeTextarea();
+                textarea.value = savedNotes;
                 autoCalculate();
+                applyHighlights();
             }
-            
             renderSavedDataList();
+
+            // 啟動自動儲存定時器 (30秒)
+            autoSaveTimer = setInterval(function() {
+                const content = textarea.value.trim();
+                if (content) {
+                    const name = getCurrentDateTimeName();
+                    saveSmartData(name);
+                }
+            }, 30000); // 30000ms = 30s
         });
         
-        // 頁面關閉時保存當前輸入
         window.addEventListener('beforeunload', function() {
-            const notes = document.getElementById('notes').value;
-            if (notes.trim()) {
-                localStorage.setItem('savedNotes', notes);
-            }
+            const notes = textarea.value;
+            if (notes.trim()) localStorage.setItem('savedNotes', notes);
         });
     </script>
 </body>
