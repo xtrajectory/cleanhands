@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleanhands page</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            /* 禁止選取文字 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        #result {
+            font-size: 20px;
+            color: red;
+            margin-top: 18px;
+            padding: 15px;
+            border: 2px solid #C6A300;
+            border-radius: 10px;
+            background-color: rgba(198, 163, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-weight: bold;
+            max-width: 90%;
+            display: inline-block;
+        }
+        button {
+            background-color: orange;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        table {
+            margin-top: 18px;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid white;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+        }
+        h1 {
+            font-size: 20px;
+            background-color: #C6A300; /* 將背景顏色改為 #C6A300 */
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-transform: uppercase;
+        }
+        #currentDate {
+            font-size: 18px;
+            color: orange;  
+        }
+        #currentDateTime {
+            font-size: 16px;
+            color: orange;
+            margin-bottom: 22px;
+        }
+        #disclaimer {
+            font-size: 15px;
+            margin-top: 10px;
+            color: #888;
+        }
+        .map-button {
+            background-color: #977C00; 
+        }
+        .map-button-container {
+            position: fixed;
+            right: 10px;
+            bottom: 40px;
+        }
+        .map-button {
+            background-color: #977C00;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            white-space: nowrap;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px; /* 稍微調整原始的上邊距 */
+            transition: margin-top 0.3s ease; /* 添加過渡效果 */
+        }
+        .weekday-time {
+            color: grey;
+            font-size: 20px;
+        }
+        #lastUpdated {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+        .button-container button {
+            background-color: transparent;
+            color: grey;
+            font-size: 14px;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        /* 新增媒體查詢以調整手機上的按鈕佈局 */
+        @media (max-width: 768px) {
+            .map-button-container {
+                position: fixed;
+                right: 0;
+                bottom: 0; /* 調整到底部 */
+                left: 0; /* 擴展到整個寬度 */
+                display: flex;
+                justify-content: space-around; /* 平均分配空間 */
+                background-color: black; /* 可選：添加背景以避免與內容重疊 */
+                padding: 10px 0; /* 添加一些內邊距 */
+                z-index: 1000; /* 確保在最上層 */
+            }
+            .map-button {
+                padding: 8px 12px; /* 調整按鈕大小 */
+                font-size: 14px; /* 調整字體大小 */
+                margin: 0 5px; /* 添加按鈕間距 */
+            }
+            #lastUpdated {
+                bottom: 60px; /* 調整最後更新時間的位置，避免與按鈕重疊 */
+            }
+            .button-container {
+                margin-top: 20px; /* 手機上按鈕容器的原始上邊距 */
+            }
+        }
+    </style>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body oncontextmenu="return false;">
+    <h1 id="randomTitle">日期計算</h1>
+    <p id="currentDateTime"></p>
+    <div id="result"></div>
+    
+    <div class="button-container">
+        <button onclick="showFutureDates()">未來五天計算結果</button>
+        <button onclick="verifyCalculation()">驗算</button> <!-- 將驗算按鈕移動到中間 -->
+        <button onclick="export120DaysTable()">導出120天計算結果</button>
+    </div>
+    <div id="futureDatesTable" style="display: none; margin-bottom: 20px;"></div> <!-- 為表格添加下邊距 -->
+    <p id="verificationResult" style="display: none; margin-bottom: 20px;"></p> <!-- 為驗算結果添加下邊距 -->
+    <p id="disclaimer">計算結果僅供參考。</p>
+
+    <div class="map-button-container">
+        <a href="schedule.html">
+            <button class="map-button">📅 Schedule</button>
+        </a>
+        <a href="age_calculator.html">
+            <button class="map-button">🧮 年齡計算</button>
+        </a>
+        <a href="sums calculate.html">
+            <button class="map-button">🔢 總和計算</button>
+        </a>
+        <a href="https://www.google.com/maps/d/u/0/edit?mid=1smbxbgyDyi21YkzAcOjm2j5B3Ru5KhY&ll=22.196278957288584%2C113.54682999548615&z=16">
+            <button class="map-button">🗺️地圖</button>
+        </a>
+    </div>
+
+    <div id="lastUpdated"></div>
+
+    <script>
+    // 禁止右鍵菜單
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止選取文字
+    document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止複製
+    document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止剪切
+    document.addEventListener('cut', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止粘貼
+    document.addEventListener('paste', function(e) {
+        e.preventDefault();
+        return false;
+    });
+    
+    // 禁止鍵盤快捷鍵
+    document.addEventListener('keydown', function(e) {
+        // 禁止 Ctrl+A (全選)
+        if (e.ctrlKey && e.key === 'a') {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 Ctrl+C (複製)
+        if (e.ctrlKey && e.key === 'c') {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 Ctrl+V (粘貼)
+        if (e.ctrlKey && e.key === 'v') {
+            e.preventDefault();
+            return false;
+        }
+        
+        // 禁止 F12 (開發者工具)
+        if (e.key === 'F12') {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // 定義特別假期
+    const specialHolidays = {
+        "2025-01-01": "元旦",
+        "2025-01-28": "農曆除夕",
+        "2025-01-29": "農曆正月初一",
+        "2025-01-30": "農曆正月初二",
+        "2025-01-31": "農曆正月初三",
+        "2025-04-04": "清明節",
+        "2025-04-18": "耶穌受難日",
+        "2025-04-19": "復活節前日",
+        "2025-04-21": "復活節前日的補假",
+        "2025-05-01": "勞動節",
+        "2025-05-05": "佛誕節",
+        "2025-05-31": "端午節",
+        "2025-06-02": "端午節的補假",
+        "2025-10-01": "中華人民共和國國慶日",
+        "2025-10-02": "中華人民共和國國慶日翌日",
+        "2025-10-07": "中秋節翌日",
+        "2025-10-29": "重陽節",
+        "2025-11-02": "追思節",
+        "2025-11-03": "追思節的補假",
+        "2025-12-08": "聖母無原罪瞻禮",
+        "2025-12-20": "澳門特別行政區成立紀念日",
+        "2025-12-21": "冬至",
+        "2025-12-22": "澳門特別行政區成立紀念日的補假",
+        "2025-12-23": "冬至的補假",
+        "2025-12-24": "聖誕節前日",
+        "2025-12-25": "聖誕節",
+        "2025-12-31": "除夕",
+        // 2026年特別假期
+        "2026-01-01": "元旦",
+        "2026-02-16": "農曆除夕(下午)",
+        "2026-02-17": "農曆正月初一",
+        "2026-02-18": "農曆正月初二",
+        "2026-02-19": "農曆正月初三",
+        "2026-04-03": "耶穌受難日",
+        "2026-04-04": "復活節前日",
+        "2026-04-05": "清明節",
+        "2026-04-06": "復活節前日的補假",
+        "2026-04-07": "清明節的補假",
+        "2026-05-01": "勞動節",
+        "2026-05-24": "佛誕節",
+        "2026-05-25": "佛誕節的補假",
+        "2026-06-19": "端午節",
+        "2026-09-26": "中秋節翌日",
+        "2026-09-28": "中秋節翌日的補假",
+        "2026-10-01": "中華人民共和國國慶日",
+        "2026-10-02": "中華人民共和國國慶日翌日",
+        "2026-10-18": "重陽節",
+        "2026-10-19": "重陽節的補假",
+        "2026-11-02": "追思節",
+        "2026-12-08": "聖母無原罪瞻禮",
+        "2026-12-20": "澳門特別行政區成立紀念日",
+        "2026-12-21": "澳門特別行政區成立紀念日的補假",
+        "2026-12-22": "冬至",
+        "2026-12-24": "聖誕節前日",
+        "2026-12-25": "聖誕節",
+        "2026-12-31": "除夕(下午)"
+    };
+
+    // 定義星期幾的中文名稱
+    const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+
+    function calculateFutureDate() {
+        try {
+            const today = new Date();
+            let targetDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
+            
+            // 添加調試信息
+            let debugInfo = `原始15天後日期：${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月${targetDate.getDate()}日\n`;
+            
+            while (true) {
+                const dayOfWeek = targetDate.getDay();
+                const dateStr = targetDate.toISOString().split('T')[0];
+
+                if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
+                    debugInfo += `${dateStr} 為${dayOfWeek === 0 ? '星期日' : dayOfWeek === 6 ? '星期六' : specialHolidays[dateStr]}，順延一天\n`;
+                    targetDate.setDate(targetDate.getDate() + 1);
+                } else {
+                    break;
+                }
+            }
+
+            const result = `15天的日期：${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月${targetDate.getDate()}日 ${weekdays[targetDate.getDay()]}`;
+            document.getElementById('result').innerHTML = result;
+            
+            // 在控制台輸出調試信息
+            console.log(debugInfo);
+        } catch (error) {
+            console.error('計算日期時發生錯誤：', error);
+            document.getElementById('result').textContent = '計算錯誤，請稍後重試';
+        }
+    }
+
+    function showFutureDates() {
+        const futureDatesTable = document.getElementById('futureDatesTable');
+        const verificationResult = document.getElementById('verificationResult');
+        
+        // 如果驗算結果正在顯示，先隱藏它
+        if (verificationResult.style.display === 'block') {
+            verificationResult.style.display = 'none';
+        }
+        
+        // 切換未來五天計算結果的顯示狀態
+        if (futureDatesTable.style.display === 'block') {
+            futureDatesTable.style.display = 'none';
+        } else {
+            const tableContent = generateFutureDatesTable();
+            futureDatesTable.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>第15天</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableContent}
+                    </tbody>
+                </table>
+            `;
+            futureDatesTable.style.display = 'block';
+        }
+    }
+
+    function generateFutureDatesTable() {
+        let tableContent = '';
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        for (let i = 0; i < 5; i++) {
+            const currentDate = new Date(tomorrow.getTime() + i * 24 * 60 * 60 * 1000);
+            const fifteenthWorkday = calculateFifteenthWorkday(currentDate);
+            
+            tableContent += `
+                <tr>
+                    <td>${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月${currentDate.getDate()}日</td>
+                    <td>${fifteenthWorkday.getFullYear()}年${fifteenthWorkday.getMonth() + 1}月${fifteenthWorkday.getDate()}日 ${weekdays[fifteenthWorkday.getDay()]}</td>
+                </tr>
+            `;
+        }
+
+        return tableContent;
+    }
+
+    function calculateFifteenthWorkday(startDate) {
+        let targetDate = new Date(startDate.getTime() + 15 * 24 * 60 * 60 * 1000);
+
+        while (true) {
+            const dayOfWeek = targetDate.getDay();
+            const dateStr = targetDate.toISOString().split('T')[0];
+
+            if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
+                targetDate.setDate(targetDate.getDate() + 1);
+            } else {
+                break;
+            }
+        }
+
+        return targetDate;
+    }
+
+    function updateCurrentDateTime() {
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        const weekdayStr = weekdays[now.getDay()];
+        const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false });
+        document.getElementById('currentDateTime').innerHTML = `
+            <span id="currentDate">現在時間: ${dateStr}</span><br>
+            <span class="weekday-time">${weekdayStr} ${timeStr}</span>
+        `;
+    }
+
+    function setRandomTitle() {
+        const titles = ["我是計算器"]; //["今天你累了嗎", "今天放假嗎", "今天體感溫度40度"]
+        const randomIndex = Math.floor(Math.random() * titles.length);
+        document.getElementById('randomTitle').textContent = titles[randomIndex];
+    }
+
+    // 頁面加載時更新所有數據，並設置隨機標題
+    function updateAllData() {
+        updateCurrentDateTime();
+        calculateFutureDate();
+        updateLastUpdated();
+    }
+
+    updateAllData();
+    setRandomTitle();
+
+    // 每秒更新一次日期時間
+    setInterval(updateCurrentDateTime, 1000);
+
+    // 每分鐘更新一次所有數據
+    setInterval(updateAllData, 60000);
+
+    function updateLastUpdated() {
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false });
+        document.getElementById('lastUpdated').textContent = `最後更新：${dateStr} ${timeStr}`;
+    }
+    function verifyCalculation() {
+    const verificationResult = document.getElementById('verificationResult');
+    const futureDatesTable = document.getElementById('futureDatesTable');
+    
+    // 如果未來五天計算結果正在顯示，先隱藏它
+    if (futureDatesTable.style.display === 'block') {
+        futureDatesTable.style.display = 'none';
+    }
+    
+    // 切換驗算結果的顯示狀態
+    if (verificationResult.style.display === 'none') {
+        const today = new Date();
+        const fifteenthWorkday = calculateFifteenthWorkday(today);
+        const timeDiff = fifteenthWorkday - today;
+        const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+        
+        let holidayInfo = [];
+        let currentDate = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
+
+        while (currentDate <= fifteenthWorkday) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayOfWeek = currentDate.getDay();
+
+            if (dayOfWeek === 0 || dayOfWeek === 6 || dateStr in specialHolidays) {
+                const holidayName = dayOfWeek === 0 ? '星期日' : dayOfWeek === 6 ? '星期六' : specialHolidays[dateStr];
+                holidayInfo.push(`${dateStr} 為${holidayName}`);
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        let verificationMessage = `第15日結果中間共有 ${daysDiff} 天。\n`;
+        if (holidayInfo.length > 0) {
+            verificationMessage += "第15天日遇到以下假期，需要順延：\n";
+            verificationMessage += holidayInfo.join('\n');
+        }
+        
+        verificationResult.innerHTML = verificationMessage.replace(/\n/g, '<br>');
+        verificationResult.style.display = 'block';
+    } else {
+        verificationResult.style.display = 'none';
+    }
+}
+
+    function export120DaysTable() {
+        try {
+            let excelContent = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            excelContent += '<?mso-application progid="Excel.Sheet"?>\n';
+            
+            // 添加命名空間聲明
+            excelContent += '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n';
+            excelContent += 'xmlns:o="urn:schemas-microsoft-com:office:office"\n';
+            excelContent += 'xmlns:x="urn:schemas-microsoft-com:office:excel"\n';
+            excelContent += 'xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"\n';
+            excelContent += 'xmlns:html="http://www.w3.org/TR/REC-html40">\n';
+            
+            // 定義樣式
+            excelContent += '<Styles>\n';
+            // 基本樣式
+            excelContent += '<Style ss:ID="Default" ss:Name="Normal">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '</Style>\n';
+            
+            // 表頭左側列樣式
+            excelContent += '<Style ss:ID="HeaderLeft">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            
+            // 表頭右側列樣式
+            excelContent += '<Style ss:ID="HeaderRight">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            
+            // 數據左側列樣式
+            excelContent += '<Style ss:ID="DataLeft">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            
+            // 數據右側列樣式
+            excelContent += '<Style ss:ID="DataRight">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            
+            // 最後一行左側列樣式
+            excelContent += '<Style ss:ID="LastRowLeft">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            
+            // 最後一行右側列樣式
+            excelContent += '<Style ss:ID="LastRowRight">\n';
+            excelContent += '<Alignment ss:Horizontal="Center" ss:Vertical="Center"/>\n';
+            excelContent += '<Borders>\n';
+            excelContent += '<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/>\n';
+            excelContent += '<Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '<Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="2"/>\n';
+            excelContent += '</Borders>\n';
+            excelContent += '</Style>\n';
+            excelContent += '</Styles>\n';
+            
+            // 創建工作表
+            excelContent += '<Worksheet ss:Name="Sheet1">\n';
+            excelContent += '<Table ss:DefaultColumnWidth="100">\n';
+            
+            // 添加表頭
+            excelContent += '<Row>\n';
+            for (let i = 0; i < 4; i++) {
+                excelContent += '<Cell ss:StyleID="HeaderLeft"><Data ss:Type="String">日期</Data></Cell>\n';
+                excelContent += '<Cell ss:StyleID="HeaderRight"><Data ss:Type="String">15日</Data></Cell>\n';
+            }
+            excelContent += '</Row>\n';
+
+            const today = new Date();
+            const rowsNeeded = Math.ceil(120 / 4);
+            
+            // 添加數據行
+            for (let row = 0; row < rowsNeeded; row++) {
+                excelContent += '<Row>\n';
+                for (let col = 0; col < 4; col++) {
+                    const dayIndex = row + (col * rowsNeeded);
+                    if (dayIndex < 120) {
+                        const currentDate = new Date(today.getTime() + dayIndex * 24 * 60 * 60 * 1000);
+                        const fifteenthWorkday = calculateFifteenthWorkday(currentDate);
+                        
+                        const startDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+                        const endDateStr = `${fifteenthWorkday.getFullYear()}-${String(fifteenthWorkday.getMonth() + 1).padStart(2, '0')}-${String(fifteenthWorkday.getDate()).padStart(2, '0')}`;
+                        
+                        const leftStyleID = (row === rowsNeeded - 1) ? "LastRowLeft" : "DataLeft";
+                        const rightStyleID = (row === rowsNeeded - 1) ? "LastRowRight" : "DataRight";
+                        
+                        excelContent += `<Cell ss:StyleID="${leftStyleID}"><Data ss:Type="String">${startDateStr}</Data></Cell>\n`;
+                        excelContent += `<Cell ss:StyleID="${rightStyleID}"><Data ss:Type="String">${endDateStr}</Data></Cell>\n`;
+                    } else {
+                        const leftStyleID = (row === rowsNeeded - 1) ? "LastRowLeft" : "DataLeft";
+                        const rightStyleID = (row === rowsNeeded - 1) ? "LastRowRight" : "DataRight";
+                        
+                        excelContent += `<Cell ss:StyleID="${leftStyleID}"><Data ss:Type="String"></Data></Cell>\n`;
+                        excelContent += `<Cell ss:StyleID="${rightStyleID}"><Data ss:Type="String"></Data></Cell>\n`;
+                    }
+                }
+                excelContent += '</Row>\n';
+            }
+            
+            excelContent += '</Table></Worksheet></Workbook>';
+
+            const blob = new Blob([excelContent], { 
+                type: 'application/vnd.ms-excel;charset=utf-8'
+            });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "120days_calculation.xls";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href); // 釋放 URL 對象
+        } catch (error) {
+            console.error('導出 Excel 時發生錯誤：', error);
+            alert('導出失敗，請稍後重試');
+        }
+    }
+    </script>
+</body>
+</html>
