@@ -107,7 +107,8 @@
 
         /* === 主結果顯示區 === */
         #result {
-            font-size: 22px; /* 稍微調小字體以容納年份 */
+            font-size: 24px;
+            line-height: 1.6;
             color: var(--accent-color);
             margin-top: 5px;
             padding: 20px 40px;
@@ -527,15 +528,21 @@
         const dateStr = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 ${WEEKDAYS[now.getDay()]}`;
         document.getElementById('heroTime').textContent = timeStr;
         document.getElementById('heroDate').textContent = dateStr;
-        document.getElementById('lastUpdated').textContent = `最後更新：${dateStr} ${timeStr}`;
+        
+        // === 修改重點：最後更新只顯示時間，不顯示日期與星期 ===
+        document.getElementById('lastUpdated').textContent = `最後更新：${timeStr}`;
     }
 
     function updateMainDisplay() {
         const today = new Date();
         const result = calculateWorkdayDate(today, CONFIG.daysToAdd);
         const d = result.date;
-        // === 修改：加入年份顯示 ===
-        document.getElementById('result').textContent = `${CONFIG.daysToAdd}天的日期：${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAYS[d.getDay()]}`;
+        
+        // 保持之前的修改：紅色標題、字體18px、換行、括號星期
+        document.getElementById('result').innerHTML = `
+            <span style="color: #ff4d4d; font-size: 18px; display: inline-block; margin-bottom: 5px;">${CONFIG.daysToAdd}天的日期：</span><br>
+            ${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 (${WEEKDAYS[d.getDay()]})
+        `;
     }
 
     function toggleFutureDates() {
