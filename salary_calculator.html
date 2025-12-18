@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>薪俸計算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        input[type="number"] {
+            -webkit-user-select: auto;
+            -moz-user-select: auto;
+            -ms-user-select: auto;
+            user-select: auto;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #333;
+            min-height: 100vh;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            padding: 12px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        h1 {
+            font-size: 1.4rem;
+            color: #1a3a6c;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .calc-section {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e6ed;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        
+        .section-title i {
+            color: #3498db;
+        }
+        
+        .input-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #e0e6ed;
+        }
+        
+        .input-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="number"] {
+            width: 90px;
+            padding: 6px 10px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            transition: all 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]:placeholder-shown {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        input[type="number"]:not(:placeholder-shown) {
+            background-color: white;
+            color: #2c3e50;
+        }
+
+        input[type="number"]::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #1a5276;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        
+        .unit {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2980b9;
+            min-width: 30px;
+        }
+        
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .toggle-btn.active {
+            background: linear-gradient(to bottom, #3498db, #1a5276);
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 2px 6px rgba(52, 152, 219, 0.4);
+        }
+        
+        .toggle-btn:not(.active) {
+            background: #ecf0f1;
+            color: #95a5a6;
+        }
+        
+        .counter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        
+        .counter-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(to bottom, #3498db, #1a5276);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        
+        .counter-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .counter-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            min-width: 30px;
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .custom-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .amount-display {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1a5276;
+            text-align: right;
+            min-width: 100px;
+            padding: 4px 8px;
+            background: #e8f4fc;
+            border-radius: 8px;
+        }
+        
+        .total-section {
+            background: linear-gradient(to right, #1a5276, #3498db);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin: 12px 0;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .total-label {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .total-amount {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .clear-btn {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 0;
+            width: 80%;
+            margin: 0 auto;
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
+            transition: all 0.3s;
+        }
+        
+        .clear-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 4px rgba(231, 76, 60, 0.5);
+        }
+        
+        .calculation-note {
+            display: none; /* 隱藏所有說明的佔位 */
+        }
+
+        /* 提示文字樣式 */
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            color: #3498db;
+            margin-left: 4px;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        
+        .info-tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #2c3e50;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            top: 50%;
+            left: 125%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+            line-height: 1.5;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            white-space: normal;
+        }
+
+        .info-tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #2c3e50 transparent transparent;
+        }
+
+        .info-tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* 手機端調整提示框位置，避免超出螢幕 */
+        @media (max-width: 480px) {
+            .info-tooltip .tooltiptext {
+                width: 180px;
+                left: auto;
+                right: -20px;
+                transform: none;
+            }
+            .info-tooltip .tooltiptext::after {
+                left: auto;
+                right: 25px;
+            }
+        }
+        
+        @media (hover: hover) {
+            .toggle-btn:not(.active):hover,
+            .counter-btn:hover,
+            .clear-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+                border-radius: 12px;
+            }
+            
+            h1 {
+                font-size: 1.2rem;
+            }
+            
+            input[type="number"] {
+                width: 80px;
+                padding: 5px;
+                font-size: 0.95rem;
+            }
+            
+            .amount-display {
+                font-size: 0.95rem;
+                min-width: 90px;
+            }
+            
+            .total-amount {
+                font-size: 1.6rem;
+            }
+
+            .calc-section {
+                padding: 8px;
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> 薪俸計算器</h1>
+        </header>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-money-bill-wave"></i> 薪俸
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label><i class="fas fa-chart-line"></i> 薪俸點數</label>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <input type="number" id="salary-points" placeholder="輸入點數" style="width: 100px; padding: 8px;">
+                            <div class="unit">點</div>
+                        </div>
+                    </div>
+                    <div class="amount-display" id="salary-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-business-time"></i> 特別職程輪值 (按日計)
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label>1.25%輪值</label>
+                        <div class="info-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltiptext">在晚上八時至凌晨四時期間，輪值工作時間等於四小時或以上給予每月薪俸的百分之一點二五的津貼；</span>
+                        </div>
+                        <input type="number" id="allowance1-days" placeholder="天數" style="width: 80px; padding: 8px;">
+                    </div>
+                    <div class="amount-display" id="allowance1-display">MOP $0.00</div>
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label>0.75%輪值</label>
+                        <div class="info-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltiptext">（一）在星期六、星期日及公眾假期早上八時至晚上八時期間的工作，給予每月薪俸的百分之零點七五的津貼；<br>（二）在晚上八時至零時期間的工作給予每月薪俸的百分之零點七五的津貼；</span>
+                        </div>
+                        <input type="number" id="allowance2-days" placeholder="天數" style="width: 80px; padding: 8px;">
+                    </div>
+                    <div class="amount-display" id="allowance2-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-clock"></i> 超時工作
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label>大鐘</label>
+                        <div class="info-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltiptext">每小時的晚間、每周休息日、公眾假期及補假日的超時工作。<br>*下午八時至翌日上午七時所提供的工作，視為晚間工作。</span>
+                        </div>
+                        <input type="number" id="overtime-big" placeholder="小時" style="width: 80px; padding: 8px;">
+                    </div>
+                    <div class="amount-display" id="overtime-big-display">MOP $0.00</div>
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label>細鐘</label>
+                        <div class="info-tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltiptext">每小時的日間超時工作。</span>
+                        </div>
+                        <input type="number" id="overtime-small" placeholder="小時" style="width: 80px; padding: 8px;">
+                    </div>
+                    <div class="amount-display" id="overtime-small-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-history"></i> 年資
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label>年資</label>
+                        <div class="counter-group" style="margin-top: 0;">
+                            <button class="counter-btn" id="seniority-minus" style="width: 35px; height: 35px; font-size: 1rem;">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="counter-value" id="seniority-count" style="font-size: 1.5rem; min-width: 30px;">0</div>
+                            <button class="counter-btn" id="seniority-plus" style="width: 35px; height: 35px; font-size: 1rem;">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="amount-display" id="seniority-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-users"></i> 家庭津貼
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label>人數</label>
+                        <div class="counter-group" style="margin-top: 0;">
+                            <button class="counter-btn" id="family-minus" style="width: 35px; height: 35px; font-size: 1rem;">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <div class="counter-value" id="family-count" style="font-size: 1.5rem; min-width: 30px;">0</div>
+                            <button class="counter-btn" id="family-plus" style="width: 35px; height: 35px; font-size: 1rem;">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="amount-display" id="family-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-home"></i> 房屋津貼
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div class="toggle-group" style="margin-top: 0;">
+                        <button class="toggle-btn active" id="housing-yes" style="padding: 8px 20px;">✅</button>
+                        <button class="toggle-btn" id="housing-no" style="padding: 8px 20px;">❌</button>
+                    </div>
+                    <div class="amount-display" id="housing-display">MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calc-section">
+            <div class="section-title">
+                <i class="fas fa-file-invoice-dollar"></i> 公積金制度
+            </div>
+            <div class="input-row">
+                <div class="label-container">
+                    <div class="checkbox-group" style="margin-top: 0;">
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="deduction-checkbox" checked>
+                            <label for="deduction-checkbox">公積金</label>
+                        </div>
+                    </div>
+                    <div class="amount-display" id="deduction-display">-MOP $0.00</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="total-section">
+            <div class="total-label">
+                <i class="fas fa-coins"></i> 薪俸總額
+            </div>
+            <div class="total-amount" id="total-amount">MOP $0.00</div>
+        </div>
+        
+        <button class="clear-btn" id="clear-btn">
+            <i class="fas fa-eraser"></i> 清除所有資料
+        </button>
+        <div style="text-align: center; margin-top: 15px; color: #000; font-size: 0.9rem; font-style: italic; font-weight: 500;">
+            每點金額 $94 澳門元，總額為未扣稅前的金額。
+        </div>
+    </div>
+
+    <script>
+        // 禁用右鍵選單
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 禁用複製
+        document.addEventListener('copy', event => event.preventDefault());
+
+        // 禁用 F12 和開發者工具快捷鍵
+        document.addEventListener('keydown', function(event) {
+            // F12
+            if (event.keyCode === 123) {
+                event.preventDefault();
+                return false;
+            }
+            // Ctrl + Shift + I
+            if (event.ctrlKey && event.shiftKey && event.keyCode === 73) {
+                event.preventDefault();
+                return false;
+            }
+            // Ctrl + Shift + J
+            if (event.ctrlKey && event.shiftKey && event.keyCode === 74) {
+                event.preventDefault();
+                return false;
+            }
+            // Ctrl + U (查看原始碼)
+            if (event.ctrlKey && event.keyCode === 85) {
+                event.preventDefault();
+                return false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const salaryPointsInput = document.getElementById('salary-points');
+            const allowance1DaysInput = document.getElementById('allowance1-days');
+            const allowance2DaysInput = document.getElementById('allowance2-days');
+            const overtimeBigInput = document.getElementById('overtime-big');
+            const overtimeSmallInput = document.getElementById('overtime-small');
+            const housingYesBtn = document.getElementById('housing-yes');
+            const housingNoBtn = document.getElementById('housing-no');
+            const familyMinusBtn = document.getElementById('family-minus');
+            const familyPlusBtn = document.getElementById('family-plus');
+            const familyCountEl = document.getElementById('family-count');
+            const deductionCheckbox = document.getElementById('deduction-checkbox');
+            
+            const salaryDisplay = document.getElementById('salary-display');
+            const allowance1Display = document.getElementById('allowance1-display');
+            const allowance2Display = document.getElementById('allowance2-display');
+            const overtimeBigDisplay = document.getElementById('overtime-big-display');
+            const overtimeSmallDisplay = document.getElementById('overtime-small-display');
+            const seniorityDisplay = document.getElementById('seniority-display');
+            const housingDisplay = document.getElementById('housing-display');
+            const familyDisplay = document.getElementById('family-display');
+            const deductionDisplay = document.getElementById('deduction-display');
+            const totalAmountDisplay = document.getElementById('total-amount');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // 狀態變量
+            let housingSelected = true;
+            let familyCount = 0;
+            let seniorityCount = 0;
+            
+            // 更新顯示金額的函數
+            function formatCurrency(amount) {
+                return `MOP $${Math.abs(amount).toFixed(2)}`;
+            }
+            
+            // 計算所有薪資項目
+            function calculateSalary() {
+                // 1. 基本薪俸
+                const points = parseFloat(salaryPointsInput.value) || 0;
+                const baseSalary = points * 94;
+                salaryDisplay.textContent = formatCurrency(baseSalary);
+                
+                // 2. 特別職程輪值
+                const allowance1Days = parseFloat(allowance1DaysInput.value) || 0;
+                const allowance1Amount = allowance1Days * baseSalary * 0.0125;
+                allowance1Display.textContent = formatCurrency(allowance1Amount);
+                
+                const allowance2Days = parseFloat(allowance2DaysInput.value) || 0;
+                const allowance2Amount = allowance2Days * baseSalary * 0.0075;
+                allowance2Display.textContent = formatCurrency(allowance2Amount);
+                
+                // 3. 超時工作
+                const hourlyRate = (baseSalary * 12) / (52 * 36);
+                
+                const overtimeBigHours = parseFloat(overtimeBigInput.value) || 0;
+                const overtimeBigAmount = overtimeBigHours * hourlyRate * 2;
+                overtimeBigDisplay.textContent = formatCurrency(overtimeBigAmount);
+                
+                const overtimeSmallHours = parseFloat(overtimeSmallInput.value) || 0;
+                const overtimeSmallAmount = overtimeSmallHours * hourlyRate * 1.5;
+                overtimeSmallDisplay.textContent = formatCurrency(overtimeSmallAmount);
+                
+                // 4. 年資津貼
+                const seniorityAmount = seniorityCount * 10 * 94;
+                seniorityDisplay.textContent = formatCurrency(seniorityAmount);
+                
+                // 5. 房屋津貼 (僅在輸入薪俸點數後才計算)
+                const housingAmount = (housingSelected && points > 0) ? 40 * 94 : 0;
+                housingDisplay.textContent = formatCurrency(housingAmount);
+                
+                // 6. 家庭津貼
+                const familyAmount = familyCount * 10 * 94;
+                familyDisplay.textContent = formatCurrency(familyAmount);
+                
+                // 7. 退休基金扣減 (只扣減基本薪俸)
+                const deductionAmount = deductionCheckbox.checked ? baseSalary * 0.07 : 0;
+                deductionDisplay.textContent = deductionAmount > 0 ? `-` + formatCurrency(deductionAmount) : formatCurrency(0);
+                
+                // 8. 總額 (所有項目加總再減去扣減)
+                const total = (
+                    baseSalary + 
+                    allowance1Amount + 
+                    allowance2Amount + 
+                    overtimeBigAmount + 
+                    overtimeSmallAmount + 
+                    seniorityAmount +
+                    housingAmount + 
+                    familyAmount - 
+                    deductionAmount
+                );
+                
+                // 顯示總額 (帶正負號)
+                totalAmountDisplay.textContent = formatCurrency(total);
+                totalAmountDisplay.style.color = total >= 0 ? 'white' : '#ffcccc';
+            }
+            
+            // 事件監聽
+            salaryPointsInput.addEventListener('input', calculateSalary);
+            allowance1DaysInput.addEventListener('input', calculateSalary);
+            allowance2DaysInput.addEventListener('input', calculateSalary);
+            overtimeBigInput.addEventListener('input', calculateSalary);
+            overtimeSmallInput.addEventListener('input', calculateSalary);
+            deductionCheckbox.addEventListener('change', calculateSalary);
+            
+            // 房屋津貼按鈕
+            housingYesBtn.addEventListener('click', function() {
+                housingSelected = true;
+                housingYesBtn.classList.add('active');
+                housingNoBtn.classList.remove('active');
+                calculateSalary();
+            });
+            
+            housingNoBtn.addEventListener('click', function() {
+                housingSelected = false;
+                housingNoBtn.classList.add('active');
+                housingYesBtn.classList.remove('active');
+                calculateSalary();
+            });
+            
+            // 年資津貼計數器
+            const seniorityMinusBtn = document.getElementById('seniority-minus');
+            const seniorityPlusBtn = document.getElementById('seniority-plus');
+            const seniorityCountEl = document.getElementById('seniority-count');
+
+            seniorityPlusBtn.addEventListener('click', function() {
+                if (seniorityCount < 50) {
+                    seniorityCount++;
+                    seniorityCountEl.textContent = seniorityCount;
+                    calculateSalary();
+                }
+            });
+            
+            seniorityMinusBtn.addEventListener('click', function() {
+                if (seniorityCount > 0) {
+                    seniorityCount--;
+                    seniorityCountEl.textContent = seniorityCount;
+                    calculateSalary();
+                }
+            });
+            
+            // 家庭津貼計數器
+            familyPlusBtn.addEventListener('click', function() {
+                if (familyCount < 9) {
+                    familyCount++;
+                    familyCountEl.textContent = familyCount;
+                    calculateSalary();
+                }
+            });
+            
+            familyMinusBtn.addEventListener('click', function() {
+                if (familyCount > 0) {
+                    familyCount--;
+                    familyCountEl.textContent = familyCount;
+                    calculateSalary();
+                }
+            });
+            
+            // 清除按鈕
+            clearBtn.addEventListener('click', function() {
+                // 重置所有輸入
+                salaryPointsInput.value = '';
+                allowance1DaysInput.value = '';
+                allowance2DaysInput.value = '';
+                overtimeBigInput.value = '';
+                overtimeSmallInput.value = '';
+                
+                // 重置房屋津貼
+                housingSelected = true;
+                housingYesBtn.classList.add('active');
+                housingNoBtn.classList.remove('active');
+                
+                // 重置年資津貼
+                seniorityCount = 0;
+                document.getElementById('seniority-count').textContent = '0';
+                
+                // 重置家庭津貼
+                familyCount = 0;
+                familyCountEl.textContent = '0';
+                
+                // 重置退休基金扣減
+                deductionCheckbox.checked = true;
+                
+                // 重新計算
+                calculateSalary();
+            });
+            
+            // 初始計算
+            calculateSalary();
+        });
+    </script>
+</body>
+</html>
