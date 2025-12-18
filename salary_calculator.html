@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     <title>薪俸計算器</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -17,8 +18,9 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
-            touch-action: manipulation;
+            -webkit-touch-callout: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         
         input[type="number"] {
@@ -29,18 +31,30 @@
             touch-action: manipulation;
         }
 
+        html {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+
         body {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
             background: linear-gradient(135deg, #1a2a6c, #2c3e50);
             color: #333;
-            min-height: 100vh;
             padding: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             touch-action: manipulation;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            -webkit-overflow-scrolling: touch;
         }
         
         .container {
@@ -259,6 +273,8 @@
             width: 20px;
             height: 20px;
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .amount-display {
@@ -662,77 +678,99 @@
     </div>
 
     <script>
-        // 禁用手機縮放功能
+        // 防止手機螢幕縮放和放大
         (function() {
-            // 防止雙擊縮放
             let lastTouchEnd = 0;
+            let touchStartTime = 0;
+            let initialDistance = 0;
+            
+            // 防止雙擊縮放（只阻止在非交互元素上的雙擊）
             document.addEventListener('touchend', function(event) {
                 const now = Date.now();
-                if (now - lastTouchEnd <= 300) {
+                const target = event.target;
+                // 只阻止在非按鈕、非輸入框元素上的雙擊
+                const isInteractiveElement = target.tagName === 'BUTTON' || 
+                                            target.tagName === 'INPUT' || 
+                                            target.closest('button') || 
+                                            target.closest('input') ||
+                                            target.closest('.info-tooltip');
+                
+                if (!isInteractiveElement && now - lastTouchEnd <= 300) {
                     event.preventDefault();
+                    return false;
                 }
                 lastTouchEnd = now;
-            }, false);
-
+            }, { passive: false });
+            
             // 防止手勢縮放（雙指捏合）
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
-            document.addEventListener('gesturechange', function(e) {
-                e.preventDefault();
-            });
-            document.addEventListener('gestureend', function(e) {
-                e.preventDefault();
-            });
-
-            // 防止雙指縮放
-            let touches = [];
-            document.addEventListener('touchstart', function(e) {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
+            document.addEventListener('touchstart', function(event) {
+                if (event.touches.length > 1) {
+                    // 記錄初始距離
+                    const touch1 = event.touches[0];
+                    const touch2 = event.touches[1];
+                    initialDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    event.preventDefault();
+                } else {
+                    touchStartTime = Date.now();
                 }
             }, { passive: false });
-
-            document.addEventListener('touchmove', function(e) {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
+            
+            document.addEventListener('touchmove', function(event) {
+                if (event.touches.length > 1) {
+                    event.preventDefault();
                 }
             }, { passive: false });
-
-            // 鎖定視窗縮放
-            function disableZoom() {
-                document.addEventListener('touchstart', function(e) {
-                    if (e.touches.length > 1) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
-
-                document.addEventListener('touchend', function(e) {
-                    const now = Date.now();
-                    if (now - lastTouchEnd <= 300) {
-                        e.preventDefault();
-                    }
-                    lastTouchEnd = now;
-                }, { passive: false });
-
-                document.addEventListener('touchmove', function(e) {
-                    if (e.touches.length > 1) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
-            }
-
-            // 執行禁用縮放
-            disableZoom();
-
-            // 監聽視窗變化，確保縮放比例不變
-            let viewport = document.querySelector('meta[name="viewport"]');
-            function resetZoom() {
-                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no');
+            
+            // 防止雙指手勢
+            document.addEventListener('gesturestart', function(event) {
+                event.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gesturechange', function(event) {
+                event.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gestureend', function(event) {
+                event.preventDefault();
+            }, { passive: false });
+            
+            // 防止iOS Safari的雙擊縮放
+            let viewport = document.querySelector('meta[name=viewport]');
+            if (viewport) {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
             }
             
-            window.addEventListener('orientationchange', resetZoom);
-            window.addEventListener('resize', resetZoom);
+            // 監聽視窗縮放事件並重置
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (window.visualViewport) {
+                        const currentScale = window.visualViewport.scale;
+                        if (currentScale !== 1) {
+                            const viewport = document.querySelector('meta[name=viewport]');
+                            if (viewport) {
+                                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                            }
+                        }
+                    }
+                }, 100);
+            });
+            
+            // 監聽視覺視窗的縮放變化（iOS Safari）
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', function() {
+                    if (window.visualViewport.scale !== 1) {
+                        const viewport = document.querySelector('meta[name=viewport]');
+                        if (viewport) {
+                            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                        }
+                    }
+                });
+            }
         })();
 
         // 禁用右鍵選單
