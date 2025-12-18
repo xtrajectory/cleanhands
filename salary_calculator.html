@@ -2,7 +2,9 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>薪俸計算器</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,6 +17,8 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         input[type="number"] {
@@ -22,6 +26,7 @@
             -moz-user-select: auto;
             -ms-user-select: auto;
             user-select: auto;
+            touch-action: manipulation;
         }
 
         body {
@@ -32,6 +37,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .container {
@@ -42,6 +51,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             padding: 12px;
+            touch-action: manipulation;
         }
         
         header {
@@ -180,6 +190,8 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .toggle-btn.active {
@@ -214,6 +226,8 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
             transition: all 0.2s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .counter-btn:active {
@@ -298,6 +312,8 @@
             cursor: pointer;
             box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
             transition: all 0.3s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .clear-btn:active {
@@ -318,6 +334,8 @@
             margin-left: 4px;
             font-size: 0.9rem;
             vertical-align: middle;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         
         .info-tooltip .tooltiptext {
@@ -644,6 +662,79 @@
     </div>
 
     <script>
+        // 禁用手機縮放功能
+        (function() {
+            // 防止雙擊縮放
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // 防止手勢縮放（雙指捏合）
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('gesturechange', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('gestureend', function(e) {
+                e.preventDefault();
+            });
+
+            // 防止雙指縮放
+            let touches = [];
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            // 鎖定視窗縮放
+            function disableZoom() {
+                document.addEventListener('touchstart', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+
+                document.addEventListener('touchend', function(e) {
+                    const now = Date.now();
+                    if (now - lastTouchEnd <= 300) {
+                        e.preventDefault();
+                    }
+                    lastTouchEnd = now;
+                }, { passive: false });
+
+                document.addEventListener('touchmove', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+
+            // 執行禁用縮放
+            disableZoom();
+
+            // 監聽視窗變化，確保縮放比例不變
+            let viewport = document.querySelector('meta[name="viewport"]');
+            function resetZoom() {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no');
+            }
+            
+            window.addEventListener('orientationchange', resetZoom);
+            window.addEventListener('resize', resetZoom);
+        })();
+
         // 禁用右鍵選單
         document.addEventListener('contextmenu', event => event.preventDefault());
 
