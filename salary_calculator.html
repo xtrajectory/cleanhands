@@ -359,17 +359,52 @@
             opacity: 1;
         }
 
+        .info-tooltip.active .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
         /* 手機端調整提示框位置，避免超出螢幕 */
         @media (max-width: 480px) {
             .info-tooltip .tooltiptext {
                 width: 180px;
+                max-width: calc(100vw - 40px);
+            }
+            .info-tooltip .tooltiptext.tooltip-left {
                 left: auto;
                 right: -20px;
-                transform: none;
+                transform: translateY(-50%);
             }
-            .info-tooltip .tooltiptext::after {
+            .info-tooltip .tooltiptext.tooltip-left::after {
                 left: auto;
                 right: 25px;
+                border-color: transparent #2c3e50 transparent transparent;
+            }
+            .info-tooltip .tooltiptext.tooltip-right {
+                left: auto;
+                right: 0;
+                transform: translateY(-50%) translateX(100%);
+            }
+            .info-tooltip .tooltiptext.tooltip-right::after {
+                left: 0;
+                right: auto;
+                border-color: transparent transparent transparent #2c3e50;
+            }
+            .info-tooltip .tooltiptext.tooltip-top {
+                top: auto;
+                bottom: 100%;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            .info-tooltip .tooltiptext.tooltip-top::after {
+                top: 100%;
+                bottom: auto;
+                left: 50%;
+                right: auto;
+                margin-top: 0;
+                margin-left: -5px;
+                border-color: #2c3e50 transparent transparent transparent;
             }
         }
         
@@ -440,7 +475,7 @@
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <label><i class="fas fa-chart-line"></i> 薪俸點數</label>
                         <div class="input-group" style="margin-bottom: 0;">
-                            <input type="number" id="salary-points" placeholder="輸入點數" style="width: 100px; padding: 8px;">
+                            <input type="number" id="salary-points" placeholder="輸入點數" style="width: 100px; padding: 8px;" inputmode="numeric" pattern="[0-9]*">
                             <div class="unit">點</div>
                         </div>
                     </div>
@@ -461,7 +496,7 @@
                             <i class="fas fa-info-circle"></i>
                             <span class="tooltiptext">在晚上八時至凌晨四時期間，輪值工作時間等於四小時或以上給予每月薪俸的百分之一點二五的津貼；</span>
                         </div>
-                        <input type="number" id="allowance1-days" placeholder="天數" style="width: 80px; padding: 8px;">
+                        <input type="number" id="allowance1-days" placeholder="天數" style="width: 80px; padding: 8px;" inputmode="numeric" pattern="[0-9]*">
                     </div>
                     <div class="amount-display" id="allowance1-display">MOP $0.00</div>
                 </div>
@@ -475,7 +510,7 @@
                             <i class="fas fa-info-circle"></i>
                             <span class="tooltiptext">（一）在星期六、星期日及公眾假期早上八時至晚上八時期間的工作，給予每月薪俸的百分之零點七五的津貼；<br>（二）在晚上八時至零時期間的工作給予每月薪俸的百分之零點七五的津貼；</span>
                         </div>
-                        <input type="number" id="allowance2-days" placeholder="天數" style="width: 80px; padding: 8px;">
+                        <input type="number" id="allowance2-days" placeholder="天數" style="width: 80px; padding: 8px;" inputmode="numeric" pattern="[0-9]*">
                     </div>
                     <div class="amount-display" id="allowance2-display">MOP $0.00</div>
                 </div>
@@ -494,7 +529,7 @@
                             <i class="fas fa-info-circle"></i>
                             <span class="tooltiptext">每小時的晚間、每周休息日、公眾假期及補假日的超時工作。<br>*下午八時至翌日上午七時所提供的工作，視為晚間工作。</span>
                         </div>
-                        <input type="number" id="overtime-big" placeholder="小時" style="width: 80px; padding: 8px;">
+                        <input type="number" id="overtime-big" placeholder="小時" style="width: 80px; padding: 8px;" inputmode="numeric" pattern="[0-9]*">
                     </div>
                     <div class="amount-display" id="overtime-big-display">MOP $0.00</div>
                 </div>
@@ -508,7 +543,7 @@
                             <i class="fas fa-info-circle"></i>
                             <span class="tooltiptext">每小時的日間超時工作。</span>
                         </div>
-                        <input type="number" id="overtime-small" placeholder="小時" style="width: 80px; padding: 8px;">
+                        <input type="number" id="overtime-small" placeholder="小時" style="width: 80px; padding: 8px;" inputmode="numeric" pattern="[0-9]*">
                     </div>
                     <div class="amount-display" id="overtime-small-display">MOP $0.00</div>
                 </div>
@@ -828,6 +863,95 @@
             
             // 初始計算
             calculateSalary();
+            
+            // 處理手機端tooltip點擊事件，確保顯示在螢幕內
+            const tooltips = document.querySelectorAll('.info-tooltip');
+            tooltips.forEach(tooltip => {
+                const tooltipText = tooltip.querySelector('.tooltiptext');
+                
+                // 檢測是否為觸控設備
+                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                
+                if (isTouchDevice) {
+                    // 觸控設備：使用點擊事件
+                    tooltip.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        // 關閉其他已打開的tooltip
+                        tooltips.forEach(t => {
+                            if (t !== tooltip) {
+                                t.classList.remove('active');
+                            }
+                        });
+                        
+                        // 切換當前tooltip
+                        const isActive = tooltip.classList.contains('active');
+                        if (isActive) {
+                            tooltip.classList.remove('active');
+                        } else {
+                            tooltip.classList.add('active');
+                            adjustTooltipPosition(tooltip, tooltipText);
+                        }
+                    });
+                    
+                    // 點擊其他地方關閉tooltip
+                    document.addEventListener('click', function(e) {
+                        if (!tooltip.contains(e.target)) {
+                            tooltip.classList.remove('active');
+                        }
+                    });
+                }
+            });
+            
+            // 調整tooltip位置，確保在螢幕內
+            function adjustTooltipPosition(tooltip, tooltipText) {
+                // 移除之前的定位類別
+                tooltipText.classList.remove('tooltip-left', 'tooltip-right', 'tooltip-top');
+                
+                // 獲取元素位置
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const tooltipTextRect = tooltipText.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // 計算tooltip應該顯示的位置
+                const spaceRight = viewportWidth - tooltipRect.right;
+                const spaceLeft = tooltipRect.left;
+                const spaceBottom = viewportHeight - tooltipRect.bottom;
+                const spaceTop = tooltipRect.top;
+                
+                // 預設顯示在右側
+                let position = 'right';
+                
+                // 如果右側空間不足，嘗試顯示在左側
+                if (spaceRight < 200 && spaceLeft > spaceRight) {
+                    position = 'left';
+                    tooltipText.classList.add('tooltip-left');
+                }
+                // 如果左右空間都不足，顯示在上方
+                else if (spaceRight < 200 && spaceLeft < 200 && spaceTop > 100) {
+                    position = 'top';
+                    tooltipText.classList.add('tooltip-top');
+                }
+                // 否則顯示在右側（預設）
+                else {
+                    tooltipText.classList.add('tooltip-right');
+                }
+            }
+            
+            // 視窗大小改變時重新調整tooltip位置
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    tooltips.forEach(tooltip => {
+                        if (tooltip.classList.contains('active')) {
+                            const tooltipText = tooltip.querySelector('.tooltiptext');
+                            adjustTooltipPosition(tooltip, tooltipText);
+                        }
+                    });
+                }, 250);
+            });
         });
     </script>
 </body>
