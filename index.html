@@ -265,13 +265,13 @@
         }
         .map-button {
             background-color: #977C00;
-            padding: 10px 20px;
+            padding: 10px 15px;
             font-size: 15px;
             border-radius: 8px;
             border: none;
             color: white;
             cursor: pointer;
-            margin-bottom: 8px;
+            margin: 0 4px 8px 4px;
             display: inline-block;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             transition: transform 0.2s;
@@ -279,12 +279,15 @@
         .map-button:active { transform: scale(0.95); }
         a { text-decoration: none; }
 
-        #lastUpdated {
-            position: fixed; bottom: 10px; right: 20px;
-            font-size: 12px; color: #555; z-index: 90;
+        .footer-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 12px;
         }
 
-        #disclaimer { font-size: 12px; margin-top: 20px; color: #555; }
+        #disclaimer { margin: 0; }
+        #lastUpdated { margin-top: 5px; }
 
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -319,14 +322,15 @@
 
             .map-button-container {
                 right: 0; bottom: 0; left: 0;
-                display: flex; justify-content: space-around;
+                display: flex; justify-content: center;
+                flex-wrap: wrap;
                 background-color: rgba(0, 0, 0, 0.95);
                 padding: 12px 5px;
                 border-top: 1px solid #333;
                 backdrop-filter: blur(10px);
             }
-            .map-button { padding: 8px 10px; font-size: 13px; margin: 0 2px; flex: 1; white-space: nowrap; }
-            #lastUpdated { bottom: 70px; width: 100%; text-align: center; right: 0; }
+            .map-button { padding: 8px 10px; font-size: 13px; margin: 4px; white-space: nowrap; }
+            .footer-info { margin-bottom: 80px; }
         }
     </style>
 
@@ -371,16 +375,18 @@
     <div id="futureDatesTable" style="display: none;"></div>
     <div id="verificationResult" style="display: none;"></div>
     
-    <p id="disclaimer">計算結果僅供參考。</p>
+    <div class="footer-info">
+        <p id="disclaimer">計算結果僅供參考。</p>
+        <div id="lastUpdated"></div>
+    </div>
 
     <div class="map-button-container">
         <a href="schedule.html"><button class="map-button">📅 Schedule</button></a>
-        <a href="age_calculator.html"><button class="map-button">🧮 年齡計算</button></a>
-        <a href="sums calculate.html"><button class="map-button">🔢 總和計算</button></a>
+        <a href="salary_calculator.html"><button class="map-button">💰 薪俸</button></a>
+        <a href="age_calculator.html"><button class="map-button">🧮 年齡</button></a>
+        <a href="sums_calculator.html"><button class="map-button">🔢 總和</button></a>
         <a href="https://www.google.com/maps/d/u/0/edit?mid=1smbxbgyDyi21YkzAcOjm2j5B3Ru5KhY&ll=22.196278957288584%2C113.54682999548615&z=16" target="_blank"><button class="map-button">🗺️ 地圖</button></a>
     </div>
-
-    <div id="lastUpdated"></div>
 
     <script>
     // ================= 配置與數據 =================
