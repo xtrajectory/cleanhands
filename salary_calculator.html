@@ -153,6 +153,7 @@
             transition: all 0.3s;
             -webkit-appearance: none;
             -moz-appearance: textfield;
+            appearance: none;
         }
         
         input[type="number"]:placeholder-shown {
@@ -172,6 +173,7 @@
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
+            appearance: none;
             margin: 0;
         }
         
@@ -246,6 +248,11 @@
         
         .counter-btn:active {
             transform: scale(0.95);
+        }
+        
+        .counter-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         .counter-value {
@@ -839,30 +846,71 @@
                 return `MOP $${Math.abs(amount).toFixed(2)}`;
             }
             
+            // 驗證並限制輸入為非負數
+            function validateInput(input, allowDecimal = false) {
+                let value = input.value;
+                // 移除負號
+                if (value.startsWith('-')) {
+                    value = value.replace('-', '');
+                }
+                // 如果不是允許小數，則只保留整數部分
+                if (!allowDecimal && value.includes('.')) {
+                    value = value.split('.')[0];
+                }
+                // 更新輸入值
+                if (value !== input.value) {
+                    input.value = value;
+                }
+                return parseFloat(value) || 0;
+            }
+            
+            // 限制輸入範圍
+            function limitInput(input, min = 0, max = null) {
+                input.addEventListener('input', function() {
+                    let value = validateInput(input, false);
+                    if (value < min) {
+                        input.value = min;
+                    } else if (max !== null && value > max) {
+                        input.value = max;
+                    }
+                });
+                
+                input.addEventListener('blur', function() {
+                    let value = validateInput(input, false);
+                    if (value < min) {
+                        input.value = min;
+                    } else if (max !== null && value > max) {
+                        input.value = max;
+                    }
+                    calculateSalary();
+                });
+            }
+            
             // 計算所有薪資項目
             function calculateSalary() {
                 // 1. 基本薪俸
-                const points = parseFloat(salaryPointsInput.value) || 0;
+                const points = validateInput(salaryPointsInput, true);
                 const baseSalary = points * 94;
                 salaryDisplay.textContent = formatCurrency(baseSalary);
                 
                 // 2. 特別職程輪值
-                const allowance1Days = parseFloat(allowance1DaysInput.value) || 0;
+                const allowance1Days = validateInput(allowance1DaysInput, false);
                 const allowance1Amount = allowance1Days * baseSalary * 0.0125;
                 allowance1Display.textContent = formatCurrency(allowance1Amount);
                 
-                const allowance2Days = parseFloat(allowance2DaysInput.value) || 0;
+                const allowance2Days = validateInput(allowance2DaysInput, false);
                 const allowance2Amount = allowance2Days * baseSalary * 0.0075;
                 allowance2Display.textContent = formatCurrency(allowance2Amount);
                 
                 // 3. 超時工作
-                const hourlyRate = (baseSalary * 12) / (52 * 36);
+                // 每小時費率 = (月薪 * 12) / (52週 * 36小時/週)
+                const hourlyRate = points > 0 ? (baseSalary * 12) / (52 * 36) : 0;
                 
-                const overtimeBigHours = parseFloat(overtimeBigInput.value) || 0;
+                const overtimeBigHours = validateInput(overtimeBigInput, true);
                 const overtimeBigAmount = overtimeBigHours * hourlyRate * 2;
                 overtimeBigDisplay.textContent = formatCurrency(overtimeBigAmount);
                 
-                const overtimeSmallHours = parseFloat(overtimeSmallInput.value) || 0;
+                const overtimeSmallHours = validateInput(overtimeSmallInput, true);
                 const overtimeSmallAmount = overtimeSmallHours * hourlyRate * 1.5;
                 overtimeSmallDisplay.textContent = formatCurrency(overtimeSmallAmount);
                 
@@ -900,6 +948,13 @@
                 totalAmountDisplay.style.color = total >= 0 ? 'white' : '#ffcccc';
             }
             
+            // 設置輸入驗證和限制
+            limitInput(salaryPointsInput, 0, 1000); // 薪俸點數限制在0-1000
+            limitInput(allowance1DaysInput, 0, 31); // 天數限制在0-31
+            limitInput(allowance2DaysInput, 0, 31); // 天數限制在0-31
+            limitInput(overtimeBigInput, 0, 52); // 小時數限制在0-52
+            limitInput(overtimeSmallInput, 0, 52); // 小時數限制在0-52
+            
             // 事件監聽
             salaryPointsInput.addEventListener('input', calculateSalary);
             allowance1DaysInput.addEventListener('input', calculateSalary);
@@ -908,19 +963,33 @@
             overtimeSmallInput.addEventListener('input', calculateSalary);
             deductionCheckbox.addEventListener('change', calculateSalary);
             
+            // 添加鍵盤事件支持（Enter鍵觸發計算）
+            [salaryPointsInput, allowance1DaysInput, allowance2DaysInput, overtimeBigInput, overtimeSmallInput].forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.target.blur();
+                        calculateSalary();
+                    }
+                });
+            });
+            
             // 房屋津貼按鈕
             housingYesBtn.addEventListener('click', function() {
-                housingSelected = true;
-                housingYesBtn.classList.add('active');
-                housingNoBtn.classList.remove('active');
-                calculateSalary();
+                if (!housingSelected) {
+                    housingSelected = true;
+                    housingYesBtn.classList.add('active');
+                    housingNoBtn.classList.remove('active');
+                    calculateSalary();
+                }
             });
             
             housingNoBtn.addEventListener('click', function() {
-                housingSelected = false;
-                housingNoBtn.classList.add('active');
-                housingYesBtn.classList.remove('active');
-                calculateSalary();
+                if (housingSelected) {
+                    housingSelected = false;
+                    housingNoBtn.classList.add('active');
+                    housingYesBtn.classList.remove('active');
+                    calculateSalary();
+                }
             });
             
             // 年資津貼計數器
@@ -928,11 +997,26 @@
             const seniorityPlusBtn = document.getElementById('seniority-plus');
             const seniorityCountEl = document.getElementById('seniority-count');
 
+            // 更新計數器按鈕狀態
+            function updateCounterButtons() {
+                seniorityPlusBtn.disabled = seniorityCount >= 50;
+                seniorityMinusBtn.disabled = seniorityCount <= 0;
+                familyPlusBtn.disabled = familyCount >= 9;
+                familyMinusBtn.disabled = familyCount <= 0;
+            }
+            
             seniorityPlusBtn.addEventListener('click', function() {
                 if (seniorityCount < 50) {
                     seniorityCount++;
                     seniorityCountEl.textContent = seniorityCount;
+                    updateCounterButtons();
                     calculateSalary();
+                } else {
+                    // 達到上限時的視覺反饋
+                    seniorityPlusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        seniorityPlusBtn.style.transform = '';
+                    }, 200);
                 }
             });
             
@@ -940,7 +1024,14 @@
                 if (seniorityCount > 0) {
                     seniorityCount--;
                     seniorityCountEl.textContent = seniorityCount;
+                    updateCounterButtons();
                     calculateSalary();
+                } else {
+                    // 達到下限時的視覺反饋
+                    seniorityMinusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        seniorityMinusBtn.style.transform = '';
+                    }, 200);
                 }
             });
             
@@ -949,7 +1040,14 @@
                 if (familyCount < 9) {
                     familyCount++;
                     familyCountEl.textContent = familyCount;
+                    updateCounterButtons();
                     calculateSalary();
+                } else {
+                    // 達到上限時的視覺反饋
+                    familyPlusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        familyPlusBtn.style.transform = '';
+                    }, 200);
                 }
             });
             
@@ -957,12 +1055,25 @@
                 if (familyCount > 0) {
                     familyCount--;
                     familyCountEl.textContent = familyCount;
+                    updateCounterButtons();
                     calculateSalary();
+                } else {
+                    // 達到下限時的視覺反饋
+                    familyMinusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        familyMinusBtn.style.transform = '';
+                    }, 200);
                 }
             });
             
+            // 初始化按鈕狀態
+            updateCounterButtons();
+            
             // 清除按鈕
             clearBtn.addEventListener('click', function() {
+                // 確認清除（可選，如果需要確認對話框可以取消註釋）
+                // if (!confirm('確定要清除所有資料嗎？')) return;
+                
                 // 重置所有輸入
                 salaryPointsInput.value = '';
                 allowance1DaysInput.value = '';
@@ -986,8 +1097,17 @@
                 // 重置退休基金扣減
                 deductionCheckbox.checked = true;
                 
+                // 更新按鈕狀態
+                updateCounterButtons();
+                
                 // 重新計算
                 calculateSalary();
+                
+                // 視覺反饋
+                clearBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    clearBtn.style.transform = '';
+                }, 200);
             });
             
             // 初始計算
@@ -1023,12 +1143,17 @@
                         }
                     });
                     
-                    // 點擊其他地方關閉tooltip
-                    document.addEventListener('click', function(e) {
-                        if (!tooltip.contains(e.target)) {
-                            tooltip.classList.remove('active');
-                        }
-                    });
+                    // 點擊其他地方關閉tooltip（使用事件委派，避免重複綁定）
+                    if (!document.tooltipClickHandler) {
+                        document.tooltipClickHandler = function(e) {
+                            tooltips.forEach(t => {
+                                if (!t.contains(e.target)) {
+                                    t.classList.remove('active');
+                                }
+                            });
+                        };
+                        document.addEventListener('click', document.tooltipClickHandler);
+                    }
                 }
             });
             
@@ -1080,6 +1205,15 @@
                         }
                     });
                 }, 250);
+            });
+            
+            // 添加ESC鍵關閉tooltip
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    tooltips.forEach(tooltip => {
+                        tooltip.classList.remove('active');
+                    });
+                }
             });
         });
     </script>
