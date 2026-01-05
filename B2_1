@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文閃卡學習</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'PingFang SC', sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .flashcard-container {
+            width: 100%;
+            max-width: 520px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* 單元選擇面板 - 底部固定 */
+        .unit-panel {
+            position: fixed;
+            left: 50%;
+            bottom: 16px;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            z-index: 20;
+        }
+
+        .unit-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #333;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .unit-btn:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        }
+
+        .unit-btn.unit1 { background: #FF6B6B; color: white; }
+        .unit-btn.unit2 { background: #4ECDC4; color: white; }
+        .unit-btn.unit3 { background: #45B7D1; color: white; }
+        .unit-btn.unit4 { background: #96CEB4; color: white; }
+
+        /* 按鈕區域 */
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .lang-buttons, .mode-buttons {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn {
+            background: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 22px;
+            margin: 0 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            min-width: 80px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        }
+
+        .btn.active {
+            background: #43A047;
+            color: white;
+            box-shadow: 0 4px 12px rgba(67, 160, 71, 0.4);
+        }
+
+        /* 閃卡主體 */
+        .flashcard {
+            background: white;
+            border-radius: 24px;
+            padding: 70px 40px;
+            margin: 0 auto 35px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.25);
+            position: relative;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .flashcard:hover {
+            transform: scale(1.03);
+        }
+
+        .word {
+            font-size: 72px;
+            font-weight: bold;
+            color: #2C3E50;
+            margin-bottom: 25px;
+            line-height: 1.2;
+            font-family: 'Microsoft JhengHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+        }
+
+        .word.english {
+            font-size: 64px;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+
+        .unit-info {
+            position: absolute;
+            bottom: 18px;
+            right: 18px;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        /* 導航按鈕 */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #FF9800, #FF5722);
+            color: white;
+            border: none;
+            border-radius: 28px;
+            padding: 14px 36px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+            min-width: 140px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 87, 34, 0.6);
+        }
+
+        .nav-btn:disabled {
+            background: #BDBDBD;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 懸浮窗 - 單元詞彙預覽 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 95%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .vocabulary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .vocab-column {
+            text-align: left;
+        }
+
+        .vocab-column h3 {
+            font-size: 18px;
+            color: #2C3E50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4ECDC4;
+        }
+
+        .vocab-list {
+            list-style: none;
+        }
+
+        .vocab-list li {
+            padding: 8px 0;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+
+        .vocab-list li::before {
+            content: "•";
+            color: #43A047;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .control-panel {
+                gap: 12px;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+
+            .vocabulary-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            
+            .modal-header {
+                font-size: 20px;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .word {
+                font-size: 58px;
+                padding: 0 15px;
+            }
+            
+            .word.english {
+                font-size: 52px;
+            }
+            
+            .flashcard {
+                padding: 55px 25px;
+                min-height: 220px;
+            }
+
+            .flashcard-container {
+                margin-right: 50px;
+            }
+            
+            .btn {
+                padding: 8px 18px;
+                font-size: 14px;
+                min-width: 70px;
+            }
+            
+            .nav-btn {
+                padding: 12px 28px;
+                font-size: 16px;
+                min-width: 120px;
+            }
+            
+            .unit-panel {
+                right: 15px;
+            }
+            
+            .unit-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .word {
+                font-size: 44px;
+            }
+            
+            .word.english {
+                font-size: 40px;
+            }
+        }
+
+        /* 手機上避免按鈕連點觸發縮放 */
+        .btn,
+        .nav-btn {
+            touch-action: manipulation;
+        }
+
+        /* 全螢幕模式樣式 */
+        .fullscreen-controls {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        #exitFullscreenBtn {
+            display: none;
+        }
+
+        .fullscreen-mode .control-panel,
+        .fullscreen-mode .unit-panel,
+        .fullscreen-mode .modal-overlay {
+            display: none;
+        }
+
+        .fullscreen-mode body,
+        .fullscreen-mode {
+            background-color: #000;
+            padding: 0;
+        }
+
+        .fullscreen-mode .flashcard-container {
+            max-width: none;
+            width: 100%;
+            margin-right: 0;
+        }
+
+        .fullscreen-mode .flashcard {
+            width: auto;
+            max-width: 1200px;
+            margin: 0 16px 35px;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 單元選擇面板 -->
+    <div class="unit-panel">
+        <button class="unit-btn unit1" data-unit="1">1</button>
+        <button class="unit-btn unit2" data-unit="2">2</button>
+        <button class="unit-btn unit3" data-unit="3">3</button>
+        <button class="unit-btn unit4" data-unit="4">4</button>
+    </div>
+
+    <div class="flashcard-container">
+        <div class="control-panel">
+            <div class="lang-buttons">
+                <button id="chineseBtn" class="btn active">中文</button>
+                <button id="englishBtn" class="btn">英文</button>
+            </div>
+            <div class="mode-buttons">
+                <button id="sequentialBtn" class="btn active">順序</button>
+                <button id="randomBtn" class="btn">隨機</button>
+            </div>
+        </div>
+
+        <div class="flashcard">
+            <div class="word" id="wordDisplay">姓名</div>
+            <div class="unit-info" id="unitInfo">單元一：預備週</div>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="prevBtn" class="nav-btn">◀ 上一個</button>
+            <button id="nextBtn" class="nav-btn">下一個 ▶</button>
+        </div>
+
+        <div class="fullscreen-controls">
+            <button id="enterFullscreenBtn" class="nav-btn">進入全螢幕</button>
+            <button id="exitFullscreenBtn" class="nav-btn">退出全螢幕</button>
+        </div>
+    </div>
+
+    <!-- 單元詞彙懸浮窗 -->
+    <div class="modal-overlay" id="unitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="modalTitle">單元一：預備週</span>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="vocabulary-grid">
+                    <div class="vocab-column">
+                        <h3>中文詞彙</h3>
+                        <ul class="vocab-list" id="chineseList">
+                            <!-- 動態生成 -->
+                        </ul>
+                    </div>
+                    <div class="vocab-column">
+                        <h3>English Vocabulary</h3>
+                        <ul class="vocab-list" id="englishList">
+                            <!-- 動態生成 -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 單元主題對應表
+        const unitThemes = {
+            1: "預備週",
+            2: "我愛上學+國慶節+中秋節",
+            3: "五官真有用+秋天+重陽節",
+            4: "我愛我的家+冬天+回歸日+聖誕節+元旦"
+        };
+
+        // 詞彙資料（已依您提供內容完整整合，並補回缺失項目）
+        const vocabulary = [
+            // 單元一：預備週 (2025年9月2日至9月19日)
+            { chinese: "姓名", unit: 1 },
+            { chinese: "班別", unit: 1 },
+            { chinese: "學號", unit: 1 },
+            { chinese: "日期", unit: 1 },
+            { chinese: "今天", unit: 1 },
+            { chinese: "天氣", unit: 1 },
+            { chinese: "晴天", unit: 1 },
+            { chinese: "陰天", unit: 1 },
+            { chinese: "雨天", unit: 1 },
+            { english: "school bag", unit: 1 },
+            { english: "book", unit: 1 },
+            { english: "pencil", unit: 1 },
+            { english: "rubber", unit: 1 },
+            { english: "ruler", unit: 1 },
+            { english: "teacher", unit: 1 },
+            
+            // 單元二：我愛上學+國慶節+中秋節 (2025年9月22日至10月17日)
+            { english: "boy", unit: 2 },
+            { english: "girl", unit: 2 },
+            { english: "draw", unit: 2 },
+            { english: "eat", unit: 2 },
+            { english: "play", unit: 2 },
+            { english: "read", unit: 2 },
+            { english: "sing", unit: 2 },
+            { english: "write", unit: 2 },
+            { english: "one", unit: 2 },
+            { english: "two", unit: 2 },
+            { english: "three", unit: 2 },
+            { english: "four", unit: 2 },
+            { english: "five", unit: 2 },
+            { chinese: "修女", unit: 2 },
+            { chinese: "校長", unit: 2 },
+            { chinese: "工友", unit: 2 },
+            { chinese: "課室", unit: 2 },
+            { chinese: "請", unit: 2 },
+            { chinese: "你好", unit: 2 },
+            { chinese: "謝謝", unit: 2 },
+            { chinese: "對不起", unit: 2 },
+            { chinese: "圖書館", unit: 2 },
+            { chinese: "音樂室", unit: 2 },
+            { chinese: "老師", unit: 2 },
+            { chinese: "同學", unit: 2 },
+            { chinese: "早安", unit: 2 },
+            { chinese: "午安", unit: 2 },
+            { chinese: "再見", unit: 2 },
+            { chinese: "唱歌", unit: 2 },
+            { chinese: "學習", unit: 2 },
+            { chinese: "學校", unit: 2 },
+            { chinese: "馬路", unit: 2 },
+            { chinese: "商場", unit: 2 },
+            { chinese: "杯子", unit: 2 },
+            { chinese: "早上", unit: 2 },
+            { chinese: "花園", unit: 2 },
+            { chinese: "公園", unit: 2 },
+            { chinese: "醫生", unit: 2 },
+            { chinese: "護士", unit: 2 },
+            { chinese: "國慶節", unit: 2 },
+            { chinese: "中秋節", unit: 2 },
+            
+            // 單元三：五官真有用+秋天+重陽節 (2025年10月27日至11月28日)
+            { english: "hair", unit: 3 },
+            { english: "arm(s)", unit: 3 },
+            { english: "knee(s)", unit: 3 },
+            { english: "shoulder", unit: 3 },
+            { english: "hand(s)", unit: 3 },
+            { english: "foot(feet)", unit: 3 },
+            { english: "eye(s)", unit: 3 },
+            { english: "ear(s)", unit: 3 },
+            { english: "nose", unit: 3 },
+            { english: "mouth", unit: 3 },
+            { english: "tongue", unit: 3 },
+            { english: "see", unit: 3 },
+            { english: "hear", unit: 3 },
+            { english: "smell", unit: 3 },
+            { english: "taste", unit: 3 },
+            { english: "red", unit: 3 },
+            { english: "blue", unit: 3 },
+            { english: "yellow", unit: 3 },
+            { english: "green", unit: 3 },
+            { chinese: "身體", unit: 3 },
+            { chinese: "頭髮", unit: 3 },
+            { chinese: "臉", unit: 3 },
+            { chinese: "跳舞", unit: 3 },
+            { chinese: "男孩子", unit: 3 },
+            { chinese: "女孩子", unit: 3 },
+            { chinese: "長長的", unit: 3 },
+            { chinese: "短短的", unit: 3 },
+            { chinese: "嘴巴", unit: 3 },
+            { chinese: "大大", unit: 3 },
+            { chinese: "小小", unit: 3 },
+            { chinese: "畫畫", unit: 3 },
+            { chinese: "口", unit: 3 },
+            { chinese: "牙齒", unit: 3 },
+            { chinese: "鼻子", unit: 3 },
+            { chinese: "耳朵", unit: 3 },
+            { chinese: "眼睛", unit: 3 },
+            { chinese: "秋天", unit: 3 },
+            { chinese: "重陽節", unit: 3 },
+            
+            // 單元四：我愛我的家+冬天+回歸日+聖誕節+元旦 (2025年12月1日至2026年1月9日)
+            { english: "father", unit: 4 },
+            { english: "mother", unit: 4 },
+            { english: "brother", unit: 4 },
+            { english: "sister", unit: 4 },
+            { english: "grandfather", unit: 4 },
+            { english: "grandmother", unit: 4 },
+            { english: "home", unit: 4 },
+            { english: "autumn", unit: 4 },
+            { english: "kite", unit: 4 },
+            { english: "winter", unit: 4 },
+            { english: "snow", unit: 4 },
+            { english: "cold", unit: 4 },
+            { chinese: "家人", unit: 4 },
+            { chinese: "哭", unit: 4 },
+            { chinese: "笑", unit: 4 },
+            { chinese: "生氣", unit: 4 },
+            { chinese: "傷心", unit: 4 },
+            { chinese: "桌子", unit: 4 },
+            { chinese: "椅子", unit: 4 },
+            { chinese: "開心", unit: 4 },
+            { chinese: "爸爸", unit: 4 },           // 補回「爸爸」
+            { chinese: "哥哥", unit: 4 },
+            { chinese: "姐姐", unit: 4 },
+            { chinese: "弟弟", unit: 4 },
+            { chinese: "妹妹", unit: 4 },
+            { chinese: "冬天", unit: 4 },
+            { chinese: "回歸日", unit: 4 },
+            { chinese: "聖誕節", unit: 4 },
+            { chinese: "元旦", unit: 4 },
+        ];
+
+        // 狀態變數
+        let currentIndex = 0;
+        let isChinese = true;
+        let isRandomMode = false;
+        let displayOrder = [];
+
+        // DOM 元素
+        const wordDisplay = document.getElementById('wordDisplay');
+        const unitInfo = document.getElementById('unitInfo');
+        const chineseBtn = document.getElementById('chineseBtn');
+        const englishBtn = document.getElementById('englishBtn');
+        const sequentialBtn = document.getElementById('sequentialBtn');
+        const randomBtn = document.getElementById('randomBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const unitModal = document.getElementById('unitModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const chineseList = document.getElementById('chineseList');
+        const englishList = document.getElementById('englishList');
+        const enterFullscreenBtn = document.getElementById('enterFullscreenBtn');
+        const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+
+        // 初始化顯示順序
+        function initDisplayOrder() {
+            displayOrder = Array.from({length: vocabulary.length}, (_, i) => i);
+            if (isRandomMode) {
+                shuffleArray(displayOrder);
+            }
+        }
+
+        // 洗牌函數
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 更新閃卡內容（關鍵：安全取值）
+        function updateFlashcard() {
+            const wordIndex = displayOrder[currentIndex];
+            const wordData = vocabulary[wordIndex];
+            
+            // 安全取值：若當前模式無對應語言，則跳至下一筆有效詞條
+            let displayText = '';
+            if (isChinese) {
+                displayText = wordData.chinese ?? '';
+                // 若當前卡片無中文，自動找下一個有中文的
+                if (displayText === '') {
+                    let nextIndex = currentIndex;
+                    do {
+                        nextIndex = (nextIndex + 1) % displayOrder.length;
+                        const nextData = vocabulary[displayOrder[nextIndex]];
+                        if (nextData.chinese) {
+                            currentIndex = nextIndex;
+                            displayText = nextData.chinese;
+                            break;
+                        }
+                    } while (nextIndex !== currentIndex);
+                }
+            } else {
+                displayText = wordData.english ?? '';
+                // 若當前卡片無英文，自動找下一個有英文的
+                if (displayText === '') {
+                    let nextIndex = currentIndex;
+                    do {
+                        nextIndex = (nextIndex + 1) % displayOrder.length;
+                        const nextData = vocabulary[displayOrder[nextIndex]];
+                        if (nextData.english) {
+                            currentIndex = nextIndex;
+                            displayText = nextData.english;
+                            break;
+                        }
+                    } while (nextIndex !== currentIndex);
+                }
+            }
+            
+            wordDisplay.textContent = displayText;
+            wordDisplay.className = `word ${isChinese ? '' : 'english'}`;
+            unitInfo.textContent = `單元${wordData.unit}：${unitThemes[wordData.unit]}`;
+            
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === displayOrder.length - 1;
+        }
+
+        // 初始化
+        initDisplayOrder();
+        updateFlashcard();
+
+        // 事件監聽器（原有功能）
+        chineseBtn.addEventListener('click', () => {
+            isChinese = true;
+            chineseBtn.classList.add('active');
+            englishBtn.classList.remove('active');
+            updateFlashcard();
+        });
+
+        englishBtn.addEventListener('click', () => {
+            isChinese = false;
+            englishBtn.classList.add('active');
+            chineseBtn.classList.remove('active');
+            updateFlashcard();
+        });
+
+        sequentialBtn.addEventListener('click', () => {
+            isRandomMode = false;
+            sequentialBtn.classList.add('active');
+            randomBtn.classList.remove('active');
+            currentIndex = 0;
+            initDisplayOrder();
+            updateFlashcard();
+        });
+
+        randomBtn.addEventListener('click', () => {
+            isRandomMode = true;
+            randomBtn.classList.add('active');
+            sequentialBtn.classList.remove('active');
+            currentIndex = 0;
+            initDisplayOrder();
+            updateFlashcard();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateFlashcard();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < displayOrder.length - 1) {
+                currentIndex++;
+                updateFlashcard();
+            }
+        });
+
+        // 鍵盤快捷鍵
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevBtn.click();
+            else if (e.key === 'ArrowRight') nextBtn.click();
+            else if (e.key.toLowerCase() === 'c') chineseBtn.click();
+            else if (e.key.toLowerCase() === 'e') englishBtn.click();
+            else if (e.key === 'Escape') unitModal.classList.remove('active');
+        });
+
+        // 關閉懸浮窗
+        closeModal.addEventListener('click', () => {
+            unitModal.classList.remove('active');
+        });
+
+        unitModal.addEventListener('click', (e) => {
+            if (e.target === unitModal) {
+                unitModal.classList.remove('active');
+            }
+        });
+
+        // 單元按鈕點擊事件
+        document.querySelectorAll('.unit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const unitNum = parseInt(btn.getAttribute('data-unit'));
+                showUnitVocabulary(unitNum);
+            });
+        });
+
+        // 顯示單元詞彙懸浮窗（關鍵：只顯示存在的語言項目）
+        function showUnitVocabulary(unitNum) {
+            // 篩選該單元詞彙
+            const unitWords = vocabulary.filter(item => item.unit === unitNum);
+            
+            // 更新標題
+            modalTitle.textContent = `單元${unitNum}：${unitThemes[unitNum]}`;
+            
+            // 清空列表
+            chineseList.innerHTML = '';
+            englishList.innerHTML = '';
+            
+            // 分別填入中英文詞條（只顯示存在的）
+            unitWords.forEach(word => {
+                if (word.chinese) {
+                    const li = document.createElement('li');
+                    li.textContent = word.chinese;
+                    chineseList.appendChild(li);
+                }
+                if (word.english) {
+                    const li = document.createElement('li');
+                    li.textContent = word.english;
+                    englishList.appendChild(li);
+                }
+            });
+            
+            // 顯示懸浮窗
+            unitModal.classList.add('active');
+        }
+
+        // 全螢幕模式切換
+        function enterFullscreen() {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen();
+            } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.msRequestFullscreen) {
+                docEl.msRequestFullscreen();
+            }
+            document.body.classList.add('fullscreen-mode');
+            enterFullscreenBtn.style.display = 'none';
+            exitFullscreenBtn.style.display = 'inline-block';
+        }
+
+        function exitFullscreen() {
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+            document.body.classList.remove('fullscreen-mode');
+            enterFullscreenBtn.style.display = 'inline-block';
+            exitFullscreenBtn.style.display = 'none';
+        }
+
+        enterFullscreenBtn.addEventListener('click', enterFullscreen);
+        exitFullscreenBtn.addEventListener('click', exitFullscreen);
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                document.body.classList.remove('fullscreen-mode');
+                enterFullscreenBtn.style.display = 'inline-block';
+                exitFullscreenBtn.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
