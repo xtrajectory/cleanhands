@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Map</title>
+  <title>MAP</title>
   <style>
     * {
       margin: 0;
@@ -26,7 +26,7 @@
       top: 0;
       left: 0;
       width: 100vw;
-      height: 100vh;
+      height: calc(100vh - 50px);
     }
 
     .map-container iframe {
@@ -34,6 +34,33 @@
       height: 100%;
       border: none;
       display: block;
+    }
+
+    .map-link {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .map-link a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: color 0.3s ease;
+    }
+
+    .map-link a:hover {
+      color: #C6A300;
     }
   </style>
   
@@ -52,6 +79,9 @@
       src="https://www.google.com/maps/d/u/0/embed?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&ehbc=2E312F"
       title="全螢幕嵌入地圖"
     ></iframe>
+  </div>
+  <div class="map-link">
+    <a href="https://www.google.com/maps/d/u/0/edit?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&usp=sharing" target="_blank">Open Google MAP</a>
   </div>
 </body>
 </html>
