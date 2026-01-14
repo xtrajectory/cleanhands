@@ -21,12 +21,14 @@
       background-color: #f5f5f5;
     }
 
-    .map-container {
+  .map-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
-      height: calc(100vh - 50px);
+      /* 使用動態 viewport 單位，避免行動裝置瀏覽器地址列造成高度縮減 */
+      height: calc(100dvh - 50px);
+      min-height: calc(100vh - 50px);
     }
 
     .map-container iframe {
@@ -78,6 +80,9 @@
     <iframe 
       src="https://www.google.com/maps/d/u/0/embed?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&ehbc=2E312F"
       title="全螢幕嵌入地圖"
+      allowfullscreen
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
     ></iframe>
   </div>
   <div class="map-link">
