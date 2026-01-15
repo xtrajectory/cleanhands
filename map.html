@@ -2,8 +2,21 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MAP</title>
+
+  <!-- 🔒 鎖定 viewport，防止整個網頁被縮放 -->
+  <meta
+    name="viewport"
+    content="
+      width=device-width,
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no,
+      viewport-fit=cover
+    "
+  />
+
+  <title>Map</title>
+
   <style>
     * {
       margin: 0;
@@ -15,20 +28,29 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+
+      /* 🔒 防止橡皮筋彈跳與整頁拖動 */
+      overscroll-behavior: none;
+      touch-action: pan-x pan-y;
     }
 
     body {
       background-color: #f5f5f5;
+      position: fixed; /* 🔒 強制鎖死頁面位置 */
     }
 
-  .map-container {
+    .map-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
-      /* 使用動態 viewport 單位，避免行動裝置瀏覽器地址列造成高度縮減 */
+
+      /* ✅ 動態 viewport，避免手機瀏覽器地址列影響高度 */
       height: calc(100dvh - 50px);
       min-height: calc(100vh - 50px);
+
+      /* 只允許地圖本身的手勢 */
+      touch-action: manipulation;
     }
 
     .map-container iframe {
@@ -57,7 +79,8 @@
       color: white;
       text-decoration: none;
       font-size: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Helvetica Neue", Arial, sans-serif;
       transition: color 0.3s ease;
     }
 
@@ -65,28 +88,36 @@
       color: #C6A300;
     }
   </style>
-  
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){ dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-EZTW98Q8GK');
-  </script> 
+  </script>
 </head>
+
 <body>
   <div class="map-container">
-    <iframe 
+    <iframe
       src="https://www.google.com/maps/d/u/0/embed?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&ehbc=2E312F"
       title="全螢幕嵌入地圖"
-      allowfullscreen
       loading="lazy"
       referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
     ></iframe>
   </div>
+
   <div class="map-link">
-    <a href="https://www.google.com/maps/d/u/0/edit?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&usp=sharing" target="_blank">Open Google MAP</a>
+    <a
+      href="https://www.google.com/maps/d/u/0/edit?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&usp=sharing"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Open Google MAP
+    </a>
   </div>
 </body>
 </html>
