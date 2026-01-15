@@ -9,9 +9,11 @@
     content="
       width=device-width,
       initial-scale=1.0,
+      minimum-scale=1.0,
       maximum-scale=1.0,
       user-scalable=no,
-      viewport-fit=cover
+      viewport-fit=cover,
+      shrink-to-fit=no
     "
   />
 
@@ -120,35 +122,36 @@
   <!-- 🔒 進一步阻止整個頁面的手勢縮放（雙指或兩指拖動） -->
   <script>
     (function () {
+      // 盡量「更早」攔截（capture），避免瀏覽器先觸發頁面縮放
+      var listenerOpts = { passive: false, capture: true };
+
       // iOS Safari 的手勢事件（雙指縮放）
-      window.addEventListener('gesturestart', function (e) {
-        e.preventDefault();
-      }, { passive: false });
+      document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, listenerOpts);
+      document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, listenerOpts);
+      document.addEventListener('gestureend', function (e) { e.preventDefault(); }, listenerOpts);
 
-      window.addEventListener('gesturechange', function (e) {
-        e.preventDefault();
-      }, { passive: false });
-
-      window.addEventListener('gestureend', function (e) {
-        e.preventDefault();
-      }, { passive: false });
+      // 多指一開始就阻止（你說的「先按住一指，再放第二指移動」屬於這類）
+      document.addEventListener('touchstart', function (e) {
+        if (e.touches && e.touches.length > 1) e.preventDefault();
+      }, listenerOpts);
 
       // 任何「多指移動」都阻止，避免整頁被放大縮小
-      window.addEventListener('touchmove', function (e) {
-        if (e.touches && e.touches.length > 1) {
-          e.preventDefault();
-        }
-      }, { passive: false });
+      document.addEventListener('touchmove', function (e) {
+        if (e.touches && e.touches.length > 1) e.preventDefault();
+      }, listenerOpts);
 
       // 避免快速連點造成雙擊放大
       var lastTouchEnd = 0;
-      window.addEventListener('touchend', function (e) {
+      document.addEventListener('touchend', function (e) {
         var now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-          e.preventDefault();
-        }
+        if (now - lastTouchEnd <= 300) e.preventDefault();
         lastTouchEnd = now;
-      }, { passive: false });
+      }, listenerOpts);
+
+      // 桌面端：避免 Ctrl + 滾輪造成頁面縮放
+      document.addEventListener('wheel', function (e) {
+        if (e.ctrlKey) e.preventDefault();
+      }, listenerOpts);
     })();
   </script>
 </body>
