@@ -116,5 +116,40 @@
       Open Google MAP
     </a>
   </div>
+
+  <!-- 🔒 進一步阻止整個頁面的手勢縮放（雙指或兩指拖動） -->
+  <script>
+    (function () {
+      // iOS Safari 的手勢事件（雙指縮放）
+      window.addEventListener('gesturestart', function (e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('gesturechange', function (e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      window.addEventListener('gestureend', function (e) {
+        e.preventDefault();
+      }, { passive: false });
+
+      // 任何「多指移動」都阻止，避免整頁被放大縮小
+      window.addEventListener('touchmove', function (e) {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // 避免快速連點造成雙擊放大
+      var lastTouchEnd = 0;
+      window.addEventListener('touchend', function (e) {
+        var now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          e.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, { passive: false });
+    })();
+  </script>
 </body>
 </html>
