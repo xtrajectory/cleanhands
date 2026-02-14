@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>sheet</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --bg-color: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+
+        html {
+            /* 防止手機上的縮放 */
+            touch-action: manipulation;
+            -ms-touch-action: manipulation;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: var(--bg-color);
+            padding-bottom: 80px;
+            /* 禁止選取文字以外的區域，增加保護感 */
+            user-select: none;
+            /* 防止手機上的縮放手勢 */
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
+
+        /* 修改點 2: 電腦版寬度改為 60%
+        */
+        .main-wrapper {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .main-wrapper {
+                width: 60%; /* 修改為 60% */
+                box-shadow: 0 0 20px rgba(0,0,0,0.05);
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 10px;
+            }
+            body {
+                background-color: #eee;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .table-container {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: visible; /* 允許下拉選單垂直溢出 */
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            /* 讓表格容器本身有定位，方便下拉選單定位(如需要) */
+            position: relative; 
+            -webkit-overflow-scrolling: touch;
+            /* 移除 padding-bottom，因為下拉選單使用 fixed 定位不會影響容器 */
+        }
+
+        table {
+            width: 100%;
+            min-width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* 固定表格佈局，讓列寬按比例分配 */
+        }
+
+        /* 手機版：表格列寬調整 */
+        @media (max-width: 767px) {
+            .table-container {
+                width: 100%;
+                max-width: 100vw; /* 不超過視窗寬度 */
+                margin-left: 0;
+                margin-right: 0;
+            }
+            
+            table {
+                min-width: 100%;
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 6px 4px; /* 手機版減少內邊距 */
+                font-size: 14px;
+            }
+            
+            input {
+                font-size: 12px; /* 手機版進一步縮小字體 */
+                padding: 6px 2px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        /* 電腦版：表格寬度限制 */
+        @media (min-width: 768px) {
+            .table-container {
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            table {
+                min-width: 100%;
+                width: 100%;
+            }
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 2px; /* 更貼近 Excel，減少留白 */
+            text-align: left;
+            position: relative; /* 讓下拉選單相對於儲存格定位 */
+            overflow: visible; /* 允許下拉選單顯示 */
+        }
+
+        th {
+            background-color: #e9ecef;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            white-space: nowrap;
+            text-align: center; /* 表頭置中 */
+        }
+
+        /* Excel 風格：儲存格內的輸入框 */
+        td input {
+            width: 100%;
+            min-height: 22px;
+            border: none;
+            padding: 4px 6px;
+            box-sizing: border-box;
+            font-size: 13px;
+            outline: none;
+            background: transparent;
+            user-select: text;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td input:focus {
+            background-color: #e8f0fe;
+        }
+
+        /* 區域/場所類別：表格內灰色內聯建議（不彈出） */
+        .ac-cell-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .ac-cell-wrap .inline-suggestion {
+            position: absolute;
+            left: 6px;
+            top: 4px;
+            padding: 0;
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.2;
+            color: #999;
+            pointer-events: none;
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: calc(100% - 12px);
+            z-index: 2; /* 高於 input，灰色字才不會被輸入框遮住 */
+        }
+        .ac-cell-wrap input {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 修改點 1: 自定義下拉選單樣式（已改為內聯建議，保留類名以防舊程式參考）
+           width: max-content 實現了「根據文字長度調節寬度」
+           使用 fixed 定位避免影響頁面布局和滾動條
+        */
+        .custom-dropdown {
+            position: fixed; /* 改為 fixed 定位，避免影響容器布局 */
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none; /* 預設隱藏 */
+            max-height: 200px;
+            overflow-y: auto;
+            
+            /* 關鍵：讓寬度適應內容，但有最小和最大限制 */
+            min-width: 100px; 
+            width: max-content; 
+            max-width: 300px; /* 防止過長超出螢幕太多 */
+        }
+
+        /* 手機版：下拉選單寬度調整 */
+        @media (max-width: 767px) {
+            .custom-dropdown {
+                max-width: calc(100vw - 20px); /* 考慮頁面邊距 */
+            }
+        }
+
+        .custom-dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.1s;
+        }
+
+        .custom-dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .btn-csv { background-color: var(--primary-color); }
+        .btn-save { background-color: var(--success-color); }
+        .btn-clear { background-color: var(--danger-color); }
+
+        .save-list-container {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .save-list-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .save-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .save-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .save-info {
+            flex-grow: 1;
+        }
+
+        .save-name {
+            font-weight: bold;
+            display: block;
+        }
+
+        .save-time {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .auto-save-badge {
+            background-color: var(--success-color);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        .btn-delete {
+            background-color: #ffebee;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 5px 10px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        #status-msg {
+            text-align: center;
+            margin-bottom: 10px;
+            height: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .add-row-button {
+            width: 100%;
+            max-width: 100%;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            margin-top: 10px;
+            box-sizing: border-box; /* 確保 padding 包含在寬度內 */
+        }
+
+        .add-row-button:hover {
+            background-color: #e0e0e0;
+            border-color: var(--primary-color);
+        }
+
+        .add-row-button:active {
+            opacity: 0.8;
+        }
+
+        /* 手機版：按鈕樣式調整 */
+        @media (max-width: 767px) {
+            .add-row-button {
+                width: 100%;
+                max-width: 100vw; /* 不超過視窗寬度 */
+                padding: 12px;
+                font-size: 1.3rem;
+                margin-top: 8px;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+
+        /* 電腦版：按鈕寬度限制 */
+        @media (min-width: 768px) {
+            .add-row-button {
+                max-width: 100%;
+                width: 100%;
+            }
+        }
+
+        .footer-notice {
+            text-align: center;
+            color: #999;
+            font-size: 0.75rem;
+            padding: 15px 10px;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* 手機版：底部提示文字調整 */
+        @media (max-width: 767px) {
+            .footer-notice {
+                font-size: 0.7rem;
+                padding: 12px 8px;
+            }
+        }
+
+        /* 自定義確認對話框 */
+        .custom-confirm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .custom-confirm-dialog {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .custom-confirm-message {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .custom-confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .custom-confirm-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .custom-confirm-btn:active {
+            opacity: 0.8;
+        }
+
+        .custom-confirm-btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .custom-confirm-btn-ok {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* 行號 + 拖曳把手欄 */
+        .row-order-cell {
+            width: 52px;
+            min-width: 52px;
+            max-width: 52px;
+            padding: 2px 4px !important;
+            vertical-align: middle;
+            text-align: center;
+            background-color: #f5f5f5;
+            border-right: 1px solid var(--border-color);
+            user-select: none;
+        }
+        .row-order-cell .row-order-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        .row-drag-handle {
+            cursor: grab;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #888;
+            font-size: 1.1rem;
+            line-height: 1;
+            user-select: none;
+        }
+        .row-drag-handle:active {
+            cursor: grabbing;
+        }
+        .row-drag-handle:hover {
+            color: #333;
+            background-color: #e8e8e8;
+        }
+        .row-num {
+            min-width: 18px;
+            font-size: 12px;
+            color: #666;
+            margin-left: 4px;
+        }
+        tr.dragging {
+            opacity: 0.6;
+            background-color: #e8f0fe;
+        }
+        thead .row-order-cell {
+            background-color: #e9ecef;
+        }
+    </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EZTW98Q8GK');
+    </script> 
+
+</head>
+<body>
+
+    <div class="main-wrapper">
+        
+        <h1>Sheet</h1>
+        
+        <div id="status-msg"></div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th class="row-order-cell"></th>
+                        <th style="width: 30%">地址</th>
+                        <th style="width: 26%">名稱</th>
+                        <th style="width: 22%">區域</th>
+                        <th style="width: 22%">場所類別</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+            <div class="add-row-button" onclick="addRows()">+</div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-csv" onclick="exportToCSV()">導出 CSV</button>
+            <button class="btn-save" onclick="manualSave()">儲存</button>
+            <button class="btn-clear" onclick="clearTable()">清除表格</button>
+        </div>
+
+        <div class="save-list-container">
+            <div class="save-list-header">儲存記錄</div>
+            <div id="saveList">
+                <div style="text-align: center; color: #999; padding: 10px;">暫無儲存記錄</div>
+            </div>
+        </div>
+
+        <div class="footer-notice">
+            測試版本 資料只存放在目前設備上 導出csv防止消失
+        </div>
+
+    </div>
+
+    <script>
+        // 設定
+        const TOTAL_ROWS = 80;
+        const INITIAL_ROWS = 10; // 初始顯示行數
+        const ROWS_TO_ADD = 10; // 每次增加的行數
+        const SAVE_KEY = 'sheet_saved_data_v2'; // 更新 key 避免舊格式衝突
+        const AUTO_SAVE_INTERVAL = 5 * 60 * 1000;
+        
+        let currentRowCount = INITIAL_ROWS; // 追蹤目前顯示的行數 
+        
+        // 選項資料
+        const REGIONS = ["黑沙環", "筷子基", "塔石", "海傍", "風順堂", "氹仔", "路環"];
+        const PLACES = ["飲食場所", "商店", "餐廳", "飲料場所", "酒吧", "舞廳", "蒸汽浴室及按摩院", "網吧", "遊戲機中心", "桌球室", "休憩區"];
+
+        let lastSavedData = null;
+        let autoSaveTimer = null;
+        let activeDropdown = null; // 追蹤目前開啟的下拉選單
+
+        // --- 安全與防護功能 (修改點 3) ---
+        // 1. 禁止右鍵菜單 (防止 Inspect)
+        document.addEventListener('contextmenu', event => {
+            // 由於無法只移除 "檢查" 而保留 "複製貼上"，為了安全必須完全禁用右鍵。
+            // 使用者可以使用鍵盤 Ctrl+C / Ctrl+V 進行編輯。
+            event.preventDefault(); 
+        });
+
+        // 2. 禁止 F12 及 開發者快捷鍵
+        document.onkeydown = function (e) {
+            // F12
+            if (e.keyCode == 123) {
+                return false;
+            }
+            // Ctrl+Shift+I (Inspect)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+                return false;
+            }
+            // Ctrl+Shift+J (Console)
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+                return false;
+            }
+            // Ctrl+U (View Source)
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+                return false;
+            }
+        };
+
+        // --- 初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initTable();
+            renderSaveList();
+            startAutoSaveTimer();
+            lastSavedData = getTableData();
+        });
+
+        // --- 表格邏輯 ---
+        function initTable() {
+            const tbody = document.getElementById('tableBody');
+            currentRowCount = INITIAL_ROWS;
+            renderRows(INITIAL_ROWS);
+
+            // 綁定輸入框事件 (Event Delegation) — 委派到 tbody，新增行也會觸發
+            tbody.addEventListener('focusin', handleInputFocus);
+            tbody.addEventListener('focusout', handleInputBlur);
+            tbody.addEventListener('input', handleInputType);
+            tbody.addEventListener('keydown', handleInputKeydown);
+            tbody.addEventListener('paste', handlePaste);
+        }
+
+        function rowOrderCellHtml() {
+            return `<td class="row-order-cell">
+                <div class="row-order-wrap">
+                    <div class="row-drag-handle" title="拖動排序" role="button">≡</div>
+                    <span class="row-num">0</span>
+                </div>
+            </td>`;
+        }
+
+        function renderRows(count) {
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `<tr>${rowOrderCellHtml()}
+                        <td><input type="text" placeholder="輸入地址"></td>
+                        <td><input type="text" placeholder="輸入名稱"></td>
+                        <td>
+                            <div class="ac-cell-wrap">
+                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                                <span class="inline-suggestion" aria-hidden="true"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ac-cell-wrap">
+                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                                <span class="inline-suggestion" aria-hidden="true"></span>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+            tbody.innerHTML = html;
+            updateRowNumbers();
+            bindRowDragHandles();
+        }
+
+        function addRows() {
+            if (currentRowCount >= TOTAL_ROWS) {
+                showStatus("已達到最大行數限制");
+                return;
+            }
+            
+            const tbody = document.getElementById('tableBody');
+            const rowsToAdd = Math.min(ROWS_TO_ADD, TOTAL_ROWS - currentRowCount);
+            let html = '';
+            
+            for (let i = 0; i < rowsToAdd; i++) {
+                html += `<tr>${rowOrderCellHtml()}
+                        <td><input type="text" placeholder="輸入地址"></td>
+                        <td><input type="text" placeholder="輸入名稱"></td>
+                        <td>
+                            <div class="ac-cell-wrap">
+                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                                <span class="inline-suggestion" aria-hidden="true"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="ac-cell-wrap">
+                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                                <span class="inline-suggestion" aria-hidden="true"></span>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+            tbody.insertAdjacentHTML('beforeend', html);
+            currentRowCount += rowsToAdd;
+            updateRowNumbers();
+            bindRowDragHandles();
+            
+            // 如果達到最大行數，隱藏按鈕
+            if (currentRowCount >= TOTAL_ROWS) {
+                document.querySelector('.add-row-button').style.display = 'none';
+            }
+            
+            showStatus(`已增加 ${rowsToAdd} 行`);
+        }
+
+        // --- 區域/場所類別：表格內灰色內聯建議（無彈出）---
+
+        function measureTextWidth(inputEl, text) {
+            if (!text) return 0;
+            const style = window.getComputedStyle(inputEl);
+            const span = document.createElement('span');
+            span.style.position = 'absolute';
+            span.style.visibility = 'hidden';
+            span.style.whiteSpace = 'nowrap';
+            span.style.font = style.font;
+            span.style.fontSize = style.fontSize;
+            span.style.fontFamily = style.fontFamily;
+            span.style.fontWeight = style.fontWeight;
+            span.style.letterSpacing = style.letterSpacing;
+            span.textContent = text;
+            document.body.appendChild(span);
+            const w = span.offsetWidth;
+            document.body.removeChild(span);
+            return w;
+        }
+
+        function setInlineSuggestion(inputEl, suggestion) {
+            const wrap = inputEl.closest('.ac-cell-wrap');
+            if (!wrap) return;
+            const span = wrap.querySelector('.inline-suggestion');
+            if (!span) return;
+            const typed = inputEl.value;
+            if (!suggestion || suggestion.length <= typed.length) {
+                span.textContent = '';
+                span.style.left = '6px';
+                return;
+            }
+            const tail = suggestion.slice(typed.length);
+            span.textContent = tail;
+            const leftPx = 6 + measureTextWidth(inputEl, typed);
+            span.style.left = leftPx + 'px';
+        }
+
+        function clearInlineSuggestion(inputEl) {
+            const wrap = inputEl && inputEl.closest('.ac-cell-wrap');
+            if (!wrap) return;
+            const span = wrap.querySelector('.inline-suggestion');
+            if (span) {
+                span.textContent = '';
+            }
+        }
+
+        function getCurrentSuggestion(inputEl) {
+            const wrap = inputEl.closest('.ac-cell-wrap');
+            if (!wrap) return null;
+            const span = wrap.querySelector('.inline-suggestion');
+            if (!span || !span.textContent) return null;
+            return inputEl.value + span.textContent;
+        }
+
+        function handleInputFocus(e) {
+            const input = e.target;
+            if (input.tagName !== 'INPUT') return;
+            const type = input.getAttribute('data-type');
+            if (!type) return;
+            clearInlineSuggestion(input);
+        }
+
+        function handleInputType(e) {
+            const input = e.target;
+            if (input.tagName !== 'INPUT') return;
+            const type = input.getAttribute('data-type');
+            if (!type) return;
+
+            const options = type === 'region' ? REGIONS : PLACES;
+            const filter = input.value.trim().toLowerCase();
+            clearInlineSuggestion(input);
+            if (!filter) return;
+
+            const filtered = options.filter(opt => opt.toLowerCase().includes(filter));
+            if (filtered.length > 0) {
+                const first = filtered[0];
+                setInlineSuggestion(input, first);
+            }
+        }
+
+        function handleInputKeydown(e) {
+            const input = e.target;
+            if (input.tagName !== 'INPUT') return;
+            const type = input.getAttribute('data-type');
+            if (!type) return;
+            if (e.key === 'Enter') {
+                const suggestion = getCurrentSuggestion(input);
+                if (suggestion) {
+                    input.value = suggestion;
+                    clearInlineSuggestion(input);
+                    e.preventDefault();
+                }
+            }
+        }
+
+        function handleInputBlur(e) {
+            const input = e.target;
+            if (input.tagName !== 'INPUT') return;
+            const type = input.getAttribute('data-type');
+            if (!type) return;
+            // 點選其它格時不填入建議，只清除灰色建議文字
+            clearInlineSuggestion(input);
+        }
+
+        // --- 行號更新與拖曳排序 ---
+        function updateRowNumbers() {
+            document.querySelectorAll('#tableBody tr').forEach((tr, i) => {
+                const numEl = tr.querySelector('.row-num');
+                if (numEl) numEl.textContent = i + 1;
+            });
+        }
+
+        function bindRowDragHandles() {
+            const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
+            tbody.querySelectorAll('.row-drag-handle').forEach(handle => {
+                handle.removeEventListener('mousedown', onDragStart);
+                handle.addEventListener('mousedown', onDragStart);
+            });
+            // 觸控裝置
+            tbody.querySelectorAll('.row-drag-handle').forEach(handle => {
+                handle.removeEventListener('touchstart', onDragStartTouch, { passive: false });
+                handle.addEventListener('touchstart', onDragStartTouch, { passive: false });
+            });
+        }
+
+        let dragRow = null;
+
+        function onDragStart(e) {
+            e.preventDefault();
+            const handle = e.target.closest('.row-drag-handle');
+            if (!handle) return;
+            const tr = handle.closest('tr');
+            if (!tr) return;
+            dragRow = tr;
+            tr.classList.add('dragging');
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+        }
+
+        function onDragStartTouch(e) {
+            const touch = e.touches[0];
+            if (!touch) return;
+            const handle = e.target.closest('.row-drag-handle');
+            if (!handle) return;
+            e.preventDefault();
+            const tr = handle.closest('tr');
+            if (!tr) return;
+            dragRow = tr;
+            tr.classList.add('dragging');
+            document.addEventListener('touchmove', onDragMoveTouch, { passive: false });
+            document.addEventListener('touchend', onDragEndTouch);
+        }
+
+        function getRowAtY(tbody, clientY) {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            for (const tr of rows) {
+                const r = tr.getBoundingClientRect();
+                if (clientY >= r.top && clientY <= r.bottom) return tr;
+            }
+            return null;
+        }
+
+        function onDragMove(e) {
+            if (!dragRow) return;
+            const tbody = document.getElementById('tableBody');
+            const targetRow = getRowAtY(tbody, e.clientY);
+            if (!targetRow || targetRow === dragRow) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const toIdx = rows.indexOf(targetRow);
+            const fromIdx = rows.indexOf(dragRow);
+            if (toIdx < 0 || fromIdx < 0) return;
+            if (fromIdx < toIdx) {
+                tbody.insertBefore(dragRow, rows[toIdx].nextElementSibling);
+            } else {
+                tbody.insertBefore(dragRow, targetRow);
+            }
+        }
+
+        function onDragMoveTouch(e) {
+            if (e.touches.length === 0 || !dragRow) return;
+            const tbody = document.getElementById('tableBody');
+            const y = e.touches[0].clientY;
+            const targetRow = getRowAtY(tbody, y);
+            if (!targetRow || targetRow === dragRow) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const toIdx = rows.indexOf(targetRow);
+            const fromIdx = rows.indexOf(dragRow);
+            if (toIdx < 0 || fromIdx < 0) return;
+            if (fromIdx < toIdx) {
+                tbody.insertBefore(dragRow, rows[toIdx].nextElementSibling);
+            } else {
+                tbody.insertBefore(dragRow, targetRow);
+            }
+        }
+
+        function onDragEnd() {
+            if (dragRow) {
+                dragRow.classList.remove('dragging');
+                dragRow = null;
+            }
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            updateRowNumbers();
+        }
+
+        function onDragEndTouch() {
+            if (dragRow) {
+                dragRow.classList.remove('dragging');
+                dragRow = null;
+            }
+            document.removeEventListener('touchmove', onDragMoveTouch);
+            document.removeEventListener('touchend', onDragEndTouch);
+            updateRowNumbers();
+        }
+
+        // --- Excel 風格貼上：從焦點儲存格開始填入多格多欄 ---
+        function handlePaste(e) {
+            const active = document.activeElement;
+            if (active.tagName !== 'INPUT' || !active.closest('#tableBody')) return;
+
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            if (!text || !text.trim()) return;
+
+            e.preventDefault();
+
+            const rows = document.querySelectorAll('#tableBody tr');
+            const focusedRow = active.closest('tr');
+            const focusedCell = active.closest('td');
+            if (!focusedRow || !focusedCell) return;
+
+            const rowIndex = Array.from(rows).indexOf(focusedRow);
+            const cells = focusedRow.querySelectorAll('td');
+            const colIndex = Array.from(cells).indexOf(focusedCell);
+            const dataColIndex = colIndex - 1; // 第一欄為拖曳+行號，資料欄從 1 開始
+            if (dataColIndex < 0) return;
+            const totalCols = 4;
+
+            // 解析貼上內容：換行為列、Tab 為欄
+            const pastedRows = text.split(/\r?\n/).map(line => line.split(/\t/));
+
+            for (let r = 0; r < pastedRows.length; r++) {
+                const targetRowIndex = rowIndex + r;
+                if (targetRowIndex >= rows.length) break;
+                const targetRow = rows[targetRowIndex];
+                const targetInputs = targetRow.querySelectorAll('input');
+                const pastedCells = pastedRows[r];
+                for (let c = 0; c < pastedCells.length; c++) {
+                    const targetDataCol = dataColIndex + c;
+                    if (targetDataCol < totalCols && targetInputs[targetDataCol]) {
+                        targetInputs[targetDataCol].value = pastedCells[c].trim();
+                    }
+                }
+            }
+        }
+
+        // --- 資料處理邏輯 (與舊版相同) ---
+
+        function getTableData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            const data = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                data.push([
+                    inputs[0].value.trim(), 
+                    inputs[1].value.trim(), 
+                    inputs[2].value.trim(), 
+                    inputs[3].value.trim()
+                ]);
+            });
+            return data;
+        }
+
+        function setTableData(data) {
+            // 確保有足夠的行數來顯示資料
+            const dataLength = data.length;
+            if (dataLength > currentRowCount) {
+                const rowsNeeded = Math.min(dataLength, TOTAL_ROWS);
+                renderRows(rowsNeeded);
+                currentRowCount = rowsNeeded;
+                
+                // 如果達到最大行數，隱藏按鈕
+                if (currentRowCount >= TOTAL_ROWS) {
+                    document.querySelector('.add-row-button').style.display = 'none';
+                } else {
+                    document.querySelector('.add-row-button').style.display = 'block';
+                }
+            }
+            
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach((row, index) => {
+                if (data[index]) {
+                    const inputs = row.querySelectorAll('input');
+                    inputs[0].value = data[index][0] || '';
+                    inputs[1].value = data[index][1] || '';
+                    inputs[2].value = data[index][2] || '';
+                    inputs[3].value = data[index][3] || '';
+                }
+            });
+            lastSavedData = getTableData();
+        }
+
+        function hasDataChanged() {
+            const currentData = JSON.stringify(getTableData());
+            const savedData = JSON.stringify(lastSavedData);
+            return currentData !== savedData;
+        }
+
+        function isTableEmpty() {
+            const data = getTableData();
+            return data.every(row => row.every(cell => cell === ''));
+        }
+
+        function exportToCSV() {
+            const data = getTableData();
+            let csvContent = "\uFEFF地址,名稱,區域,場所類別\n";
+
+            data.forEach(row => {
+                let rowString = row.map(e => `"${e.replace(/"/g, '""')}"`).join(",");
+                csvContent += rowString + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            
+            const timestamp = new Date().toISOString().slice(0,19).replace(/T/g, '_').replace(/:/g, '-');
+            link.setAttribute("href", url);
+            link.setAttribute("download", `sheet_export_${timestamp}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function getStorageList() {
+            const list = localStorage.getItem(SAVE_KEY);
+            return list ? JSON.parse(list) : [];
+        }
+
+        function saveToStorage(list) {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(list));
+            renderSaveList();
+        }
+
+        function createSaveObject(type = 'manual') {
+            const now = new Date();
+            const timeString = now.toLocaleString('zh-TW', { hour12: false });
+            const fileName = now.getFullYear() + "-" + 
+                             String(now.getMonth()+1).padStart(2, '0') + "-" + 
+                             String(now.getDate()).padStart(2, '0') + " " + 
+                             String(now.getHours()).padStart(2, '0') + ":" + 
+                             String(now.getMinutes()).padStart(2, '0') + ":" + 
+                             String(now.getSeconds()).padStart(2, '0');
+            
+            return {
+                id: Date.now(),
+                name: fileName,
+                timestamp: timeString,
+                type: type,
+                data: getTableData()
+            };
+        }
+
+        function manualSave() {
+            if (isTableEmpty() && !confirm("表格目前是空的，確定要儲存空白表格嗎？")) {
+                return;
+            }
+            const list = getStorageList();
+            const saveObj = createSaveObject('manual');
+            list.unshift(saveObj);
+            saveToStorage(list);
+            lastSavedData = getTableData();
+            showStatus("已手動儲存");
+        }
+
+        function startAutoSaveTimer() {
+            if (autoSaveTimer) clearInterval(autoSaveTimer);
+            autoSaveTimer = setInterval(() => {
+                if (hasDataChanged() && !isTableEmpty()) {
+                    performAutoSave();
+                }
+            }, AUTO_SAVE_INTERVAL);
+        }
+
+        function performAutoSave() {
+            const list = getStorageList();
+            const saveObj = createSaveObject('auto');
+            
+            // 確保只有一個自動儲存項：移除所有現有的自動儲存項
+            const filteredList = list.filter(item => item.type !== 'auto');
+            
+            // 將新的自動儲存項放在最前面
+            filteredList.unshift(saveObj);
+            
+            saveToStorage(filteredList);
+            lastSavedData = getTableData();
+            showStatus("系統已自動儲存", true);
+        }
+
+        function clearTable() {
+            // 當表格內沒有內容時，清除表格不作用
+            if (isTableEmpty()) {
+                showStatus("表格已經是空的，無需清除");
+                return;
+            }
+            
+            showCustomConfirm("確定要清除目前表格內的所有資料嗎？", () => {
+                const inputs = document.querySelectorAll('#tableBody input');
+                inputs.forEach(input => input.value = '');
+                lastSavedData = getTableData();
+                showStatus("表格已清除");
+                // 重置為初始行數
+                currentRowCount = INITIAL_ROWS;
+                renderRows(INITIAL_ROWS);
+                document.querySelector('.add-row-button').style.display = 'block';
+            });
+        }
+
+        function renderSaveList() {
+            const list = getStorageList();
+            const container = document.getElementById('saveList');
+            
+            if (list.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #999; padding: 10px;">暫無儲存記錄</div>';
+                return;
+            }
+
+            // 分離自動儲存和普通儲存，確保自動儲存置頂
+            const autoSaves = list.filter(item => item.type === 'auto');
+            const manualSaves = list.filter(item => item.type !== 'auto');
+            
+            // 合併：自動儲存在前，普通儲存在後
+            const sortedList = [...autoSaves, ...manualSaves];
+
+            let html = '';
+            sortedList.forEach(item => {
+                const isAuto = item.type === 'auto';
+                const badge = isAuto ? '<span class="auto-save-badge">自動儲存</span>' : '';
+                
+                html += `
+                    <div class="save-item" onclick="loadSave(${item.id})">
+                        <div class="save-info">
+                            <span class="save-name">${item.name} ${badge}</span>
+                            <span class="save-time">最後更新: ${item.timestamp}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deleteSave(event, ${item.id})">刪除</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function deleteSave(event, id) {
+            event.stopPropagation();
+            showCustomConfirm("確定要刪除這條儲存記錄嗎？", () => {
+                let list = getStorageList();
+                list = list.filter(item => item.id !== id);
+                saveToStorage(list);
+            });
+        }
+
+        function loadSave(id) {
+            const list = getStorageList();
+            const target = list.find(item => item.id === id);
+            
+            if (!target) return;
+            
+            // 保存目標資料（用於稍後載入）
+            const targetData = target.data;
+            const targetName = target.name;
+            
+            // 如果當前有未保存的更改
+            if (hasDataChanged() && !isTableEmpty()) {
+                // 如果點擊的是自動儲存項，需要先將其轉換為普通儲存
+                if (target.type === 'auto') {
+                    // 保存當前編輯的資料
+                    const currentData = getTableData();
+                    
+                    // 創建轉換後的普通儲存項（創建新對象，避免修改原始對象）
+                    const now = new Date();
+                    const convertedSave = {
+                        id: target.id, // 保持原來的 id
+                        type: 'manual',
+                        name: now.getFullYear() + "-" + 
+                              String(now.getMonth()+1).padStart(2, '0') + "-" + 
+                              String(now.getDate()).padStart(2, '0') + " " + 
+                              String(now.getHours()).padStart(2, '0') + ":" + 
+                              String(now.getMinutes()).padStart(2, '0') + ":" + 
+                              String(now.getSeconds()).padStart(2, '0'),
+                        timestamp: now.toLocaleString('zh-TW', { hour12: false }),
+                        data: target.data // 保持原來的資料
+                    };
+                    
+                    // 移除所有自動儲存項（包括目標項）
+                    const filteredList = list.filter(item => item.type !== 'auto');
+                    
+                    // 將當前編輯的資料保存為新的自動儲存項
+                    const newAutoSave = createSaveObject('auto');
+                    newAutoSave.data = currentData;
+                    
+                    // 將轉換後的普通儲存項插入到列表前面（在自動儲存之後）
+                    filteredList.unshift(newAutoSave);
+                    filteredList.splice(1, 0, convertedSave); // 插入到自動儲存之後
+                    
+                    saveToStorage(filteredList);
+                    lastSavedData = currentData;
+                    showStatus("已將自動儲存轉換為普通儲存，目前工作已自動儲存", true);
+                } else {
+                    // 如果點擊的是普通儲存，直接執行自動儲存
+                    performAutoSave();
+                    showStatus("切換前已自動儲存目前工作", true);
+                }
+            }
+            
+            // 載入目標儲存項的資料
+            setTimeout(() => {
+                setTableData(targetData);
+                showStatus(`已載入: ${targetName}`);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
+        }
+
+        function showStatus(msg, isSuccess = false) {
+            const el = document.getElementById('status-msg');
+            el.textContent = msg;
+            el.style.color = isSuccess ? 'var(--success-color)' : '#666';
+            setTimeout(() => {
+                el.textContent = '';
+            }, 3000);
+        }
+
+        // 自定義確認對話框（確保在手機上也能正常彈窗）
+        function showCustomConfirm(message, onConfirm) {
+            // 創建遮罩層
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-confirm-overlay';
+            
+            // 創建對話框
+            const dialog = document.createElement('div');
+            dialog.className = 'custom-confirm-dialog';
+            
+            dialog.innerHTML = `
+                <div class="custom-confirm-message">${message}</div>
+                <div class="custom-confirm-buttons">
+                    <button class="custom-confirm-btn custom-confirm-btn-cancel">取消</button>
+                    <button class="custom-confirm-btn custom-confirm-btn-ok">確定</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            const okButton = dialog.querySelector('.custom-confirm-btn-ok');
+            const cancelButton = dialog.querySelector('.custom-confirm-btn-cancel');
+            
+            // 關閉對話框的函數
+            const closeDialog = () => {
+                if (overlay.parentNode) {
+                    document.body.removeChild(overlay);
+                }
+                document.removeEventListener('keydown', handleKeyDown);
+            };
+            
+            // 確定按鈕
+            const handleConfirm = () => {
+                closeDialog();
+                if (onConfirm) onConfirm();
+            };
+            
+            // 取消按鈕
+            const handleCancel = () => {
+                closeDialog();
+            };
+            
+            okButton.onclick = handleConfirm;
+            cancelButton.onclick = handleCancel;
+            
+            // 鍵盤事件處理（Enter確認，Escape取消）
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleConfirm();
+                } else if (e.key === 'Escape' || e.keyCode === 27) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCancel();
+                }
+            };
+            
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // 點擊遮罩層關閉
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    handleCancel();
+                }
+            };
+            
+            // 自動聚焦確定按鈕，方便鍵盤操作
+            setTimeout(() => {
+                okButton.focus();
+            }, 100);
+        }
+    </script>
+</body>
+</html>

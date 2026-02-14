@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年齡計算器</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2c2c2c;
+            --text-main: #ffffff;
+            --text-muted: #dddddd;
+            --accent-color: #ffa500; /* Orange */
+            --accent-hover: #ff8c00;
+            --highlight-bg: #C6A300;
+            --border-color: #444;
+            --danger-bg: rgba(255, 0, 0, 0.2);
+            --danger-text: #ff6666;
+            --warning-bg: rgba(255, 165, 0, 0.2);
+            --warning-text: #ffaa33;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 5vh; /* 稍微減少頂部留白適應手機 */
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Arial', 'Microsoft JhengHei', sans-serif; /* 加入微軟正黑體 */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 24px;
+            background-color: var(--highlight-bg);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .date-display {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .today-date {
+            color: var(--accent-color);
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .age-date {
+            color: var(--text-muted);
+            margin: 8px 0;
+            font-size: 18px;
+        }
+
+        .input-section {
+            padding: 25px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 250px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 優化日期輸入框 */
+        input[type="text"] {
+            padding: 12px 40px 12px 12px;
+            background-color: var(--input-bg);
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 18px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        input[type="text"]::placeholder {
+            color: #888;
+        }
+
+        .clear-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0;
+            display: block;
+            line-height: 1;
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            border-radius: 50%;
+            z-index: 10;
+            -webkit-tap-highlight-color: rgba(255, 165, 0, 0.3);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+
+        .clear-btn:hover {
+            color: var(--accent-color);
+            background-color: rgba(255, 165, 0, 0.1);
+        }
+
+        .clear-btn:active {
+            transform: translateY(-50%) scale(0.9);
+            color: var(--accent-color);
+            background-color: rgba(255, 165, 0, 0.3);
+        }
+
+        .clear-btn.hidden {
+            display: none !important;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #ageResult {
+            margin-top: 20px;
+            font-size: 20px;
+            color: var(--accent-color);
+            font-weight: bold;
+            min-height: 60px; /* 預留空間防止跳動 */
+            line-height: 1.6;
+        }
+
+        .warning {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .warning-red {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-text);
+        }
+
+        .warning-orange {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+            border: 1px solid var(--warning-text);
+        }
+
+        .disclaimer {
+            font-size: 13px;
+            color: #666;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        /* 在大螢幕上讓輸入框和按鈕並排 */
+        @media (min-width: 500px) {
+            .input-group {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body>
+    <div class="container">
+        <h1>年齡計算器</h1>
+        
+        <div class="date-display">
+            <div class="today-date" id="todayDate">載入中...</div>
+            <div class="age-date" id="age16Date"></div>
+            <div class="age-date" id="age18Date"></div>
+        </div>
+        
+        <div class="input-section">
+            <h3>計算特定出生日期的年齡</h3>
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" id="birthDateInput" placeholder="YYYY-MM-DD" inputmode="numeric" pattern="[0-9-]*" aria-label="輸入出生日期">
+                    <button class="clear-btn hidden" id="clearBtn" onclick="clearInput(event)" aria-label="清除輸入" type="button">×</button>
+                </div>
+                <button onclick="calculateAge()">🔍 計算年齡</button>
+            </div>
+            <div id="ageResult"></div>
+            <div class="disclaimer">計算結果僅供參考</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 防止代碼複製與右鍵保護區 ---
+        (() => {
+            const preventEvents = (e) => {
+                e.preventDefault();
+                return false;
+            };
+
+            // 禁用右鍵菜單
+            document.addEventListener('contextmenu', preventEvents);
+            
+            // 禁用選取、複製、剪下、貼上、拖曳
+            const events = ['selectstart', 'copy', 'cut', 'paste', 'dragstart'];
+            events.forEach(event => document.addEventListener(event, preventEvents));
+
+            // 禁用鍵盤快捷鍵
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+U (View Source), Ctrl+S (Save)
+                if (e.ctrlKey && ['a', 'c', 'v', 'u', 's'].includes(e.key.toLowerCase())) {
+                    preventEvents(e);
+                }
+                // F12 (開發者工具)
+                if (e.key === 'F12' || e.keyCode === 123) {
+                    preventEvents(e);
+                }
+            });
+        })();
+
+        // --- 日期工具函數 ---
+        const formatDate = (date) => {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+        };
+
+        // 將時間歸零，只比較日期（避免時區或當前時間導致的天數計算誤差）
+        const resetTime = (date) => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        };
+
+        // --- 核心功能 ---
+
+        function updateDates() {
+            const today = new Date();
+            
+            // 顯示今天
+            document.getElementById('todayDate').textContent = `今天: ${formatDate(today)}`;
+            
+            // 計算16年前
+            const date16YearsAgo = new Date(today);
+            date16YearsAgo.setFullYear(today.getFullYear() - 16);
+            document.getElementById('age16Date').textContent = `16歲: ${formatDate(date16YearsAgo)}`;
+            
+            // 計算18年前
+            const date18YearsAgo = new Date(today);
+            date18YearsAgo.setFullYear(today.getFullYear() - 18);
+            document.getElementById('age18Date').textContent = `18歲: ${formatDate(date18YearsAgo)}`;
+        }
+
+        function calculateAge() {
+            const input = document.getElementById('birthDateInput');
+            const resultDiv = document.getElementById('ageResult');
+            const val = input.value.trim();
+
+            // 清空舊結果
+            resultDiv.innerHTML = '';
+
+            if (!val) {
+                resultDiv.textContent = '請輸入出生日期 (格式: YYYY-MM-DD)';
+                return;
+            }
+
+            // 驗證日期格式
+            if (!validateDateInput(val)) {
+                resultDiv.textContent = '請輸入有效的日期格式 (YYYY-MM-DD)';
+                return;
+            }
+
+            const birthDate = new Date(val);
+            const today = new Date();
+            
+            // 驗證年份範圍
+            const year = birthDate.getFullYear();
+            if (year < 1900 || year > 2100) {
+                resultDiv.textContent = '請輸入有效的年份 (1900-2100)';
+                return;
+            }
+
+            // 比較日期（不含時間）
+            const todayReset = resetTime(today);
+            const birthReset = resetTime(birthDate);
+
+            if (birthReset > todayReset) {
+                resultDiv.textContent = '出生日期不能在未來';
+                return;
+            }
+
+            // 計算精確年齡
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            let days = today.getDate() - birthDate.getDate();
+
+            // 如果天數小於0，借上個月的天數
+            if (days < 0) {
+                months--;
+                // 獲取上個月有多少天 (例如現在3月，這裡會取得2月的總天數)
+                const prevMonthDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonthDate.getDate();
+            }
+
+            // 如果月份小於0，借去年
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // 計算距離下一個生日
+            // 設定今年的生日
+            let nextBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            const nextBirthdayReset = resetTime(nextBirthday);
+
+            // 如果今年的生日已經過了，下一個生日就是明年
+            if (nextBirthdayReset < todayReset) {
+                nextBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            // 重新歸零以確保計算準確
+            const finalNextBirthday = resetTime(nextBirthday);
+            const diffTime = finalNextBirthday - todayReset;
+            const daysToNextBirthday = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // 構建結果 HTML
+            let resultHTML = `目前年齡: ${years}歲 ${months}個月 ${days}天<br>`;
+            resultHTML += `<span style="font-size: 0.9em; color: #aaa;">還差 ${daysToNextBirthday} 天滿 ${years + 1} 歲</span>`;
+
+            // 警告判斷
+            let warningClass = '';
+            let warningText = '';
+
+            if (years < 16) {
+                warningClass = 'warning warning-red';
+                warningText = '⚠️ 未滿 16 歲';
+            } else if (years < 18) {
+                warningClass = 'warning warning-orange';
+                warningText = '⚠️ 未滿 18 歲';
+            }
+
+            resultDiv.innerHTML = resultHTML;
+
+            if (warningText) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = warningClass;
+                warningDiv.textContent = warningText;
+                resultDiv.appendChild(warningDiv);
+            }
+        }
+
+        // --- 日期輸入格式化 ---
+        let birthDateInput, clearBtn;
+        
+        // 等待DOM加載完成
+        function initInputElements() {
+            birthDateInput = document.getElementById('birthDateInput');
+            clearBtn = document.getElementById('clearBtn');
+            
+            if (!birthDateInput || !clearBtn) {
+                console.error('無法找到輸入框或清除按鈕');
+                return;
+            }
+            
+            // 更新清除按鈕顯示狀態
+            function updateClearButton() {
+                if (!clearBtn || !birthDateInput) return;
+                const hasValue = birthDateInput.value.trim().length > 0;
+                if (hasValue) {
+                    clearBtn.classList.remove('hidden');
+                    clearBtn.style.display = 'block';
+                    clearBtn.style.visibility = 'visible';
+                } else {
+                    clearBtn.classList.add('hidden');
+                    clearBtn.style.display = 'none';
+                    clearBtn.style.visibility = 'hidden';
+                }
+            }
+            
+            // 清除輸入內容
+            window.clearInput = function(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                if (birthDateInput) {
+                    birthDateInput.value = '';
+                    birthDateInput.focus();
+                }
+                updateClearButton();
+                // 同時清空結果
+                const resultDiv = document.getElementById('ageResult');
+                if (resultDiv) {
+                    resultDiv.innerHTML = '';
+                }
+            };
+            
+            // 為清除按鈕添加觸摸事件支持
+            clearBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.clearInput(e);
+            }, { passive: false });
+            
+            clearBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }, { passive: false });
+            
+            clearBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.clearInput(e);
+            });
+            
+            // 自動格式化日期輸入 (YYYY-MM-DD)
+            birthDateInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/[^\d]/g, ''); // 只保留數字
+                
+                // 限制長度為8位數字 (YYYYMMDD)
+                if (value.length > 8) {
+                    value = value.slice(0, 8);
+                }
+                
+                // 自動添加連字符
+                let formatted = '';
+                if (value.length > 0) {
+                    formatted = value.slice(0, 4); // 年份
+                    if (value.length > 4) {
+                        formatted += '-' + value.slice(4, 6); // 月份
+                    }
+                    if (value.length > 6) {
+                        formatted += '-' + value.slice(6, 8); // 日期
+                    }
+                }
+                
+                e.target.value = formatted;
+                updateClearButton(); // 更新清除按鈕狀態
+            });
+            
+            // 按下 Enter 鍵觸發計算
+            birthDateInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.target.blur(); // 關閉鍵盤
+                    calculateAge();
+                }
+            });
+            
+            // 初始化清除按鈕狀態
+            updateClearButton();
+        }
+        
+        // DOM加載完成後初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initInputElements);
+        } else {
+            initInputElements();
+        }
+        
+
+        // 驗證日期格式
+        function validateDateInput(value) {
+            const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+            const match = value.match(datePattern);
+            
+            if (!match) {
+                return false;
+            }
+            
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10);
+            const day = parseInt(match[3], 10);
+            
+            // 基本範圍檢查
+            if (year < 1900 || year > 2100) return false;
+            if (month < 1 || month > 12) return false;
+            if (day < 1 || day > 31) return false;
+            
+            // 使用 Date 對象驗證日期是否有效
+            const date = new Date(year, month - 1, day);
+            if (date.getFullYear() !== year || 
+                date.getMonth() !== month - 1 || 
+                date.getDate() !== day) {
+                return false;
+            }
+            
+            return true;
+        }
+
+        // --- 事件監聽 ---
+        
+        // 點擊畫面其他地方關閉鍵盤
+        document.addEventListener('click', (e) => {
+            if (birthDateInput && 
+                e.target !== birthDateInput && 
+                e.target !== clearBtn && 
+                e.target.tagName !== 'BUTTON') {
+                birthDateInput.blur();
+            }
+        });
+
+        // 初始化
+        updateDates();
+        // 每天自動刷新一次日期
+        setInterval(updateDates, 86400000);
+    </script>
+</body>
+</html>

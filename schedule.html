@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>排班日曆</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 在這裡加入您的 CSS 樣式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+       .calendar {
+            margin-bottom: 24px;
+            width: 500px;
+            text-align: center;
+        }
+
+       .calendar table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+       .shift-label {
+            font-size: 12px;
+            margin-left: 2px;
+            padding: 3px 3px;
+            border-radius: 24px;
+        }
+
+       .shift-A {
+            background-color: #2fe82f;
+        }
+
+       .shift-B {
+            background-color: #269bc2;
+        }
+
+       .shift-C {
+            background-color: #dd4e4e;
+        }
+
+       .other-month {
+            color: #999;
+        }
+
+       .shift-buttons {
+            margin: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+       .shift-button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 20px; /* 按钮文字大小为 24px */
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px; /* 增大圆角半径，让边角更圆润 */
+            color: black;
+        }
+
+       .shift-A-button {
+            background-color: #2fe82f;
+        }
+
+       .shift-B-button {
+            background-color: #269bc2;
+        }
+
+       .shift-C-button {
+            background-color: #dd4e4e;
+        }
+
+        /* 添加當前週的樣式 */
+       .current-week {
+            background-color: #9ec0c5;
+            font-weight: bold;
+        }
+        
+        /* 添加當前週的標記 */
+       .current-week-row {
+            background-color: #f0f8ff;
+        }
+
+        /* 假期日期樣式 - 整個方框高亮橘色 */
+        td.holiday-cell {
+            background-color: orange !important;
+            position: relative;
+        }
+
+        /* 懸浮提示框 */
+        .holiday-tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 表格中的懸浮提示框位置調整 */
+        td .holiday-tooltip {
+            bottom: auto;
+            top: -40px;
+        }
+
+        .holiday-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+
+        /* 表格中的懸浮提示框箭頭位置調整 */
+        td .holiday-tooltip::after {
+            top: auto;
+            bottom: -10px;
+            border-top-color: transparent;
+            border-bottom-color: rgba(0, 0, 0, 0.9);
+        }
+
+        td.holiday-cell:hover .holiday-tooltip {
+            opacity: 1;
+        }
+
+        /* 確保表格單元格可以容納懸浮提示 */
+        td {
+            position: relative;
+            overflow: visible;
+        }
+
+        /* 確保表格和日曆容器允許懸浮提示顯示 */
+       .calendar {
+            overflow: visible;
+        }
+
+       .calendar table {
+            overflow: visible;
+        }
+
+        /* 在小於 768px 的螢幕上調整日曆寬度 */
+        @media screen and (max-width: 768px) {
+           .calendar {
+                width: 400px;
+            }
+
+            th,
+            td {
+                font-size: 13px;
+            }
+
+           .shift-button {
+                font-size: 14px;
+                border-radius: 10px; /* 小屏幕上也设置合适的圆角半径 */
+            }
+
+           .month-title {
+                font-size: 20px;
+            }
+
+            /* 针对手机屏幕，设置按钮在同一行 */
+           .shift-buttons {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body oncontextmenu="return false;">
+    <h1>更表</h1>
+    <div class="shift-buttons">
+        <button class="shift-button shift-A-button" onclick="setCurrentShift('A')">目前是 A 班</button>
+        <button class="shift-button shift-B-button" onclick="setCurrentShift('B')">目前是 B 班</button>
+        <button class="shift-button shift-C-button" onclick="setCurrentShift('C')">目前是 C 班</button>
+    </div>
+    <div id="calendars"></div>
+    <div class="disclaimer">更表預測僅供參考</div>
+
+    <script>
+        // 定義特別假期
+        const specialHolidays = {
+            "2025-01-01": "元旦",
+            "2025-01-28": "農曆除夕",
+            "2025-01-29": "農曆正月初一",
+            "2025-01-30": "農曆正月初二",
+            "2025-01-31": "農曆正月初三",
+            "2025-04-04": "清明節",
+            "2025-04-18": "耶穌受難日",
+            "2025-04-19": "復活節前日",
+            "2025-04-21": "復活節前日的補假",
+            "2025-05-01": "勞動節",
+            "2025-05-05": "佛誕節",
+            "2025-05-31": "端午節",
+            "2025-06-02": "端午節的補假",
+            "2025-10-01": "中華人民共和國國慶日",
+            "2025-10-02": "中華人民共和國國慶日翌日",
+            "2025-10-07": "中秋節翌日",
+            "2025-10-29": "重陽節",
+            "2025-11-02": "追思節",
+            "2025-11-03": "追思節的補假",
+            "2025-12-08": "聖母無原罪瞻禮",
+            "2025-12-20": "澳門特別行政區成立紀念日",
+            "2025-12-21": "冬至",
+            "2025-12-22": "澳門特別行政區成立紀念日的補假",
+            "2025-12-23": "冬至的補假",
+            "2025-12-24": "聖誕節前日",
+            "2025-12-25": "聖誕節",
+            "2025-12-31": "除夕",
+            // 2026年特別假期
+            "2026-01-01": "元旦",
+            "2026-02-16": "農曆除夕(下午)",
+            "2026-02-17": "農曆正月初一",
+            "2026-02-18": "農曆正月初二",
+            "2026-02-19": "農曆正月初三",
+            "2026-04-03": "耶穌受難日",
+            "2026-04-04": "復活節前日",
+            "2026-04-05": "清明節",
+            "2026-04-06": "復活節前日的補假",
+            "2026-04-07": "清明節的補假",
+            "2026-05-01": "勞動節",
+            "2026-05-24": "佛誕節",
+            "2026-05-25": "佛誕節的補假",
+            "2026-06-19": "端午節",
+            "2026-09-26": "中秋節翌日",
+            "2026-09-28": "中秋節翌日的補假",
+            "2026-10-01": "中華人民共和國國慶日",
+            "2026-10-02": "中華人民共和國國慶日翌日",
+            "2026-10-18": "重陽節",
+            "2026-10-19": "重陽節的補假",
+            "2026-11-02": "追思節",
+            "2026-12-08": "聖母無原罪瞻禮",
+            "2026-12-20": "澳門特別行政區成立紀念日",
+            "2026-12-21": "澳門特別行政區成立紀念日的補假",
+            "2026-12-22": "冬至",
+            "2026-12-24": "聖誕節前日",
+            "2026-12-25": "聖誕節",
+            "2026-12-31": "除夕(下午)"
+        };
+
+        // 將日期轉換為 YYYY-MM-DD 格式
+        function formatDateToString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getMonthName(month) {
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月",
+                "七月", "八月", "九月", "十月", "十一月", "十二月"
+            ];
+            return monthNames[month];
+        }
+
+        function getShiftType(weekNumber, initialShift) {
+            const shiftSequence = {
+                'A': ['A', 'C', 'B'],
+                'B': ['B', 'A', 'C'],
+                'C': ['C', 'B', 'A']
+            };
+            return shiftSequence[initialShift][weekNumber % 3];
+        }
+        
+        // 獲取當前週的開始日期（週日）和結束日期（週六）
+        function getCurrentWeekDates() {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0 是週日，6 是週六
+            
+            // 計算本週的週日日期
+            const sunday = new Date(today);
+            sunday.setDate(today.getDate() - currentDay);
+            
+            // 計算本週的週六日期
+            const saturday = new Date(today);
+            saturday.setDate(today.getDate() + (6 - currentDay));
+            
+            return { sunday, saturday };
+        }
+        
+        // 建立一個參考的週日，用於連續計算週數
+        const referenceSunday = new Date(2023, 0, 1); // 2023年1月1日是週日
+        referenceSunday.setHours(0, 0, 0, 0);
+        
+        // 計算指定日期是相對於參考日期的第幾週
+        function getWeekNumber(date) {
+            const targetDate = new Date(date);
+            targetDate.setHours(0, 0, 0, 0);
+            
+            const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+            const diff = targetDate - referenceSunday;
+            
+            // 計算週數
+            return Math.floor(diff / millisecondsPerWeek);
+        }
+        
+        // 根據選擇的班次，計算當前週的週日應該是哪個班次
+        function calculateCurrentWeekShift(selectedShift) {
+            // 獲取當前週的週日日期
+            const { sunday } = getCurrentWeekDates();
+            // 獲取當前週的週數
+            const currentWeekNumber = getWeekNumber(sunday);
+            
+            // 根據選擇的班次和當前週數，計算出當前週的班次
+            // 由於我們選擇的是「本週期是X班」，所以這個週期的班次就是選擇的班次
+            // 不需要額外計算
+            return selectedShift;
+        }
+
+        function createCalendar(year, month, initialShift) {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            const currentDate = today.getDate();
+            
+            // 獲取本週的日期範圍
+            const { sunday, saturday } = getCurrentWeekDates();
+            // 獲取當前週的週數
+            const currentWeekNumber = getWeekNumber(sunday);
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            let html = `<div class="calendar">
+                    <div class="month-title">${year}年 ${getMonthName(month)}</div>
+                    <table>
+                        <tr>
+                            <th>週日</th>
+                            <th>週一</th>
+                            <th>週二</th>
+                            <th>週三</th>
+                            <th>週四</th>
+                            <th>週五</th>
+                            <th>週六</th>
+                        </tr>`;
+
+            const firstDayOfWeek = firstDay.getDay();
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            let date = 1;
+            
+            // 追蹤當前渲染的週是否是當前週
+            let isCurrentWeekRow = false;
+
+            for (let i = 0; i < 6; i++) {
+                // 計算本行第一天的日期（即週日）
+                let rowStartDate;
+                if (i === 0) {
+                    // 第一行可能包含上個月的日期
+                    rowStartDate = new Date(year, month, 1 - firstDayOfWeek);
+                } else {
+                    // 其他行從當月第一週的週日開始，每行加7天
+                    rowStartDate = new Date(year, month, 1 - firstDayOfWeek + (i * 7));
+                }
+                
+                // 檢查這一行是否是當前週
+                isCurrentWeekRow = (
+                    sunday.getFullYear() === rowStartDate.getFullYear() &&
+                    sunday.getMonth() === rowStartDate.getMonth() &&
+                    sunday.getDate() === rowStartDate.getDate()
+                );
+                
+                html += isCurrentWeekRow ? '<tr class="current-week-row">' : '<tr>';
+                
+                // 計算這一週的週數（基於週日）
+                const weekNumber = getWeekNumber(rowStartDate);
+                
+                // 計算該週應該是哪個班次
+                let rowShiftType;
+                if (initialShift) {
+                    // 計算周與當前週的差距
+                    const weekDiff = weekNumber - currentWeekNumber;
+                    
+                    // 初始班次就是當前週的班次（即用戶選擇的班次）
+                    if (weekDiff === 0) {
+                        rowShiftType = initialShift;
+                    } else {
+                        // 計算其他週的班次
+                        // 根據A→C→B的循環
+                        const shiftCycle = {
+                            'A': ['A', 'C', 'B'],
+                            'B': ['B', 'A', 'C'],
+                            'C': ['C', 'B', 'A']
+                        };
+                        
+                        // 確保weekDiff為正數並對3取餘數，然後在循環中找到對應的班次
+                        const cyclePosition = ((weekDiff % 3) + 3) % 3; // 確保結果為正數
+                        rowShiftType = shiftCycle[initialShift][cyclePosition];
+                    }
+                }
+
+                for (let j = 0; j < 7; j++) {
+                    let cellDate;
+                    if (i === 0 && j < firstDayOfWeek) {
+                        // 上個月的日期 - 留空不顯示
+                        html += `<td></td>`;
+                    } else if (date > lastDay.getDate()) {
+                        // 下個月的日期 - 留空不顯示
+                        html += `<td></td>`;
+                        date++;
+                    } else {
+                        // 當前月份的日期
+                        cellDate = new Date(year, month, date);
+                        
+                        // 檢查是否是假期
+                        const dateStr = formatDateToString(cellDate);
+                        const isHoliday = dateStr in specialHolidays;
+                        const holidayName = isHoliday ? specialHolidays[dateStr] : '';
+                        const holidayClass = isHoliday ? 'holiday-cell' : '';
+                        const tooltip = isHoliday ? `<span class="holiday-tooltip">${holidayName}</span>` : '';
+                        
+                        // 只有今天和將來的日期才顯示班次標籤，且必須有初始班次
+                        const showShiftLabel = cellDate >= today && initialShift;
+                        let shiftLabel = '';
+                        
+                        if (showShiftLabel) {
+                            // 使用該行（週）的班次
+                            shiftLabel = `<span class="shift-label shift-${rowShiftType}"><b>(${rowShiftType})</b></span>`;
+                        }
+                        
+                        // 突出顯示今天的日期
+                        const tdClass = (year === currentYear && month === currentMonth && date === currentDate) ? 'current-week' : '';
+                        
+                        html += `<td class="${tdClass} ${holidayClass}"><span>${date}</span>${shiftLabel}${tooltip}</td>`;
+                        date++;
+                    }
+                }
+
+                html += '</tr>';
+                if (date > lastDay.getDate()) break;
+            }
+
+            html += '</table></div>';
+            return html;
+        }
+
+        function setCurrentShift(shift) {
+            initializeCalendars(shift);
+        }
+
+        function initializeCalendars(initialShift = '') {
+            const today = new Date();
+            let currentYear = today.getFullYear();
+            let currentMonth = today.getMonth();
+            let html = '';
+
+            // 顯示到2026年12月
+            const endYear = 2026;
+            const endMonth = 11; // 11 代表十二月
+
+            while (currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth)) {
+                html += createCalendar(currentYear, currentMonth, initialShift);
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+            }
+
+            document.getElementById('calendars').innerHTML = html;
+            
+            // 如果有設置班次，滾動到當前週
+            if (initialShift) {
+                const currentWeekRow = document.querySelector('.current-week-row');
+                if (currentWeekRow) {
+                    currentWeekRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+        
+        // 初始化時不設置初始班次
+        initializeCalendars('');
+
+        // 禁止右鍵菜單
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止選取文字
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止複製
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止剪切
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止粘貼
+        document.addEventListener('paste', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止鍵盤快捷鍵
+        document.addEventListener('keydown', function(e) {
+            // 禁止 Ctrl+A (全選)
+            if (e.ctrlKey && e.keyCode === 65) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+C (複製)
+            if (e.ctrlKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+V (粘貼)
+            if (e.ctrlKey && e.keyCode === 86) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 F12 (開發者工具)
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // 禁止拖拽
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // 禁止滑鼠右鍵菜單（額外保障）
+        window.oncontextmenu = function() {
+            return false;
+        };
+        
+        // 禁止查看源代碼快捷鍵
+        document.onkeydown = function(e) {
+            // 禁止 Ctrl+U (查看源代碼)
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // 禁止 Ctrl+S (保存頁面)
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                return false;
+            }
+        };
+    </script>
+</body>
+
+</html>

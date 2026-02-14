@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="
+      width=device-width,
+      initial-scale=1.0,
+      minimum-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no,
+      viewport-fit=cover,
+      shrink-to-fit=no
+    "
+  />
+
+  <title>Map</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      /* 🔒 2. 防止點擊高亮 (選取時的藍色區塊) */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      /* 🔒 3. 禁止橡皮筋效果 */
+      overscroll-behavior: none;
+      /* 🔒 4. 關鍵：全域禁止瀏覽器預設手勢 */
+      touch-action: none;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    .map-container {
+      flex: 1 1 auto;
+      width: 100%;
+      position: relative; /* 確保 iframe 定位準確 */
+      
+      /* 🔴 關鍵修正：
+       原代碼有 pinch-zoom，這會允許瀏覽器介入縮放。
+       改為 'none'，讓 iframe 內部的 Google Map 自己處理縮放，
+       瀏覽器不要對容器做任何動作。
+      */
+      touch-action: none; 
+    }
+
+    .map-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      /* 確保 iframe 也能吃到一些觸控屬性 (視瀏覽器支援度) */
+      touch-action: none;
+    }
+
+    .map-link {
+      flex: 0 0 50px;
+      width: 100%;
+      height: 50px;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      
+      /* 按鈕區域不需要縮放，但可能需要點擊，設為 manipulation 或 auto */
+      touch-action: manipulation;
+    }
+
+    .map-link a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      transition: color 0.3s ease;
+      /* 增大點擊區域，提升手機體驗 */
+      padding: 10px 20px; 
+    }
+
+    .map-link a:hover {
+      color: #C6A300;
+    }
+  </style>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-EZTW98Q8GK');
+  </script>
+</head>
+
+<body>
+  <div class="map-container">
+    <iframe
+      src="https://www.google.com/maps/d/u/0/embed?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&ehbc=2E312F"
+      title="全螢幕嵌入地圖"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen
+    ></iframe>
+  </div>
+
+  <div class="map-link">
+    <a
+      href="https://www.google.com/maps/d/u/0/edit?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&usp=sharing"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Open Google MAP
+    </a>
+  </div>
+
+  <script>
+    // 使用 passive: false 讓 preventDefault() 生效
+    const listenerOpts = { passive: false, capture: true };
+
+    // 1. 禁止 iOS Safari 的雙指縮放 (Gesture 事件)
+    // 這是最關鍵的部分，針對 "一指按住、另一指移動" 這類操作
+    document.addEventListener('gesturestart', (e) => {
+      e.preventDefault();
+      // 在 gesture 期間禁止任何縮放行為
+      document.body.style.zoom = 0.99; 
+    }, listenerOpts);
+
+    document.addEventListener('gesturechange', (e) => {
+      e.preventDefault();
+    }, listenerOpts);
+
+    document.addEventListener('gestureend', (e) => {
+      e.preventDefault();
+      document.body.style.zoom = 1;
+    }, listenerOpts);
+
+
+    // 2. 禁止多指觸控 (Touch 事件)
+    document.addEventListener('touchstart', (e) => {
+      // 如果觸控點大於 1 個，直接禁止，防止雙指縮放/旋轉
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, listenerOpts);
+
+    document.addEventListener('touchmove', (e) => {
+      // 如果觸控點大於 1 個，禁止移動，防止頁面被拖拉縮放
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, listenerOpts);
+
+
+    // 3. 禁止雙擊放大 (Double Tap)
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, listenerOpts);
+
+
+    // 4. (選用) 針對 iframe 邊界嘗試阻止事件冒泡
+    // 雖然無法控制 iframe 內部，但可以確保 iframe 容器本身不傳遞事件
+    const mapContainer = document.querySelector('.map-container');
+    mapContainer.addEventListener('touchmove', (e) => {
+       // 如果是單指，允許地圖運作；如果是多指，再次確保禁止
+       if (e.touches.length > 1) {
+         e.preventDefault();
+       }
+    }, listenerOpts);
+
+  </script>
+</body>
+</html>
