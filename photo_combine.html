@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>圖片合併</title>
+    <title>圖片合併工具</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         :root {
@@ -26,7 +26,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            user-select: none; /* 禁止選取 */
+            user-select: none;
         }
 
         h1 { text-align: center; color: #1e293b; margin-bottom: 20px; font-size: 24px; }
@@ -41,7 +41,7 @@
 
         .section-title {
             font-weight: 600;
-            font-size: 16px; /* 放大 1px */
+            font-size: 16px;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
@@ -60,7 +60,7 @@
             transition: 0.3s;
         }
         .drop-zone.dragging { border-color: var(--primary); background: #fff; transform: scale(1.01); }
-        .drop-zone-text { font-size: 15px; color: #64748b; pointer-events: none; } /* 放大 1px */
+        .drop-zone-text { font-size: 15px; color: #64748b; pointer-events: none; }
 
         .preview-list {
             display: flex;
@@ -78,29 +78,33 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             background: #eee;
             cursor: grab;
+            touch-action: none; /* 協助 Sortable 在手機上運作 */
         }
         .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
         
+        /* 優化後的刪除按鈕：加大熱區 */
         .delete-btn {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 22px;
-            height: 22px;
+            top: -10px;
+            right: -10px;
+            width: 28px;
+            height: 28px;
             background-color: var(--danger);
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             transition: transform 0.2s;
-            z-index: 10;
+            z-index: 100;
+            touch-action: manipulation;
         }
+        .delete-btn:active { transform: scale(0.9); }
 
         .layout-grid, .ratio-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .layout-btn, .ratio-btn {
@@ -255,7 +259,7 @@
     </div>
 
     <script>
-        // --- 2. 安全保護腳本 (禁用 F12, 右鍵) ---
+        // --- 安全保護腳本 ---
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.onkeydown = function (e) {
             if (e.keyCode === 123) return false;
@@ -266,7 +270,7 @@
             if (e.ctrlKey && e.keyCode === 85) return false;
         };
 
-        // --- 核心圖片處理邏輯 ---
+        // --- 核心處理邏輯 (已針對手機優化) ---
         let imagesArray = []; 
         const MAX_IMAGES = 9;
         const canvas = document.getElementById('canvas');
@@ -275,10 +279,12 @@
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
 
+        // 修改 Sortable 初始化以解決手機點擊衝突
         const sortable = new Sortable(previewList, {
             animation: 150,
             ghostClass: 'sortable-ghost',
             filter: '.delete-btn',
+            preventOnFilter: false, // 允許 filter 元素觸發點擊事件
             onEnd: () => {
                 const newOrder = [];
                 previewList.querySelectorAll('.preview-item').forEach(item => {
@@ -328,13 +334,20 @@
             const div = document.createElement('div');
             div.className = 'preview-item';
             div.dataset.id = id;
-            div.innerHTML = `<img src="${src}"><div class="delete-btn" onclick="removeImage('${id}')">×</div>`;
+            // 傳入 event 參數以進行 stopPropagation
+            div.innerHTML = `<img src="${src}"><div class="delete-btn" onclick="removeImage(event, '${id}')">×</div>`;
             previewList.appendChild(div);
         }
 
-        function removeImage(id) {
+        function removeImage(event, id) {
+            // 關鍵：阻止事件冒泡到父層觸發 Sortable 拖曳動作
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
             imagesArray = imagesArray.filter(item => item.id !== id);
-            previewList.querySelector(`[data-id="${id}"]`).remove();
+            const target = previewList.querySelector(`[data-id="${id}"]`);
+            if (target) target.remove();
             updateUI();
             drawCanvas();
         }
@@ -433,24 +446,13 @@
             });
         }
 
-        // --- 3. 修改下載命名邏輯 ---
         function downloadImage() {
             if (imagesArray.length === 0) return;
-            
-            // 獲取目前時間日期格式
             const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const timestamp = `${year}${month}${day}-${hours}${minutes}${seconds}`;
-
+            const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
             const q = document.querySelector('input[name="quality"]:checked').value;
             const extension = q === "1.0" ? 'png' : 'jpg';
             const fileName = `merged-${timestamp}.${extension}`;
-
             const link = document.createElement('a');
             link.download = fileName;
             link.href = canvas.toDataURL(q === "1.0" ? 'image/png' : 'image/jpeg', parseFloat(q));
