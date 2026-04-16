@@ -555,9 +555,7 @@
                         <th class="row-order-cell"></th>
                         <th style="width: 30%">地址</th>
                         <th style="width: 26%">名稱</th>
-                        <th style="width: 22%">區域</th>
-                        <th style="width: 22%">場所類別</th>
-                    </tr>
+                        <th style="width: 22%">場所類別</th> <th style="width: 22%">區域</th> </tr>
                 </thead>
                 <tbody id="tableBody">
                     </tbody>
@@ -683,13 +681,13 @@
                         <td><input type="text" placeholder="輸入名稱"></td>
                         <td>
                             <div class="ac-cell-wrap">
-                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
                                 <span class="inline-suggestion" aria-hidden="true"></span>
                             </div>
                         </td>
                         <td>
                             <div class="ac-cell-wrap">
-                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
                                 <span class="inline-suggestion" aria-hidden="true"></span>
                             </div>
                         </td>
@@ -716,13 +714,13 @@
                         <td><input type="text" placeholder="輸入名稱"></td>
                         <td>
                             <div class="ac-cell-wrap">
-                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
                                 <span class="inline-suggestion" aria-hidden="true"></span>
                             </div>
                         </td>
                         <td>
                             <div class="ac-cell-wrap">
-                                <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                                <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
                                 <span class="inline-suggestion" aria-hidden="true"></span>
                             </div>
                         </td>
@@ -982,13 +980,13 @@
                 <td><input type="text" placeholder="輸入名稱"></td>
                 <td>
                     <div class="ac-cell-wrap">
-                        <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                        <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
                         <span class="inline-suggestion" aria-hidden="true"></span>
                     </div>
                 </td>
                 <td>
                     <div class="ac-cell-wrap">
-                        <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                        <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
                         <span class="inline-suggestion" aria-hidden="true"></span>
                     </div>
                 </td>`;
@@ -1069,7 +1067,7 @@
             document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('touchend', onEnd);
 
-            // 按住 500ms 且沒有移動 → 彈出選單
+            // 按住 800ms 且沒有移動 → 彈出選單
             longPressTimer = setTimeout(() => {
                 if (!hasMoved) {
                     menuShown = true;
@@ -1081,7 +1079,7 @@
                     if (navigator.vibrate) navigator.vibrate(40);
                     showRowContextMenu(tr, startX, startY);
                 }
-            }, 500);
+            }, 800);
         }
 
         let dragRow = null;
@@ -1278,7 +1276,8 @@
 
         function exportToCSV() {
             const data = getTableData();
-            let csvContent = "\uFEFF地址,名稱,區域,場所類別\n";
+            // 對調 CSV 表頭順序
+            let csvContent = "\uFEFF地址,名稱,場所類別,區域\n";
 
             data.forEach(row => {
                 let rowString = row.map(e => `"${e.replace(/"/g, '""')}"`).join(",");
