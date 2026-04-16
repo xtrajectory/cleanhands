@@ -1069,7 +1069,7 @@
             document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('touchend', onEnd);
 
-            // 按住 800ms 且沒有移動 → 彈出選單
+            // 按住 500ms 且沒有移動 → 彈出選單
             longPressTimer = setTimeout(() => {
                 if (!hasMoved) {
                     menuShown = true;
@@ -1081,7 +1081,7 @@
                     if (navigator.vibrate) navigator.vibrate(40);
                     showRowContextMenu(tr, startX, startY);
                 }
-            }, 800);
+            }, 500);
         }
 
         let dragRow = null;
