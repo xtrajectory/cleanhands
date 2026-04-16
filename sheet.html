@@ -487,6 +487,47 @@
         thead .row-order-cell {
             background-color: #e9ecef;
         }
+
+        /* 長按選單 */
+        .row-context-menu {
+            position: fixed;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            z-index: 9999;
+            overflow: hidden;
+            min-width: 160px;
+            animation: menuAppear 0.15s ease-out;
+        }
+        @keyframes menuAppear {
+            from { opacity: 0; transform: scale(0.92); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .row-context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            color: #222;
+            border-bottom: 1px solid #f0f0f0;
+            user-select: none;
+        }
+        .row-context-menu-item:last-child {
+            border-bottom: none;
+        }
+        .row-context-menu-item:active {
+            background-color: #f0f0f0;
+        }
+        .row-context-menu-item.danger {
+            color: var(--danger-color);
+        }
+        .row-context-menu-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+        }
     </style>
 
 </head>
@@ -591,10 +632,23 @@
 
         // --- 初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
+            tryRestoreFromIDB();
             initTable();
             renderSaveList();
             startAutoSaveTimer();
             lastSavedData = getTableData();
+
+            // 關閉/切換頁面時自動儲存，防止資料消失
+            window.addEventListener('beforeunload', () => {
+                if (hasDataChanged() && !isTableEmpty()) {
+                    performAutoSave();
+                }
+            });
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden' && hasDataChanged() && !isTableEmpty()) {
+                    performAutoSave();
+                }
+            });
         });
 
         // --- 表格邏輯 ---
@@ -742,12 +796,69 @@
             return inputEl.value + span.textContent;
         }
 
+        // 手機下拉選單（點選選項直接填入）
+        let activeMobileDropdown = null;
+
+        function showMobileDropdown(inputEl, type) {
+            closeMobileDropdown();
+            const options = type === 'region' ? REGIONS : PLACES;
+            const filter = inputEl.value.trim().toLowerCase();
+            const filtered = filter ? options.filter(opt => opt.toLowerCase().includes(filter)) : options;
+            if (filtered.length === 0) return;
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'custom-dropdown';
+            dropdown.style.display = 'block';
+            filtered.forEach(opt => {
+                const item = document.createElement('div');
+                item.className = 'custom-dropdown-item';
+                item.textContent = opt;
+                item.addEventListener('mousedown', (e) => { e.preventDefault(); });
+                item.addEventListener('click', () => {
+                    inputEl.value = opt;
+                    clearInlineSuggestion(inputEl);
+                    closeMobileDropdown();
+                    inputEl.blur();
+                });
+                dropdown.appendChild(item);
+            });
+
+            document.body.appendChild(dropdown);
+            activeMobileDropdown = dropdown;
+
+            // 定位在 input 下方
+            const rect = inputEl.getBoundingClientRect();
+            let top = rect.bottom + window.scrollY;
+            let left = rect.left + window.scrollX;
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = top + 'px';
+            dropdown.style.left = left + 'px';
+            dropdown.style.minWidth = Math.max(rect.width, 120) + 'px';
+            dropdown._inputEl = inputEl;
+        }
+
+        function closeMobileDropdown() {
+            if (activeMobileDropdown) {
+                activeMobileDropdown.remove();
+                activeMobileDropdown = null;
+            }
+        }
+
         function handleInputFocus(e) {
             const input = e.target;
             if (input.tagName !== 'INPUT') return;
             const type = input.getAttribute('data-type');
             if (!type) return;
             clearInlineSuggestion(input);
+            // 聚焦時若有輸入值，重新顯示建議
+            if (input.value.trim()) {
+                const options = type === 'region' ? REGIONS : PLACES;
+                const filter = input.value.trim().toLowerCase();
+                const filtered = options.filter(opt => opt.toLowerCase().includes(filter));
+                if (filtered.length > 0) setInlineSuggestion(input, filtered[0]);
+            }
+            // 手機上：顯示下拉選單讓用戶點選
+            showMobileDropdown(input, type);
         }
 
         function handleInputType(e) {
@@ -759,13 +870,19 @@
             const options = type === 'region' ? REGIONS : PLACES;
             const filter = input.value.trim().toLowerCase();
             clearInlineSuggestion(input);
-            if (!filter) return;
+
+            if (!filter) {
+                showMobileDropdown(input, type);
+                return;
+            }
 
             const filtered = options.filter(opt => opt.toLowerCase().includes(filter));
             if (filtered.length > 0) {
                 const first = filtered[0];
                 setInlineSuggestion(input, first);
             }
+            // 更新下拉選單
+            showMobileDropdown(input, type);
         }
 
         function handleInputKeydown(e) {
@@ -790,6 +907,8 @@
             if (!type) return;
             // 點選其它格時不填入建議，只清除灰色建議文字
             clearInlineSuggestion(input);
+            // 延遲關閉，讓 click 事件先觸發
+            setTimeout(closeMobileDropdown, 150);
         }
 
         // --- 行號更新與拖曳排序 ---
@@ -800,6 +919,98 @@
             });
         }
 
+        // --- 長按選單 ---
+        let longPressTimer = null;
+        let longPressRow = null;
+
+        function showRowContextMenu(tr, x, y) {
+            removeRowContextMenu();
+
+            const overlay = document.createElement('div');
+            overlay.className = 'row-context-menu-overlay';
+            overlay.addEventListener('click', removeRowContextMenu);
+            overlay.addEventListener('touchstart', removeRowContextMenu, { passive: true });
+
+            const menu = document.createElement('div');
+            menu.className = 'row-context-menu';
+
+            // 新增行（在此行上方）
+            const addItem = document.createElement('div');
+            addItem.className = 'row-context-menu-item';
+            addItem.innerHTML = '➕ 在此行上方新增一行';
+            addItem.addEventListener('click', () => {
+                removeRowContextMenu();
+                insertRowBefore(tr);
+            });
+
+            // 刪除此行
+            const delItem = document.createElement('div');
+            delItem.className = 'row-context-menu-item danger';
+            delItem.innerHTML = '🗑️ 刪除此行';
+            delItem.addEventListener('click', () => {
+                removeRowContextMenu();
+                deleteRow(tr);
+            });
+
+            menu.appendChild(addItem);
+            menu.appendChild(delItem);
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(menu);
+
+            // 定位：避免超出螢幕
+            const menuW = 180;
+            const menuH = 100;
+            let left = x;
+            let top = y + 8;
+            if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+            if (top + menuH > window.innerHeight - 8) top = y - menuH - 8;
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu._overlay = overlay;
+        }
+
+        function removeRowContextMenu() {
+            document.querySelectorAll('.row-context-menu, .row-context-menu-overlay').forEach(el => el.remove());
+        }
+
+        function insertRowBefore(refTr) {
+            const tbody = document.getElementById('tableBody');
+            const newTr = document.createElement('tr');
+            newTr.innerHTML = rowOrderCellHtml() +
+                `<td><input type="text" placeholder="輸入地址"></td>
+                <td><input type="text" placeholder="輸入名稱"></td>
+                <td>
+                    <div class="ac-cell-wrap">
+                        <input type="text" data-type="region" placeholder="輸入關鍵字選擇區域" autocomplete="off">
+                        <span class="inline-suggestion" aria-hidden="true"></span>
+                    </div>
+                </td>
+                <td>
+                    <div class="ac-cell-wrap">
+                        <input type="text" data-type="place" placeholder="輸入關鍵字選擇場所" autocomplete="off">
+                        <span class="inline-suggestion" aria-hidden="true"></span>
+                    </div>
+                </td>`;
+            tbody.insertBefore(newTr, refTr);
+            currentRowCount++;
+            updateRowNumbers();
+            bindRowDragHandles();
+            showStatus("已在上方新增一行");
+        }
+
+        function deleteRow(tr) {
+            const tbody = document.getElementById('tableBody');
+            if (tbody.querySelectorAll('tr').length <= 1) {
+                showStatus("至少保留一行");
+                return;
+            }
+            tr.remove();
+            currentRowCount = Math.max(1, currentRowCount - 1);
+            updateRowNumbers();
+            showStatus("已刪除此行");
+        }
+
         function bindRowDragHandles() {
             const tbody = document.getElementById('tableBody');
             if (!tbody) return;
@@ -807,11 +1018,58 @@
                 handle.removeEventListener('mousedown', onDragStart);
                 handle.addEventListener('mousedown', onDragStart);
             });
-            // 觸控裝置
+            // 觸控裝置：長按顯示選單，短按拖動
             tbody.querySelectorAll('.row-drag-handle').forEach(handle => {
-                handle.removeEventListener('touchstart', onDragStartTouch, { passive: false });
-                handle.addEventListener('touchstart', onDragStartTouch, { passive: false });
+                handle.removeEventListener('touchstart', onHandleTouchStart, { passive: false });
+                handle.addEventListener('touchstart', onHandleTouchStart, { passive: false });
             });
+        }
+
+        function onHandleTouchStart(e) {
+            const handle = e.target.closest('.row-drag-handle');
+            if (!handle) return;
+            const tr = handle.closest('tr');
+            if (!tr) return;
+
+            const touch = e.touches[0];
+            let startX = touch.clientX;
+            let startY = touch.clientY;
+            let moved = false;
+
+            function onMove(ev) {
+                const t = ev.touches[0];
+                if (Math.abs(t.clientX - startX) > 8 || Math.abs(t.clientY - startY) > 8) {
+                    moved = true;
+                    clearTimeout(longPressTimer);
+                }
+            }
+
+            function onEnd() {
+                clearTimeout(longPressTimer);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+                if (!moved) {
+                    // 短觸：啟動拖曳
+                    onDragStartTouch_raw(e, tr);
+                }
+            }
+
+            document.addEventListener('touchmove', onMove, { passive: true });
+            document.addEventListener('touchend', onEnd);
+
+            // 長按 500ms 顯示選單
+            longPressTimer = setTimeout(() => {
+                if (!moved) {
+                    clearTimeout(longPressTimer);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onEnd);
+                    // 振動回饋（若支援）
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    showRowContextMenu(tr, startX, startY);
+                }
+            }, 500);
+
+            e.preventDefault();
         }
 
         let dragRow = null;
@@ -828,18 +1086,23 @@
             document.addEventListener('mouseup', onDragEnd);
         }
 
-        function onDragStartTouch(e) {
-            const touch = e.touches[0];
-            if (!touch) return;
-            const handle = e.target.closest('.row-drag-handle');
-            if (!handle) return;
-            e.preventDefault();
-            const tr = handle.closest('tr');
+        function onDragStartTouch_raw(e, tr) {
+            if (!tr) {
+                const touch = e.touches[0];
+                if (!touch) return;
+                const handle = e.target.closest('.row-drag-handle');
+                if (!handle) return;
+                tr = handle.closest('tr');
+            }
             if (!tr) return;
             dragRow = tr;
             tr.classList.add('dragging');
             document.addEventListener('touchmove', onDragMoveTouch, { passive: false });
             document.addEventListener('touchend', onDragEndTouch);
+        }
+
+        function onDragStartTouch(e) {
+            onDragStartTouch_raw(e, null);
         }
 
         function getRowAtY(tbody, clientY) {
@@ -1022,14 +1285,78 @@
             document.body.removeChild(link);
         }
 
+        // --- 儲存系統：LocalStorage + IndexedDB 雙重備份 ---
+        const IDB_NAME = 'sheet_db';
+        const IDB_STORE = 'saves';
+        let idbReady = false;
+        let idb = null;
+
+        function openIDB() {
+            return new Promise((resolve, reject) => {
+                if (idb) { resolve(idb); return; }
+                const req = indexedDB.open(IDB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(IDB_STORE)) {
+                        db.createObjectStore(IDB_STORE, { keyPath: 'key' });
+                    }
+                };
+                req.onsuccess = (e) => { idb = e.target.result; idbReady = true; resolve(idb); };
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function idbWrite(list) {
+            openIDB().then(db => {
+                const tx = db.transaction(IDB_STORE, 'readwrite');
+                const store = tx.objectStore(IDB_STORE);
+                store.put({ key: SAVE_KEY, value: JSON.stringify(list) });
+            }).catch(() => {}); // 失敗不影響主流程
+        }
+
+        function idbRead() {
+            return openIDB().then(db => {
+                return new Promise((resolve) => {
+                    const tx = db.transaction(IDB_STORE, 'readonly');
+                    const req = tx.objectStore(IDB_STORE).get(SAVE_KEY);
+                    req.onsuccess = () => resolve(req.result ? JSON.parse(req.result.value) : null);
+                    req.onerror = () => resolve(null);
+                });
+            }).catch(() => null);
+        }
+
+        // 從 localStorage 讀取，若失敗則嘗試 IndexedDB 恢復
         function getStorageList() {
-            const list = localStorage.getItem(SAVE_KEY);
-            return list ? JSON.parse(list) : [];
+            try {
+                const list = localStorage.getItem(SAVE_KEY);
+                return list ? JSON.parse(list) : [];
+            } catch (e) {
+                return [];
+            }
         }
 
         function saveToStorage(list) {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(list));
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(list));
+            } catch (e) {
+                showStatus("⚠️ 本機儲存空間不足，請導出 CSV 備份！");
+            }
+            // 同步寫入 IndexedDB 作第二道備份
+            idbWrite(list);
             renderSaveList();
+        }
+
+        // 啟動時：若 localStorage 無資料，嘗試從 IndexedDB 恢復
+        function tryRestoreFromIDB() {
+            const local = localStorage.getItem(SAVE_KEY);
+            if (local) return; // localStorage 有資料，不需恢復
+            idbRead().then(list => {
+                if (list && list.length > 0) {
+                    localStorage.setItem(SAVE_KEY, JSON.stringify(list));
+                    renderSaveList();
+                    showStatus("✅ 已從備份恢復儲存記錄");
+                }
+            });
         }
 
         function createSaveObject(type = 'manual') {
