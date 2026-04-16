@@ -1031,45 +1031,57 @@
             const tr = handle.closest('tr');
             if (!tr) return;
 
+            e.preventDefault();
+
             const touch = e.touches[0];
-            let startX = touch.clientX;
-            let startY = touch.clientY;
-            let moved = false;
+            const startX = touch.clientX;
+            const startY = touch.clientY;
+            let hasMoved = false;
+            let menuShown = false;
+
+            // 立即啟動拖曳
+            dragRow = tr;
+            tr.classList.add('dragging');
 
             function onMove(ev) {
+                if (menuShown) return;
+                if (!ev.touches || ev.touches.length === 0) return;
                 const t = ev.touches[0];
-                if (Math.abs(t.clientX - startX) > 8 || Math.abs(t.clientY - startY) > 8) {
-                    moved = true;
+                const dx = Math.abs(t.clientX - startX);
+                const dy = Math.abs(t.clientY - startY);
+                if (dx > 4 || dy > 4) {
+                    hasMoved = true;
                     clearTimeout(longPressTimer);
                 }
+                // 執行拖曳移動
+                onDragMoveTouch(ev);
             }
 
             function onEnd() {
                 clearTimeout(longPressTimer);
                 document.removeEventListener('touchmove', onMove);
                 document.removeEventListener('touchend', onEnd);
-                if (!moved) {
-                    // 短觸：啟動拖曳
-                    onDragStartTouch_raw(e, tr);
+                if (!menuShown) {
+                    onDragEndTouch();
                 }
             }
 
-            document.addEventListener('touchmove', onMove, { passive: true });
+            document.addEventListener('touchmove', onMove, { passive: false });
             document.addEventListener('touchend', onEnd);
 
-            // 長按 500ms 顯示選單
+            // 按住 800ms 且沒有移動 → 彈出選單
             longPressTimer = setTimeout(() => {
-                if (!moved) {
-                    clearTimeout(longPressTimer);
+                if (!hasMoved) {
+                    menuShown = true;
+                    // 結束拖曳狀態
+                    tr.classList.remove('dragging');
+                    dragRow = null;
                     document.removeEventListener('touchmove', onMove);
                     document.removeEventListener('touchend', onEnd);
-                    // 振動回饋（若支援）
-                    if (navigator.vibrate) navigator.vibrate(30);
+                    if (navigator.vibrate) navigator.vibrate(40);
                     showRowContextMenu(tr, startX, startY);
                 }
-            }, 500);
-
-            e.preventDefault();
+            }, 800);
         }
 
         let dragRow = null;
