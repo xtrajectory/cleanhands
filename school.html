@@ -22,6 +22,12 @@
             background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
+            
+            /* CSS 限制文字選取 */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE10+ */
+            user-select: none;         /* Standard */
         }
 
         .container {
@@ -135,7 +141,17 @@
         }
     </style>
 </head>
-<body>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EZTW98Q8GK');
+</script> 
+
+<body oncontextmenu="return false;" onselectstart="return false;" oncopy="return false;">
 
 <div class="container">
     <h1>學校門口禁煙試行計劃</h1>
@@ -252,6 +268,31 @@
 
     <div class="footer-disclaimer">僅供參考</div>
 </div>
+
+<script>
+    document.onkeydown = function(e) {
+        // 阻擋 F12
+        if (e.keyCode === 123) {
+            return false;
+        }
+        // 阻擋 Ctrl+Shift+I (Windows) / Cmd+Opt+I (Mac)
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+            return false;
+        }
+        // 阻擋 Ctrl+Shift+C (檢查元素)
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+            return false;
+        }
+        // 阻擋 Ctrl+Shift+J (主控台)
+        if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+            return false;
+        }
+        // 阻擋 Ctrl+U (檢視網頁原始碼)
+        if (e.ctrlKey && e.keyCode === 85) {
+            return false;
+        }
+    };
+</script>
 
 </body>
 </html>
