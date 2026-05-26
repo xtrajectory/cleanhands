@@ -132,6 +132,44 @@
   #school-list::-webkit-scrollbar { width: 3px; }
   #school-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+  /* ── PHASE GROUP ── */
+  .phase-group { border-bottom: 1px solid var(--border); }
+
+  .phase-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; background: var(--green-light);
+    cursor: pointer; user-select: none;
+    border-bottom: 0.5px solid var(--border);
+    transition: background 0.15s;
+  }
+  .phase-header:hover { background: #d4eddf; }
+
+  .phase-header-left {
+    display: flex; align-items: center; gap: 7px;
+  }
+  .phase-label {
+    font-size: 12px; font-weight: 600; color: var(--green-dark);
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  .phase-count {
+    font-size: 10px; color: var(--text-secondary);
+    background: rgba(0,0,0,0.07); border-radius: 10px; padding: 1px 7px;
+  }
+  .phase-chevron {
+    font-size: 14px; color: var(--green); transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .phase-group.expanded .phase-chevron { transform: rotate(180deg); }
+
+  .phase-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .phase-group.expanded .phase-body {
+    max-height: 2000px;
+    transition: max-height 0.75s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
   /* ── SCHOOL ROW ── */
   .school-row {
     display: flex; align-items: center; gap: 0;
@@ -144,12 +182,12 @@
   .school-row.active .row-body { font-weight: 600; }
 
   /* alternating row colors */
-  .school-row:nth-child(6n+1) .row-color { background: #e8f5ee; }
-  .school-row:nth-child(6n+2) .row-color { background: #e6f1fb; }
-  .school-row:nth-child(6n+3) .row-color { background: #fff4e0; }
-  .school-row:nth-child(6n+4) .row-color { background: #fde8f0; }
-  .school-row:nth-child(6n+5) .row-color { background: #f0ecfb; }
-  .school-row:nth-child(6n+6) .row-color { background: #e8f5f0; }
+  .phase-body .school-row:nth-child(6n+1) .row-color { background: #e8f5ee; }
+  .phase-body .school-row:nth-child(6n+2) .row-color { background: #e6f1fb; }
+  .phase-body .school-row:nth-child(6n+3) .row-color { background: #fff4e0; }
+  .phase-body .school-row:nth-child(6n+4) .row-color { background: #fde8f0; }
+  .phase-body .school-row:nth-child(6n+5) .row-color { background: #f0ecfb; }
+  .phase-body .school-row:nth-child(6n+6) .row-color { background: #e8f5f0; }
 
   .school-row.active .row-color {
     background: var(--green) !important;
@@ -275,7 +313,10 @@
 </div>
 
 <script>
-const schools = [
+// Phase 1 names (must match exactly)
+const phase1Names = ["海星中學(附屬小學)", "澳門工聯職業技術中學", "氹仔中葡學校", "澳門教區梁文燕托兒所親子館"];
+
+const allSchools = [
   { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school" },
   { name: "氹仔坊眾學校幼稚園", search: "氹仔坊眾學校 澳門氹仔律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school" },
   { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special" },
@@ -294,6 +335,12 @@ const schools = [
   { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery" }
 ];
 
+// Split into phases
+const phase1Schools = allSchools.filter(s => phase1Names.includes(s.name));
+const phase2Schools = allSchools.filter(s => !phase1Names.includes(s.name));
+
+// Flat list for locateOnMap, keyed by unique id
+const schools = [];
 const typeLabel = { school: "學校", nursery: "托兒所", special: "特殊教育" };
 const typeBadge = { school: "badge-school", nursery: "badge-nursery", special: "badge-special" };
 
@@ -305,31 +352,83 @@ const infoName = document.getElementById('info-name');
 const infoAddr = document.getElementById('info-addr');
 let activeIdx = null;
 
-schools.forEach((s, i) => {
-  const row = document.createElement('div');
-  row.className = 'school-row';
-  row.id = 'row-' + i;
-  row.innerHTML = `
-    <div class="row-color">${i + 1}</div>
-    <div class="row-body">
-      <div class="row-name">${s.name}</div>
-      <div class="row-meta">
-        <span class="type-badge ${typeBadge[s.type]}">${typeLabel[s.type]}</span>
-        <span class="row-addr">${s.addr}</span>
-      </div>
+// Detect touch/mobile device
+const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches
+  || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+
+function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded) {
+  const group = document.createElement('div');
+  group.className = 'phase-group' + (defaultExpanded ? ' expanded' : '');
+
+  const header = document.createElement('div');
+  header.className = 'phase-header';
+  header.innerHTML = `
+    <div class="phase-header-left">
+      <span class="phase-label">${phaseLabel}</span>
+      <span class="phase-count">${phaseSchools.length} 所</span>
     </div>
-    <div class="row-actions">
-      <button class="btn-locate" id="btn-${i}" onclick="event.stopPropagation(); locateOnMap(${i})">
-        <i class="ti ti-crosshair"></i> 定位
-      </button>
-      <a class="btn-web" href="${s.url}" target="_blank" onclick="event.stopPropagation()">
-        <i class="ti ti-external-link"></i> 網站
-      </a>
-    </div>
+    <i class="ti ti-chevron-down phase-chevron"></i>
   `;
-  row.addEventListener('click', () => locateOnMap(i));
-  list.appendChild(row);
-});
+
+  const body = document.createElement('div');
+  body.className = 'phase-body';
+
+  phaseSchools.forEach((s, localIdx) => {
+    const globalIdx = schools.length;
+    schools.push(s);
+
+    const row = document.createElement('div');
+    row.className = 'school-row';
+    row.id = 'row-' + globalIdx;
+
+    // Alternating color based on local index (1-based within phase)
+    const nthClass = (localIdx + 1);
+    row.innerHTML = `
+      <div class="row-color">${localIdx + 1}</div>
+      <div class="row-body">
+        <div class="row-name">${s.name}</div>
+        <div class="row-meta">
+          <span class="type-badge ${typeBadge[s.type]}">${typeLabel[s.type]}</span>
+          <span class="row-addr">${s.addr}</span>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="btn-locate" id="btn-${globalIdx}" onclick="event.stopPropagation(); locateOnMap(${globalIdx})">
+          <i class="ti ti-crosshair"></i> 定位
+        </button>
+        <a class="btn-web" href="${s.url}" target="_blank" onclick="event.stopPropagation()">
+          <i class="ti ti-external-link"></i> 網站
+        </a>
+      </div>
+    `;
+    row.addEventListener('click', () => locateOnMap(globalIdx));
+    body.appendChild(row);
+  });
+
+  // Toggle on header click
+  header.addEventListener('click', () => {
+    group.classList.toggle('expanded');
+  });
+
+  // Hover to expand on desktop (non-touch devices)
+  if (!isMobile) {
+    group.addEventListener('mouseenter', () => {
+      group.classList.add('expanded');
+    });
+    group.addEventListener('mouseleave', () => {
+      group.classList.remove('expanded');
+    });
+  }
+
+  group.appendChild(header);
+  group.appendChild(body);
+  return group;
+}
+
+// Phase 1: collapsed by default on both mobile and desktop
+// Phase 2: collapsed by default on desktop, expanded on mobile
+list.appendChild(buildPhaseGroup(phase1Schools, '第一階段', false));
+list.appendChild(buildPhaseGroup(phase2Schools, '第二階段', isMobile));
 
 function locateOnMap(idx) {
   const s = schools[idx];
