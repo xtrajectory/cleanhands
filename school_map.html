@@ -1,0 +1,235 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  #app {
+    display: flex; height: 100vh; min-height: 600px;
+    background: var(--color-background-tertiary); overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  #sidebar {
+    width: 360px; min-width: 360px; display: flex; flex-direction: column;
+    background: var(--color-background-secondary);
+    border-right: 0.5px solid var(--color-border-tertiary); overflow: hidden;
+  }
+  #sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+  }
+  .header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .header-icon {
+    width: 36px; height: 36px; border-radius: var(--border-radius-md);
+    background: #1a7a4a; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  #sidebar-header h2 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
+  .header-subtitle { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; padding-left: 46px; }
+  .stat-row {
+    display: flex; gap: 8px; padding: 12px 20px;
+    background: var(--color-background-primary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .stat-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 12px; color: var(--color-text-secondary);
+  }
+  .stat-pill i { font-size: 13px; }
+  .stat-pill strong { color: var(--color-text-primary); font-weight: 500; }
+  #card-list {
+    flex: 1; overflow-y: auto; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  #card-list::-webkit-scrollbar { width: 4px; }
+  #card-list::-webkit-scrollbar-track { background: transparent; }
+  #card-list::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 4px; }
+  .school-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg); padding: 14px 16px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .school-card:hover { border-color: var(--color-border-secondary); }
+  .school-card.active { border-color: #1a7a4a; background: #f0faf5; }
+  .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .card-index {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: var(--color-text-secondary);
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .school-card.active .card-index { background: #1a7a4a; color: #fff; border-color: #1a7a4a; }
+  .card-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; }
+  .card-type-badge {
+    display: inline-block; font-size: 10px; padding: 2px 7px;
+    border-radius: 10px; margin-top: 4px; font-weight: 400;
+  }
+  .badge-school { background: #e6f1fb; color: #185fa5; }
+  .badge-nursery { background: #faeeda; color: #854f0b; }
+  .badge-special { background: #fbeaf0; color: #993556; }
+  .card-addr { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; padding-left: 34px; margin-bottom: 10px; }
+  .card-actions { display: flex; gap: 8px; padding-left: 34px; }
+  .btn-locate {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; background: #1a7a4a; color: #fff;
+    border: none; border-radius: var(--border-radius-md);
+    font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-locate:hover { background: #155c38; }
+  .btn-locate:disabled { background: #7fb89e; cursor: not-allowed; }
+  .btn-locate i { font-size: 13px; }
+  .btn-web {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px; background: transparent;
+    color: var(--color-text-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md); font-size: 12px;
+    cursor: pointer; text-decoration: none; transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-web:hover { border-color: var(--color-border-primary); color: var(--color-text-primary); }
+  .btn-web i { font-size: 13px; }
+  #map-panel { flex: 1; display: flex; flex-direction: column; position: relative; }
+  #map-toolbar {
+    padding: 12px 16px; background: var(--color-background-primary);
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #active-label { font-size: 13px; color: var(--color-text-secondary); }
+  #active-label strong { color: var(--color-text-primary); font-weight: 500; }
+  #map-frame-wrap { flex: 1; position: relative; overflow: hidden; }
+  iframe { width: 100%; height: 100%; border: none; display: block; }
+  .map-hint {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg); padding: 8px 14px;
+    font-size: 12px; color: var(--color-text-secondary);
+    white-space: nowrap; pointer-events: none;
+  }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <div class="header-top">
+        <div class="header-icon"><i class="ti ti-map-2" aria-hidden="true"></i></div>
+        <h2>澳門學校及托兒所<br>導覽地圖</h2>
+      </div>
+      <p class="header-subtitle">點擊「定位地圖」以名稱搜索並標記機構位置</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat-pill"><i class="ti ti-school" aria-hidden="true"></i> 學校 <strong>10</strong></div>
+      <div class="stat-pill"><i class="ti ti-building" aria-hidden="true"></i> 托兒所 <strong>5</strong></div>
+      <div class="stat-pill"><i class="ti ti-map-pin" aria-hidden="true"></i> 合計 <strong>16</strong></div>
+    </div>
+    <div id="card-list"></div>
+  </div>
+
+  <div id="map-panel">
+    <div id="map-toolbar">
+      <i class="ti ti-map-pin" style="font-size:16px;color:#1a7a4a" aria-hidden="true"></i>
+      <span id="active-label">請選擇左側機構以定位地圖</span>
+    </div>
+    <div id="map-frame-wrap">
+      <iframe id="gis-map"
+        src="https://maps.google.com/maps?q=澳門&z=13&output=embed&hl=zh-TW"
+        allowfullscreen loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+      <div class="map-hint" id="map-hint">
+        <i class="ti ti-hand-click" aria-hidden="true"></i>&nbsp;點擊左側「定位地圖」按鈕以跳轉位置
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const schools = [
+  { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school", ll: null },
+  { name: "氹仔坊眾學校幼稚園", search: "氹仔坊眾學校 澳門氹仔律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school", ll: null },
+  { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special", ll: null },
+  { name: "明愛學校", search: "明愛學校 氹仔里斯本街387號 澳門", addr: "氹仔里斯本街387號", url: "https://www.caritas.org.mo/education-service/199", type: "school", ll: null },
+  { name: "鏡平學校(小學部)", search: "鏡平學校(小學部) 澳門俾利喇街", addr: "澳門俾利喇街126-128A號", url: "http://www.keangpeng.edu.mo/introduction/primary", type: "school", ll: null },
+  { name: "下環浸會學校", search: "下環浸信會學校 澳門下環街46號", addr: "澳門下環街46-48號地下", url: "https://school.hwbs.edu.mo/", type: "school", ll: null },
+  { name: "培道中學小學部", search: "培道中學 澳門美麗街11號", addr: "澳門美麗街11號", url: "https://primary.pooito.edu.mo/html5/", type: "school", ll: null },
+  { name: "庇道學校", search: "庇道學校 澳門高地烏街118號", addr: "澳門高地烏街118號", url: "https://www.brito.edu.mo/", type: "school", ll: null },
+  { name: "孟智豪托兒所", search: "孟智豪托兒所 澳門菜園涌巷70號", addr: "澳門菜園涌巷70號澳門大廈地下", url: "https://www.ugamm.org.mo/portal/ctr/cms/info/goToInfoView?info_id=9d917c2cf88449f482fbe8c9eaa0e891", type: "nursery", ll: null },
+  { name: "同善堂第五托兒所", search: "同善堂第五托兒所", addr: "黑沙環1A號同善堂崔德祺主席紀念樓", url: "https://www.tst.org.mo/index.php/our-services/our-services-4", type: "nursery", ll: null },
+  { name: "聖羅撒托兒所", search: "聖羅撒托兒所 東望洋新街348號 澳門", addr: "東望洋新街348號地下", url: "https://infantariodesantarosa.org.mo/", type: "nursery", ll: null },
+  { name: "仁慈堂李愛禮西灣托兒所", search: "仁慈堂李愛禮西灣托兒所 Creche Lara Reis nºs, 58-60 民國大馬路澳門", addr: "澳門民國大馬路58-60號", url: "http://www.scmm.mo/frontend/content/index.php?id=34&hl=cn", type: "nursery", ll: null },
+  { name: "海星中學(附屬小學)", search: "海星中學 澳門燒灰爐街32-34號32-34號", addr: "澳門燒灰爐巷10-12號", url: "https://edm.edu.mo/", type: "school", ll: null },
+  { name: "澳門工聯職業技術中學", search: "工聯職業技術培訓中心 澳門台山", addr: "澳門台山李寶椿街", url: "https://www.kljc.edu.mo/", type: "school", ll: null },
+  { name: "氹仔中葡學校", search: "氹仔中葡學校 氹仔巴波沙總督前地", addr: "氹仔巴波沙總督前地", url: "https://www.lct.k12.edu.mo/lct/", type: "school", ll: null },
+  { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery", ll: null }
+];
+
+const typeLabel = { school: "學校", nursery: "托兒所", special: "特殊教育" };
+const typeBadge = { school: "badge-school", nursery: "badge-nursery", special: "badge-special" };
+
+const container = document.getElementById('card-list');
+const mapIframe = document.getElementById('gis-map');
+const activeLabel = document.getElementById('active-label');
+const mapHint = document.getElementById('map-hint');
+let activeIdx = null;
+
+schools.forEach((s, i) => {
+  const card = document.createElement('div');
+  card.className = 'school-card';
+  card.id = 'card-' + i;
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-index">${i + 1}</div>
+      <div>
+        <div class="card-name">${s.name}</div>
+        <span class="card-type-badge ${typeBadge[s.type]}">${typeLabel[s.type]}</span>
+      </div>
+    </div>
+    <div class="card-addr"><i class="ti ti-map-pin" style="font-size:12px;margin-right:3px" aria-hidden="true"></i>${s.addr}</div>
+    <div class="card-actions">
+      <button class="btn-locate" id="btn-${i}" onclick="locateOnMap(${i})">
+        <i class="ti ti-crosshair" aria-hidden="true"></i> 定位地圖
+      </button>
+      <a class="btn-web" href="${s.url}" target="_blank">
+        <i class="ti ti-external-link" aria-hidden="true"></i> 官方網站
+      </a>
+    </div>
+  `;
+  container.appendChild(card);
+});
+
+function locateOnMap(idx) {
+  const s = schools[idx];
+  const btn = document.getElementById('btn-' + idx);
+
+  if (activeIdx !== null) {
+    document.getElementById('card-' + activeIdx).classList.remove('active');
+  }
+  document.getElementById('card-' + idx).classList.add('active');
+  activeIdx = idx;
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" aria-hidden="true"></i> 搜索中...';
+
+  activeLabel.innerHTML = `<strong>${s.name}</strong>&nbsp;·&nbsp;正在搜索位置…`;
+  mapHint.style.display = 'none';
+
+  // Use ll coords for precise pin when available, else fall back to search query
+  const query = encodeURIComponent(s.search);
+  const src = s.ll
+    ? `https://maps.google.com/maps?q=${query}&ll=${s.ll}&z=17&iwloc=B&output=embed&hl=zh-TW`
+    : `https://maps.google.com/maps?q=${query}&z=17&iwloc=B&output=embed&hl=zh-TW`;
+  mapIframe.src = src;
+
+  mapIframe.onload = () => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-crosshair" aria-hidden="true"></i> 定位地圖';
+    activeLabel.innerHTML = `<strong>${s.name}</strong>&nbsp;·&nbsp;${s.addr}`;
+  };
+}
+</script>
