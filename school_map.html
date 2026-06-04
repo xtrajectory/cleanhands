@@ -297,7 +297,6 @@
 
 <body oncontextmenu="return false;" onselectstart="return false;" oncopy="return false;">
 
-<!-- TOP BAR -->
 <div id="topbar">
   <button id="menu-btn" onclick="toggleDrawer()" aria-label="選單">
     <i class="ti ti-menu-2"></i>
@@ -306,17 +305,13 @@
   <div id="topbar-active"></div>
 </div>
 
-<!-- OVERLAY (mobile click-to-close) -->
 <div id="overlay" onclick="closeDrawer()"></div>
 
-<!-- OVERLAY (desktop hover, lighter) -->
 <div id="overlay-desktop"></div>
 
-<!-- Desktop hover trigger zone (left edge) -->
 <div id="menu-hover-zone"></div>
 
-<!-- DRAWER -->
-<div id="drawer">
+<div id="drawer" class="open">
   <div id="drawer-header">
     <h2>📍 澳門學校及托兒所</h2>
     <div class="drawer-stats">
@@ -328,15 +323,13 @@
   <div id="school-list"></div>
 </div>
 
-<!-- MAP -->
-<div id="map-wrap">
+<div id="map-wrap" onclick="closeDrawer()">
   <iframe id="gis-map"
     src="https://maps.google.com/maps?q=澳門&z=13&output=embed&hl=zh-TW"
     allowfullscreen loading="lazy"
     referrerpolicy="no-referrer-when-downgrade"></iframe>
 </div>
 
-<!-- BOTTOM INFO BAR -->
 <div id="info-bar">
   <div id="info-name"></div>
   <div id="info-addr"></div>
@@ -344,25 +337,25 @@
 
 <script>
 // Phase 1 names (must match exactly)
-const phase1Names = ["海星中學(附屬小學)", "澳門工聯職業技術中學", "氹仔中葡學校", "澳門教區梁文燕托兒所親子館"];
+const phase1Names = ["澳門工聯職業技術中學", "海星中學(附屬小學)", "澳門教區梁文燕托兒所親子館", "氹仔中葡學校"];
 
 const allSchools = [
-  { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school" },
-  { name: "氹仔坊眾學校幼稚園", search: "氹仔坊眾學校 澳門氹仔律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school" },
-  { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special" },
-  { name: "明愛學校", search: "明愛學校 氹仔里斯本街387號 澳門", addr: "氹仔里斯本街387號", url: "https://www.caritas.org.mo/education-service/199", type: "school" },
-  { name: "鏡平學校(小學部)", search: "鏡平學校小學 澳門俾利喇街", addr: "澳門俾利喇街126-128A號", url: "http://www.keangpeng.edu.mo/introduction/primary", type: "school" },
-  { name: "下環浸會學校", search: "下環浸信會學校 澳門下環街46號", addr: "澳門下環街46-48號地下", url: "https://school.hwbs.edu.mo/", type: "school" },
-  { name: "培道中學小學部", search: "培道中學 美麗街高小部 澳門美麗街11號", addr: "澳門美麗街11號", url: "https://primary.pooito.edu.mo/html5/", type: "school" },
-  { name: "庇道學校", search: "庇道學校 澳門高地烏街118號", addr: "澳門高地烏街118號", url: "https://www.brito.edu.mo/", type: "school" },
-  { name: "孟智豪托兒所", search: "澳門街坊會聯合總會孟智豪托兒所 澳門菜園涌巷70號", addr: "澳門菜園涌巷70號澳門大廈地下", url: "https://www.ugamm.org.mo/portal/ctr/cms/info/goToInfoView?info_id=9d917c2cf88449f482fbe8c9eaa0e891", type: "nursery" },
-  { name: "同善堂第五托兒所", search: "同善堂第五托兒所", addr: "黑沙環1A號同善堂崔德祺主席紀念樓", url: "https://www.tst.org.mo/index.php/our-services/our-services-4", type: "nursery" },
-  { name: "聖羅撒托兒所", search: "聖羅撒托兒所 東望洋新街348號 澳門", addr: "東望洋新街348號地下", url: "https://infantariodesantarosa.org.mo/", type: "nursery" },
-  { name: "仁慈堂李愛禮西灣托兒所", search: "仁慈堂李愛禮西灣托兒所 Creche Lara Reis nºs, 58-60 民國大馬路澳門", addr: "澳門民國大馬路58-60號", url: "http://www.scmm.mo/frontend/content/index.php?id=34&hl=cn", type: "nursery" },
-  { name: "海星中學(附屬小學)", search: "海星中學 澳門燒灰爐街32-34號32-34號", addr: "澳門燒灰爐巷10-12號", url: "https://edm.edu.mo/", type: "school" },
   { name: "澳門工聯職業技術中學", search: "工聯職業技術培訓中心 澳門台山", addr: "澳門台山李寶椿街", url: "https://www.kljc.edu.mo/", type: "school" },
+  { name: "海星中學(附屬小學)", search: "海星中學 澳門燒灰爐街32-34號32-34號", addr: "澳門燒灰爨巷10-12號", url: "https://edm.edu.mo/", type: "school" },
+  { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery" },
   { name: "氹仔中葡學校", search: "氹仔中葡學校 氹仔巴波沙總督前地", addr: "氹仔巴波沙總督前地", url: "https://www.lct.k12.edu.mo/lct/", type: "school" },
-  { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery" }
+  { name: "孟智豪托兒所", search: "澳門街坊會聯合總會孟智豪托兒所 澳門菜園涌巷70號", addr: "澳門菜園涌巷70號澳門大廈地下", url: "https://www.ugamm.org.mo/portal/ctr/cms/info/goToInfoView?info_id=9d917c2cf88449f482fbe8c9eaa0e891", type: "nursery" },
+  { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special" },
+  { name: "同善堂第五托兒所", search: "同善堂第五托兒所", addr: "黑沙環1A號同善堂崔德祺主席紀念樓", url: "https://www.tst.org.mo/index.php/our-services/our-services-4", type: "nursery" },
+  { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school" },
+  { name: "鏡平學校(小學部)", search: "鏡平學校小學 澳門俾利喇街", addr: "澳門俾利喇街126-128A號", url: "http://www.keangpeng.edu.mo/introduction/primary", type: "school" },
+  { name: "庇道學校", search: "庇道學校 澳門高地烏街118號", addr: "澳門高地烏街118號", url: "https://www.brito.edu.mo/", type: "school" },
+  { name: "培道中學小學部", search: "培道中學 美麗街高小部 澳門美麗街11號", addr: "澳門美麗街11號", url: "https://primary.pooito.edu.mo/html5/", type: "school" },
+  { name: "聖羅撒托兒所", search: "聖羅撒托兒所 東望洋新街348號 澳門", addr: "東望洋新街348號地下", url: "https://infantariodesantarosa.org.mo/", type: "nursery" },
+  { name: "下環浸會學校", search: "下環浸信會學校 澳門下環街46號", addr: "澳門下環街46-48號地下", url: "https://school.hwbs.edu.mo/", type: "school" },
+  { name: "仁慈堂李愛禮西灣托兒所", search: "仁慈堂李愛禮西灣托兒所 Creche Lara Reis nºs, 58-60 民國大馬路澳門", addr: "澳門民國大馬路58-60號", url: "http://www.scmm.mo/frontend/content/index.php?id=34&hl=cn", type: "nursery" },
+  { name: "氹仔坊眾學校幼稚園", search: "氹仔坊眾學校 澳門氹仔律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school" },
+  { name: "明愛學校", search: "明愛學校 氹仔里斯本街387號 澳門", addr: "氹仔里斯本街387號", url: "https://www.caritas.org.mo/education-service/199", type: "school" },
 ];
 
 // Split into phases
@@ -382,13 +375,16 @@ const infoName = document.getElementById('info-name');
 const infoAddr = document.getElementById('info-addr');
 let activeIdx = null;
 
+let phase1Group, phase2Group;
+
 // Detect touch/mobile device
 const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches
   || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
 
-function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded) {
+function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
   const group = document.createElement('div');
   group.className = 'phase-group' + (defaultExpanded ? ' expanded' : '');
+  group.dataset.id = phaseId;
 
   const header = document.createElement('div');
   header.className = 'phase-header';
@@ -411,8 +407,6 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded) {
     row.className = 'school-row';
     row.id = 'row-' + globalIdx;
 
-    // Alternating color based on local index (1-based within phase)
-    const nthClass = (localIdx + 1);
     row.innerHTML = `
       <div class="row-color">${localIdx + 1}</div>
       <div class="row-body">
@@ -435,18 +429,42 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded) {
     body.appendChild(row);
   });
 
-  // Toggle on header click
-  header.addEventListener('click', () => {
-    group.classList.toggle('expanded');
+  // 互斥折疊的核心處理函數
+  function triggerToggle() {
+    if (phaseId === 1) {
+      if (!group.classList.contains('expanded')) {
+        group.classList.add('expanded');
+        if (phase2Group) phase2Group.classList.remove('expanded');
+      }
+    } else if (phaseId === 2) {
+      if (!group.classList.contains('expanded')) {
+        group.classList.add('expanded');
+        if (phase1Group) phase1Group.classList.remove('expanded');
+      }
+    }
+  }
+
+  // 點擊事件
+  header.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // 如果點擊的是已經打開的階段，則做反向切換（維持總有一個是開的）
+    if (group.classList.contains('expanded')) {
+      if (phaseId === 1 && phase2Group) {
+        group.classList.remove('expanded');
+        phase2Group.classList.add('expanded');
+      } else if (phaseId === 2 && phase1Group) {
+        group.classList.remove('expanded');
+        phase1Group.classList.add('expanded');
+      }
+    } else {
+      triggerToggle();
+    }
   });
 
-  // Hover to expand on desktop (non-touch devices)
+  // 新增：滑鼠移過（懸停）時直接觸發與點擊類似的效果（僅限非手機非觸控裝置）
   if (!isMobile) {
-    group.addEventListener('mouseenter', () => {
-      group.classList.add('expanded');
-    });
-    group.addEventListener('mouseleave', () => {
-      group.classList.remove('expanded');
+    header.addEventListener('mouseenter', () => {
+      triggerToggle();
     });
   }
 
@@ -455,10 +473,12 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded) {
   return group;
 }
 
-// Phase 1: collapsed by default on both mobile and desktop
-// Phase 2: collapsed by default on desktop, expanded on mobile
-list.appendChild(buildPhaseGroup(phase1Schools, '第一階段', false));
-list.appendChild(buildPhaseGroup(phase2Schools, '第二階段', isMobile));
+// 建立階段分組
+phase1Group = buildPhaseGroup(phase1Schools, '第一階段 (2025年11月24日)', false, 1);
+phase2Group = buildPhaseGroup(phase2Schools, '第二階段 (2026年5月25日)', true, 2);
+
+list.appendChild(phase1Group);
+list.appendChild(phase2Group);
 
 function locateOnMap(idx) {
   const s = schools[idx];
@@ -489,16 +509,42 @@ function locateOnMap(idx) {
   closeDrawer();
 }
 
+// 側邊欄重置為預設狀態的函數
+function resetDrawerContent() {
+  if (phase1Group) phase1Group.classList.remove('expanded');
+  if (phase2Group) phase2Group.classList.add('expanded');
+}
+
 function toggleDrawer() {
   const d = document.getElementById('drawer');
   const o = document.getElementById('overlay');
-  const open = d.classList.toggle('open');
-  o.classList.toggle('open', open);
+  
+  if (!d.classList.contains('open')) {
+    d.classList.add('open');
+    o.classList.add('open');
+  } else {
+    d.classList.remove('open');
+    o.classList.remove('open');
+    // 修改：手動點擊三條槓隱藏後，重置內容狀態
+    resetDrawerContent();
+  }
 }
+
 function closeDrawer() {
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
+  const d = document.getElementById('drawer');
+  const o = document.getElementById('overlay');
+  
+  // 只有當抽屜本來是打開的時候，關閉時才執行重置
+  if (d.classList.contains('open')) {
+    d.classList.remove('open');
+    o.classList.remove('open');
+    // 修改：任何情況下（點地圖、點學校等）抽屜隱藏後，立即重置內容
+    resetDrawerContent();
+  }
 }
+
+// 初始化開啟遮罩
+document.getElementById('overlay').classList.add('open');
 
 (function () {
   const block = (e) => { e.preventDefault(); return false; };
