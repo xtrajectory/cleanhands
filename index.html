@@ -256,6 +256,126 @@
             overflow-x: visible;
         }
 
+        
+        /* === 月曆樣式 === */
+        .calendar-wrapper {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+        .calendar-month {
+            min-width: 240px;
+            flex: 1 1 auto;
+            max-width: 320px;
+        }
+        .calendar-month-header {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+            padding: 6px 0;
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            letter-spacing: 1px;
+        }
+        .calendar-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .calendar-table th {
+            color: #888;
+            font-size: 12px;
+            padding: 5px 6px;
+            text-align: center;
+            font-weight: 400;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .calendar-table td {
+            padding: 4px 3px;
+            text-align: center;
+            font-size: 13px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .calendar-day {
+            color: #ccc;
+        }
+        .calendar-today {
+            outline: 2px solid rgba(255,255,255,0.35);
+            outline-offset: -2px;
+            border-radius: 4px;
+        }
+        .calendar-bg {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            line-height: 1.3;
+        }
+        .calendar-yellow {
+            color: #000 !important;
+            font-weight: 700;
+        }
+        .calendar-bg.calendar-yellow {
+            background-color: #FFD700;
+        }
+        .calendar-red {
+            color: #fff !important;
+            font-weight: 700;
+        }
+        .calendar-bg.calendar-red {
+            background-color: #E53935;
+            box-shadow: 0 0 8px rgba(229,57,53,0.5);
+        }
+        .calendar-purple {
+            color: #fff !important;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .calendar-bg.calendar-purple {
+            background-color: #9C27B0;
+        }
+        .calendar-legend {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        .calendar-legend-item { display: flex; align-items: center; gap: 6px; }
+        .calendar-legend-swatch { width: 16px; height: 16px; border-radius: 3px; flex-shrink: 0; }
+        .calendar-tooltip {
+            position: fixed;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            z-index: 9999;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 260px;
+            line-height: 1.4;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .calendar-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border: 5px solid transparent;
+            border-top-color: #1a1a2e;
+        }
+
+
         /* === 底部導航欄 === */
         .map-button-container {
             position: fixed;
@@ -549,7 +669,7 @@
         
         // 修改渲染結構以搭配新的視覺樣式
         document.getElementById('result').innerHTML = `
-            <div class="res-label">${CONFIG.daysToAdd} 天後的日期</div>
+            <div class="res-label">${CONFIG.daysToAdd} 天的日期</div>
             <div class="res-main-date">${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日</div>
             <div class="res-weekday">${WEEKDAYS[d.getDay()]}</div>
         `;
@@ -594,6 +714,92 @@
         }
     }
 
+    function generateCalendarHTML(startDate, endDate) {
+        const yellowDates = new Set();
+        const redDateKey = formatDateKey(endDate);
+        let d = new Date(startDate);
+        d.setDate(d.getDate() + 1);
+        d.setHours(0,0,0,0);
+        const end = new Date(endDate);
+        end.setHours(0,0,0,0);
+        while (d <= end) {
+            yellowDates.add(formatDateKey(d));
+            d.setDate(d.getDate() + 1);
+        }
+        const months = [];
+        let cur = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const lastMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        while (cur <= lastMonth) {
+            months.push({ year: cur.getFullYear(), month: cur.getMonth() });
+            cur.setMonth(cur.getMonth() + 1);
+        }
+        const todayKey = formatDateKey(new Date());
+        let html = '<div class="calendar-wrapper">';
+        months.forEach(m => {
+            const year = m.year, month = m.month;
+            html += '<div class="calendar-month"><div class="calendar-month-header">' + year + '年' + (month+1) + '月</div>';
+            html += '<table class="calendar-table"><thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead><tbody>';
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startDow = new Date(year, month, 1).getDay();
+            let day = 1;
+            let done = false;
+            for (let row = 0; !done; row++) {
+                html += '<tr>';
+                for (let col = 0; col < 7; col++) {
+                    if ((row === 0 && col < startDow) || day > daysInMonth) {
+                        html += '<td></td>';
+                    } else {
+                        const dateObj = new Date(year, month, day);
+                        const dk = formatDateKey(dateObj);
+                        let tdCls = 'calendar-day';
+                        if (dk === todayKey) tdCls += ' calendar-today';
+                        var bgCls = '';
+                        if (dk === redDateKey) bgCls = 'calendar-red';
+                        else if (SPECIAL_HOLIDAYS[dk] && yellowDates.has(dk)) bgCls = 'calendar-purple';
+                        else if (yellowDates.has(dk)) bgCls = 'calendar-yellow';
+                        var extras = '';
+                        if (SPECIAL_HOLIDAYS[dk] && (yellowDates.has(dk) || dk === redDateKey)) {
+                            extras = ' data-date="' + dk + '" data-holiday="' + SPECIAL_HOLIDAYS[dk] + '"';
+                        }
+                        if (bgCls) {
+                            html += '<td class="' + tdCls + '"' + extras + '><span class="calendar-bg ' + bgCls + '">' + day + '</span></td>';
+                        } else {
+                            html += '<td class="' + tdCls + '">' + day + '</td>';
+                        }
+                        if (day++ >= daysInMonth) done = true;
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table></div>';
+        });
+        html += '</div>';
+        html += '<div class="calendar-legend">';
+        html += '<div class="calendar-legend-item"><div class="calendar-legend-swatch" style="background:#FFD700"></div><span>計算期間</span></div>';
+        html += '<div class="calendar-legend-item"><div class="calendar-legend-swatch" style="background:#E53935"></div><span>第十五天</span></div>';
+        html += '<div class="calendar-legend-item"><div class="calendar-legend-swatch" style="background:#9C27B0"></div><span>假日</span></div>';
+        html += '<div class="calendar-legend-item"><div class="calendar-legend-swatch" style="outline:2px solid rgba(255,255,255,0.35);outline-offset:-2px;background:transparent"></div><span>今天</span></div>';
+        html += '</div>';
+        return html;
+    }
+
+
+    function showHolidayInfo(e) {
+        var target = e.target.closest ? e.target.closest('[data-holiday]') : null;
+        if (!target) { document.getElementById('holidayTooltip').style.display = 'none'; return; }
+        var holidayName = target.getAttribute('data-holiday');
+        var dateStr = target.getAttribute('data-date');
+        if (!holidayName) return;
+        var parts = dateStr.split('-');
+        document.getElementById('holidayTooltipText').textContent = parts[0] + '/' + parts[1] + '/' + parts[2] + ' ' + holidayName;
+        var rect = target.getBoundingClientRect();
+        var tip = document.getElementById('holidayTooltip');
+        tip.style.left = (rect.left + rect.width / 2) + 'px';
+        tip.style.top = (rect.top - 10) + 'px';
+        tip.style.transform = 'translate(-50%, -100%)';
+        tip.style.display = 'block';
+    }
+    document.addEventListener('click', showHolidayInfo);
     function toggleVerification() {
         const verifyDiv = document.getElementById('verificationResult');
         const tableDiv = document.getElementById('futureDatesTable');
@@ -623,6 +829,7 @@
             } else { 
                 html += `<div class="timeline-empty">⭕期間無任何假期或週末，無需順延。</div>`; 
             }
+            html += generateCalendarHTML(today, endDate);
             html += `</div>`;
             verifyDiv.innerHTML = html;
             verifyDiv.style.display = 'block';
@@ -703,5 +910,8 @@
     }
     init();
     </script>
+    <div id="holidayTooltip" class="calendar-tooltip" style="display:none;">
+        <span id="holidayTooltipText"></span>
+    </div>
 </body>
 </html>
