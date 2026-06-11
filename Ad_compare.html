@@ -387,6 +387,11 @@
     padding: 12px 16px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--divider);
   }
   .toc-strip::-webkit-scrollbar { display: none; }
   .toc-chip {
@@ -409,16 +414,8 @@
   }
 </style>
 </head>
+<body>
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-EZTW98Q8GK');
-</script> 
-
-<body>  
 <header class="site-header">
   <div class="eyebrow">澳門廣告法律比較分析</div>
   <h1>新舊廣告法<br>酒精飲料廣告規範比較</h1>
@@ -632,6 +629,11 @@
   </div>
 </div>
 
+<div class="warn-box" style="margin-top:10px;">
+  <div class="warn-title">⚠ 過渡期最迫切事項</div>
+  新法第 53 條第 1 款<strong>不設過渡豁免</strong>——現有廣告物於 2027.01.01 起即受新法規範。教育場所或未成年人活動場所周邊現有的酒精飲料廣告牌及商標展示，<strong>須於 2027 年 1 月 1 日前移除</strong>，否則新法生效後即構成違法。此為<strong>客觀違法</strong>（廣告存在即違法），執法難度低、稽查效率高，預期將是衛生局生效後初期的重點執法方向。
+</div>
+
 <!-- ══════════════ 5. 罰款 ══════════════ -->
 <div id="s5" class="section-title">五、罰款制度</div>
 
@@ -746,28 +748,40 @@
 <div id="s8" class="section-title">八、監察與執法實體</div>
 
 <div class="card">
+  <div class="card-title">監察職權變化</div>
   <ul class="row-list">
     <li>
-      <div class="row-label">監察實體</div>
-      <div class="row-value">衛生局（新舊法不變）</div>
+      <div class="row-label">酒精廣告監察 <span class="tag tag-extend" style="margin-left:4px;">範圍大幅擴張</span></div>
+      <div class="row-value">
+        <strong>舊法：</strong>衛生局僅就警語違反（第 9 條第 4 款）有執行罰款職權；其餘內容禁止由<strong>經濟及科技發展局</strong>負責<br>
+        <strong>新法：</strong>衛生局就<strong>整個第 14 條</strong>有監察職權（第 37 條第 1 款(一)項）
+      </div>
     </li>
     <li>
-      <div class="row-label">處罰決定權</div>
-      <div class="row-value">新法明文規定由衛生局局長決定（第 37 條 2 款）</div>
+      <div class="row-label">處罰決定權 <span class="tag tag-extend" style="margin-left:4px;">人格化明確化</span></div>
+      <div class="row-value">
+        <strong>舊法：</strong>「衛生局」（第 31 條 a 項），法條<strong>未提及</strong>衛生局局長<br>
+        <strong>新法：</strong>明文規定由<strong>衛生局局長</strong>行使（第 37 條第 2 款）
+      </div>
     </li>
     <li>
-      <div class="row-label">保全措施 <span class="tag tag-new">★ 新增</span></div>
-      <div class="row-value">衛生局局長可暫時遮蔽／禁止發佈，最長 6+6 個月（第 39 條）</div>
+      <div class="row-label">保全措施權 <span class="tag tag-new">★ 新增</span></div>
+      <div class="row-value">衛生局局長可暫時遮蔽／禁止發佈／變更內容，最長 6+6 個月（第 37 條第 2 款 + 第 39 條）</div>
     </li>
     <li>
-      <div class="row-label">勸誡權 <span class="tag tag-new">★ 新增</span></div>
-      <div class="row-value">第 50 條：先勸誡補正，補正則歸檔</div>
+      <div class="row-label">勸誡權 <span class="tag tag-warn">⚠ 不適用於酒精廣告</span></div>
+      <div class="row-value"><strong>第 14 條不在勸誡清單內</strong>（第 50 條第 1 款未列舉第 14 條），純酒精廣告違法<strong>不得勸誡</strong>；僅同時違反第 9 條（未成年人保護）等列舉條文時方可勸誡</div>
     </li>
     <li>
       <div class="row-label">罰款歸屬 <span class="tag tag-extend">重大變化</span></div>
-      <div class="row-value">舊法：歸澳門特區 → 新法：<strong>直接歸衛生局</strong>（增強執法誘因）</div>
+      <div class="row-value">舊法：歸澳門特區（第 27 條第 3 款）→ 新法：<strong>屬衛生局收入</strong>（第 51 條），罰款由公帑 → 衛生局自有收入，增強執法誘因</div>
     </li>
   </ul>
+</div>
+
+<div class="warn-box" style="margin-top:10px;">
+  <div class="warn-title">⚠ 舊法的執法實務困境</div>
+  舊法下酒精廣告的內容禁止（第 9 條第 1–3 款）由<strong>經科局</strong>執法，警語違反（第 9 條第 4 款）由<strong>衛生局</strong>執法。兩個部門之間<strong>無法定協作義務</strong>——經科局稽查員發現酒精廣告欠缺警語時，法律上無義務通知衛生局；反之亦然。新法將酒精廣告的監察、處罰、罰款歸屬統一於衛生局，徹底消除此「跨部門資訊斷層」問題。
 </div>
 
 <!-- ══════════════ 9. 附加制度 ══════════════ -->
@@ -776,7 +790,15 @@
 <div class="card">
   <ul class="row-list">
     <li>
-      <div class="row-label">附加處罰</div>
+      <div class="row-label">勸誡制度 <span class="tag tag-warn">⚠ 不適用於酒精廣告</span></div>
+      <div class="row-value">第 50 條第 1 款列舉的勸誡適用條文<strong>不含第 14 條</strong>。純酒精廣告違法須直接進入處罰程序，無法以勸誡補正方式結案。僅同時違反第 9 條等列舉條文時方可勸誡。</div>
+    </li>
+    <li>
+      <div class="row-label">保全措施 <span class="tag tag-new">★ 新增</span></div>
+      <div class="row-value">暫時遮蔽／禁止發佈／變更內容，最長 6+6 個月（第 39 條）。可即時制止違法酒精廣告，避免損害擴大。</div>
+    </li>
+    <li>
+      <div class="row-label">附加處罰 <span class="tag tag-strengthen">大幅強化</span></div>
       <div class="row-value">舊法僅充公 → 新法：禁止從業（1 個月–1 年）+ 公開處罰決定（中葡報章 + 官網）</div>
     </li>
     <li>
@@ -805,7 +827,8 @@
   <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>場所限制</strong>無 → 教育及未成年人場所全面禁止（重大新增）</div></div>
   <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>罰款上限</strong>MOP 12,000/28,000 → MOP 80,000（大幅提高）</div></div>
   <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>受規範主體</strong>3 類 → 6 類，覆蓋代言人、直播、平台</div></div>
-  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>執法工具</strong>新增勸誡制度、保全措施、附加處罰</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>監察實體</strong>分散（衛生局＋經科局）→ 統一（衛生局），執法一致性提升</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>執法工具</strong>新增保全措施、附加處罰；<strong>勸誡不適用於酒精廣告</strong></div></div>
   <div class="eval-row"><div class="eval-icon">🟢</div><div class="eval-text"><strong>未成年人出現在酒類廣告</strong>絕對禁止 → 條件容許（可能減弱）</div></div>
   <div class="eval-row" style="border-bottom:none;"><div class="eval-icon">🟢</div><div class="eval-text"><strong>過失處罰</strong>上下限均減半（對行為人更有利）</div></div>
 </div>
@@ -820,6 +843,10 @@
   <div class="transition-item">
     <div class="t-dot"></div>
     <div><strong>持續性廣告：</strong>跨越 2027.01.01 的廣告（戶外廣告牌、網站橫幅等）須在生效日前完成合規整改。</div>
+  </div>
+  <div class="transition-item">
+    <div class="t-dot" style="background:var(--warn-border);"></div>
+    <div><strong>⚠ 場所限制為最迫切事項：</strong>新法第 53 條不設過渡豁免，教育場所及未成年人活動場所周邊的現有酒精廣告（含商標展示）須於 2027.01.01 前移除。此為客觀違法（廣告存在即違法），預期將是衛生局生效後初期的優先執法項目。</div>
   </div>
   <div class="transition-item" style="border-bottom:none;">
     <div class="t-dot"></div>
