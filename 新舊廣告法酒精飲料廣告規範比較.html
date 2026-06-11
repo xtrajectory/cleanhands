@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新舊廣告法——酒精飲料廣告規範比較</title>
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --card: #ffffff;
+    --old: #c0392b;
+    --old-bg: #fdf2f1;
+    --old-border: #e8b4b0;
+    --new: #1a5276;
+    --new-bg: #eaf2fb;
+    --new-border: #aacde8;
+    --accent: #1a5276;
+    --text: #1c1c1e;
+    --sub: #6b6b6e;
+    --divider: #e0ddd8;
+    --tag-new: #d4edda;
+    --tag-new-text: #1a6e35;
+    --tag-extend: #fff3cd;
+    --tag-extend-text: #7d5c00;
+    --tag-strengthen: #cfe2ff;
+    --tag-strengthen-text: #0a3870;
+    --warn: #fff3cd;
+    --warn-border: #ffc107;
+    --warn-text: #6b4c00;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 0 0 40px;
+  }
+
+  /* Header */
+  .site-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 20px 16px 24px;
+  }
+  .site-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .site-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .meta-chip {
+    background: rgba(255,255,255,0.18);
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+
+  /* Intro card */
+  .intro-card {
+    margin: 16px 16px 0;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    font-size: 13.5px;
+    color: var(--sub);
+    border-left: 4px solid var(--accent);
+  }
+  .intro-card strong { color: var(--text); }
+
+  /* Section headers */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 24px 16px 8px;
+  }
+
+  /* Law comparison pill */
+  .law-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 0 16px 4px;
+  }
+  .law-card {
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+  }
+  .law-card.old { background: var(--old-bg); border: 1px solid var(--old-border); }
+  .law-card.new { background: var(--new-bg); border: 1px solid var(--new-border); }
+  .law-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+  .law-card.old .law-label { color: var(--old); }
+  .law-card.new .law-label { color: var(--new); }
+  .law-card .law-name { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+  .law-card .law-detail { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+
+  /* Generic cards */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin: 10px 16px 0;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .num {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 6px;
+    font-size: 11px;
+    padding: 2px 7px;
+    font-weight: 700;
+  }
+
+  /* Row list */
+  .row-list { list-style: none; }
+  .row-list li {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--divider);
+    font-size: 13.5px;
+  }
+  .row-list li:last-child { border-bottom: none; }
+  .row-label { font-size: 11px; color: var(--sub); margin-bottom: 2px; }
+  .row-value { font-size: 13.5px; }
+
+  /* Compare rows (old vs new) */
+  .compare-row {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row .cr-topic {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .compare-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .compare-two .side {
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .compare-two .side.old { background: var(--old-bg); border: 1px solid var(--old-border); }
+  .compare-two .side.new { background: var(--new-bg); border: 1px solid var(--new-border); }
+  .compare-two .side-label {
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    letter-spacing: 0.04em;
+  }
+  .side.old .side-label { color: var(--old); }
+  .side.new .side-label { color: var(--new); }
+
+  /* Tag badges */
+  .tag {
+    display: inline-block;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    margin-left: 4px;
+  }
+  .tag-new { background: var(--tag-new); color: var(--tag-new-text); }
+  .tag-extend { background: var(--tag-extend); color: var(--tag-extend-text); }
+  .tag-strengthen { background: var(--tag-strengthen); color: var(--tag-strengthen-text); }
+  .tag-same { background: #f0f0f0; color: #555; }
+  .tag-warn { background: #ffe4e4; color: #c0392b; }
+
+  /* Warning box */
+  .warn-box {
+    background: var(--warn);
+    border: 1px solid var(--warn-border);
+    border-radius: var(--radius);
+    margin: 10px 16px 0;
+    padding: 13px 16px;
+    font-size: 13px;
+    color: var(--warn-text);
+    line-height: 1.6;
+  }
+  .warn-box .warn-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 13.5px;
+  }
+
+  /* Fine comparison */
+  .fine-row {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .fine-row:last-child { border-bottom: none; }
+  .fine-subject { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+  .fine-bars { display: flex; flex-direction: column; gap: 5px; }
+  .fine-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .fine-bar-label { font-size: 11px; color: var(--sub); min-width: 28px; }
+  .fine-bar-bg { flex: 1; height: 12px; background: var(--divider); border-radius: 6px; overflow: hidden; }
+  .fine-bar-fill { height: 100%; border-radius: 6px; }
+  .fine-bar-fill.old { background: var(--old); }
+  .fine-bar-fill.new { background: var(--new); }
+  .fine-amount { font-size: 11.5px; color: var(--sub); min-width: 90px; text-align: right; }
+
+  /* Summary evaluation */
+  .eval-row {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13.5px;
+  }
+  .eval-row:last-child { border-bottom: none; }
+  .eval-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .eval-text { flex: 1; line-height: 1.5; }
+  .eval-text strong { display: block; margin-bottom: 2px; }
+
+  /* Transition note */
+  .transition-item {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--divider);
+    font-size: 13.5px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .transition-item:last-child { border-bottom: none; }
+  .t-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* Footer */
+  .footer {
+    margin: 28px 16px 0;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--sub);
+    padding: 14px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    line-height: 1.6;
+  }
+  .footer-disclaimer {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  /* Prohibition list */
+  .prohi-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .prohi-item:last-child { border-bottom: none; }
+  .prohi-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 6px;
+  }
+  .prohi-head {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .prohi-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .prohi-side {
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .prohi-side.old { background: var(--old-bg); border: 1px solid var(--old-border); }
+  .prohi-side.new { background: var(--new-bg); border: 1px solid var(--new-border); }
+  .prohi-side .ps-label {
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    letter-spacing: 0.04em;
+  }
+  .prohi-side.old .ps-label { color: var(--old); }
+  .prohi-side.new .ps-label { color: var(--new); }
+  .none-text { color: #aaa; font-style: italic; }
+
+  /* Accordion */
+  details { }
+  details summary {
+    cursor: pointer;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--divider);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after {
+    content: '›';
+    font-size: 18px;
+    color: var(--sub);
+    transform: rotate(90deg);
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+  details[open] summary::after { transform: rotate(-90deg); }
+  details[open] summary { border-bottom-color: var(--divider); }
+  .details-body {
+    padding: 12px 16px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text);
+    border-bottom: 1px solid var(--divider);
+    background: #fafaf9;
+  }
+  .details-body:last-child { border-bottom: none; }
+
+  /* Toc strip */
+  .toc-strip {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 12px 16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .toc-strip::-webkit-scrollbar { display: none; }
+  .toc-chip {
+    white-space: nowrap;
+    background: var(--card);
+    border: 1px solid var(--divider);
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 5px 13px;
+    cursor: pointer;
+    color: var(--text);
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .toc-chip:active { background: var(--new-bg); }
+
+  @media (min-width: 600px) {
+    body { max-width: 640px; margin: 0 auto; }
+    .site-header { border-radius: 0 0 16px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="eyebrow">澳門廣告法律比較分析</div>
+  <h1>新舊廣告法<br>酒精飲料廣告規範比較</h1>
+  <div class="meta-row">
+    <span class="meta-chip">製作於 2026-06-11</span>
+    <span class="meta-chip">新法 2027.01.01 生效</span>
+  </div>
+</header>
+
+<!-- Intro -->
+<div class="intro-card">
+  <strong>比較對象：</strong>第 7/2026 號法律《廣告法》（新法）vs 第 7/89/M 號法律《廣告活動》（舊法）<br>
+  <strong>比較範圍：</strong>僅聚焦酒精飲料廣告相關規範，不涉及其他類別。
+</div>
+
+<!-- TOC -->
+<div class="toc-strip">
+  <a class="toc-chip" href="#s1">基本資訊</a>
+  <a class="toc-chip" href="#s2">禁止事項</a>
+  <a class="toc-chip" href="#s3">警語要求</a>
+  <a class="toc-chip" href="#s4">場所限制</a>
+  <a class="toc-chip" href="#s5">罰款制度</a>
+  <a class="toc-chip" href="#s6">責任主體</a>
+  <a class="toc-chip" href="#s7">未成年人保護</a>
+  <a class="toc-chip" href="#s8">監察執法</a>
+  <a class="toc-chip" href="#s9">附加制度</a>
+  <a class="toc-chip" href="#s10">綜合評估</a>
+</div>
+
+<!-- ══════════════ 1. 基本資訊 ══════════════ -->
+<div id="s1" class="section-title">一、基本資訊</div>
+
+<div class="law-compare">
+  <div class="law-card old">
+    <div class="law-label">舊法</div>
+    <div class="law-name">第 7/89/M 號法律<br>廣告活動</div>
+    <div class="law-detail">1989 年制定<br>已施行逾 35 年<br>4 章 32 條</div>
+  </div>
+  <div class="law-card new">
+    <div class="law-label">新法</div>
+    <div class="law-name">第 7/2026 號法律<br>廣告法</div>
+    <div class="law-detail">2026 年 4 月通過<br>2027.01.01 生效<br>6 章 65 條</div>
+  </div>
+</div>
+
+<div class="card">
+  <ul class="row-list">
+    <li>
+      <div class="row-label">酒精廣告條文</div>
+      <div class="row-value">舊法：第 9 條（與煙草共用）+ 第 14 條第 4 款<br>新法：<strong>第 14 條——獨立專條</strong></div>
+    </li>
+    <li>
+      <div class="row-label">立法技術</div>
+      <div class="row-value">舊法：原則性、概括性 → 新法：列舉式、操作性強</div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════════════ 2. 禁止事項 ══════════════ -->
+<div id="s2" class="section-title">二、禁止事項逐項比對</div>
+
+<div class="card">
+  <div class="card-title">
+    禁止事項總數：舊法 5 項 → 新法 7 項
+  </div>
+
+  <!-- 1 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">1</span> 利用／慫恿未成年人飲用
+      <span class="tag tag-strengthen">強化</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法 第9條2款a</div>「利用未成年人或鼓勵他們飲用」</div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(一)</div>明確增加「以未成年人為主要廣告對象」及「慫恿」</div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">2</span> 鼓勵過度飲用
+      <span class="tag tag-strengthen">強化</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法 第9條2款b</div>「鼓勵過份飲用」</div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(二)</div>增加「誘使」、「慫恿」兩個行為類型</div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">3</span> 貶損非飲用者
+      <span class="tag tag-strengthen">強化</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法 第9條2款c</div>「輕視非飲用吸食者」</div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(三)</div>由「輕視」擴至「貶損或輕蔑」</div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">4</span> 成功象徵暗示
+      <span class="tag tag-extend">大幅擴展</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法 第9條2款d</div>「暗示飲用或吸食是成功者的象徵」</div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(四)</div>增加「明示」+「社會成就」+「特殊能力」</div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">5</span> 治療／振奮／鎮靜功效
+      <span class="tag tag-new">★ 全新</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法</div><span class="none-text">未規定</span></div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(五)</div>明示或暗示酒精飲料具治療、振奮或鎮靜的功效</div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">6</span> 與健康或駕駛建立正面關聯
+      <span class="tag tag-extend">擴展</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法 第9條3款</div>不得與駕駛車輛行為有關</div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(六)</div>擴展至禁止與「健康」及「駕駛」建立正面關聯</div>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="prohi-item">
+    <div class="prohi-head">
+      <span class="prohi-num">7</span> 酒精含量正面評價
+      <span class="tag tag-new">★ 全新</span>
+    </div>
+    <div class="prohi-compare">
+      <div class="prohi-side old"><div class="ps-label">舊法</div><span class="none-text">未規定</span></div>
+      <div class="prohi-side new"><div class="ps-label">新法 第14條1款(七)</div>不得對酒精含量給予正面的評價</div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增禁止實務影響 -->
+<div class="card" style="margin-top:10px;">
+  <div class="card-title">新增禁止事項的實務影響</div>
+  <div class="compare-row">
+    <div class="cr-topic">治療功效禁止（第5項）</div>
+    <div style="font-size:13px;color:var(--sub);">藥酒廣告不得聲稱「驅寒祛濕」、「活血化瘀」、「安神助眠」等治療或保健功效，藥酒類廣告需徹底改版。</div>
+  </div>
+  <div class="compare-row">
+    <div class="cr-topic">健康正面關聯（第6項健康部分）</div>
+    <div style="font-size:13px;color:var(--sub);">禁止啤酒廣告中常見的運動、戶外活力場景與飲酒的正面連結。</div>
+  </div>
+  <div class="compare-row" style="border-bottom:none;">
+    <div class="cr-topic">酒精含量正面評價（第7項）</div>
+    <div style="font-size:13px;color:var(--sub);">「原釀精華」、「高純度」、「濃郁醇厚」等正面描述酒精含量的廣告語均被禁止。</div>
+  </div>
+</div>
+
+<!-- ══════════════ 3. 警語 ══════════════ -->
+<div id="s3" class="section-title">三、警語要求</div>
+
+<div class="card">
+  <div class="card-title">
+    <span class="tag tag-same" style="margin-left:0;">維持不變</span>
+    &nbsp;三語警語——新舊法完全一致
+  </div>
+  <div style="padding:12px 16px;font-size:13px;border-bottom:1px solid var(--divider);">
+    適用於酒精濃度 ≥ 1.2% 的飲料廣告，須以<strong>中、葡、英三語</strong>標明以下警語：
+  </div>
+  <div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+    <div style="margin-bottom:6px;"> <strong>過量飲酒危害健康</strong></div>
+    <div style="margin-bottom:6px;"> <strong>禁止向未滿十八歲人士銷售或提供酒精飲料</strong></div>
+    <div style="margin-bottom:6px;"> <strong>CONSUMIR BEBIDAS ALCOÓLICAS EM EXCESSO PREJUDICA A SAÚDE</strong></div>
+    <div style="margin-bottom:6px;"> <strong>A VENDA OU DISPONIBILIZAÇÃO DE BEBIDAS ALCOÓLICAS A MENORES DE 18 ANOS É PROIBIDA</strong></div>
+    <div style="margin-bottom:6px;"> <strong>EXCESSIVE DRINKING OF ALCOHOLIC BEVERAGES IS HARMFUL TO HEALTH</strong></div>
+    <div style="margin-bottom:6px;"> <strong>THE SALE OR SUPPLY OF ALCOHOLIC BEVERAGES TO ANYONE UNDER THE AGE OF 18 IS PROHIBITED</strong></div>
+  </div>
+  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+    ⚠ 新法生效後，第 6/2023 號法律（控酒法）第 27 條被廢止。酒精廣告警語的法律依據由「控酒法修訂廣告法」的間接模式，改為「廣告法直接規定」的直接模式。
+  </div>
+</div>
+
+<!-- ══════════════ 4. 場所限制 ══════════════ -->
+<div id="s4" class="section-title">四、場所限制</div>
+
+<div class="card">
+  <div class="card-title">
+    <span class="num">★</span> 全新規範——新法第 14 條第 3 款
+  </div>
+  <div style="padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--divider);">舊法對場所<strong>無任何限制</strong>。新法在以下場所<strong>全面禁止</strong>宣傳或發佈酒精飲料廣告及其<strong>註冊商標</strong>：</div>
+  <ul class="row-list">
+    <li>🏫 教育場所</li>
+    <li>🎨 未成年人文化活動場所</li>
+    <li>⚽ 未成年人體育活動場所</li>
+    <li>🎪 未成年人康樂活動場所</li>
+    <li>📋 其他未成年人同類活動場所（概括條款）</li>
+  </ul>
+  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+    禁止範圍包括：①任何形式的酒精飲料廣告；②酒精飲料<strong>註冊商標</strong>（即使不構成完整廣告亦被禁止）。<br>
+    此為「內容 + 空間」雙重管制。
+  </div>
+</div>
+
+<!-- ══════════════ 5. 罰款 ══════════════ -->
+<div id="s5" class="section-title">五、罰款制度</div>
+
+<div class="card">
+  <div class="card-title">罰款金額對比（澳門元）</div>
+
+  <!-- 廣告主/經營者/發佈者 -->
+  <div class="fine-row">
+    <div class="fine-subject">廣告主 ／ 廣告經營者 ／ 廣告發佈者</div>
+    <div class="fine-bars">
+      <div class="fine-bar-wrap">
+        <span class="fine-bar-label">舊（個）</span>
+        <div class="fine-bar-bg"><div class="fine-bar-fill old" style="width:15%"></div></div>
+        <span class="fine-amount">2,000 – 12,000</span>
+      </div>
+      <div class="fine-bar-wrap">
+        <span class="fine-bar-label">舊（法）</span>
+        <div class="fine-bar-bg"><div class="fine-bar-fill old" style="width:35%"></div></div>
+        <span class="fine-amount">5,000 – 28,000</span>
+      </div>
+      <div class="fine-bar-wrap">
+        <span class="fine-bar-label" style="color:var(--new);font-weight:700;">新法</span>
+        <div class="fine-bar-bg"><div class="fine-bar-fill new" style="width:100%"></div></div>
+        <span class="fine-amount" style="color:var(--new);font-weight:700;">5,000 – 80,000</span>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--sub);margin-top:6px;">個人上限提升 6.7 倍｜法人上限提升 2.9 倍</div>
+  </div>
+
+  <!-- 代言人/直播/平台 -->
+  <div class="fine-row" style="border-bottom:none;">
+    <div class="fine-subject">廣告代言人 ／ 直播行銷人員 ／ 互聯網平台 <span class="tag tag-new">★ 新增</span></div>
+    <div class="fine-bars">
+      <div class="fine-bar-wrap">
+        <span class="fine-bar-label">舊法</span>
+        <div class="fine-bar-bg"><div class="fine-bar-fill old" style="width:0%"></div></div>
+        <span class="fine-amount none-text">未規範</span>
+      </div>
+      <div class="fine-bar-wrap">
+        <span class="fine-bar-label" style="color:var(--new);font-weight:700;">新法</span>
+        <div class="fine-bar-bg"><div class="fine-bar-fill new" style="width:62%"></div></div>
+        <span class="fine-amount" style="color:var(--new);font-weight:700;">2,000 – 50,000</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:10px;">
+  <ul class="row-list">
+    <li>
+      <div class="row-label">罰款上下限比</div>
+      <div class="row-value">舊法 1:6 → 新法 <strong>1:16</strong>（執法裁量空間更大）</div>
+    </li>
+    <li>
+      <div class="row-label">酒精廣告級別</div>
+      <div class="row-value">新法屬第二級違法（第 41 條）</div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════════════ 6. 責任主體 ══════════════ -->
+<div id="s6" class="section-title">六、責任主體</div>
+
+<div class="card">
+  <div class="card-title">受規範主體：舊法 3 類 → 新法 6 類</div>
+  <ul class="row-list">
+    <li>① 廣告主 <span style="font-size:12px;color:var(--sub);">（原：廣告客戶）</span></li>
+    <li>② 廣告經營者 <span style="font-size:12px;color:var(--sub);">（原：廣告公司）</span></li>
+    <li>③ 廣告發佈者 <span style="font-size:12px;color:var(--sub);">（原：廣告媒介所有人）</span></li>
+    <li>④ 廣告代言人 <span class="tag tag-new">★ 全新</span></li>
+    <li>⑤ 直播行銷人員 <span class="tag tag-new">★ 全新</span></li>
+    <li>⑥ 互聯網平台經營者／管理者 <span class="tag tag-new">★ 全新</span></li>
+  </ul>
+  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+    新增三類主體覆蓋了社交媒體時代酒類行銷的新興渠道——網紅代言、直播帶貨、平台傳播。
+  </div>
+</div>
+
+<!-- ══════════════ 7. 未成年人保護 ══════════════ -->
+<div id="s7" class="section-title">七、未成年人保護</div>
+
+<div class="warn-box">
+  <div class="warn-title">⚠ 最值得關注的潛在倒退</div>
+  舊法第 14 條第 4 款<strong>絕對禁止</strong>兒童及青少年在酒精廣告中出現；新法改為<strong>條件式容許</strong>（第 9 條：在不影響身心健康的前提下可出現）。此為新法對酒精廣告管制<strong>唯一可能較舊法寬鬆</strong>之處。
+</div>
+
+<div class="card" style="margin-top:10px;">
+  <div class="card-title">未成年人出現在酒類廣告中</div>
+  <div class="compare-row">
+    <div class="compare-two">
+      <div class="side old">
+        <div class="side-label">舊法 第14條4款</div>
+        <strong>絕對禁止</strong><br>兒童及青少年不得在含酒精飲品廣告中出現（客觀標準，違法即成立）
+      </div>
+      <div class="side new">
+        <div class="side-label">新法 第9條</div>
+        <strong>條件容許</strong><br>不影響身心健康、安全或形象則可出現（主觀判斷空間較大）
+      </div>
+    </div>
+  </div>
+  <div style="padding:10px 16px;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+    需觀察衛生局後續執法實務及指引是否對此作出嚴格限縮。
+  </div>
+</div>
+
+<div class="card" style="margin-top:10px;">
+  <div class="card-title">場所限制（新增保護）</div>
+  <div style="padding:12px 16px;font-size:13.5px;">新法第 14 條第 3 款：禁止在教育場所及供未成年人參與的活動場所發佈酒精廣告及其商標。<span class="tag tag-new">★ 新增</span></div>
+</div>
+
+<!-- ══════════════ 8. 監察執法 ══════════════ -->
+<div id="s8" class="section-title">八、監察與執法實體</div>
+
+<div class="card">
+  <ul class="row-list">
+    <li>
+      <div class="row-label">監察實體</div>
+      <div class="row-value">衛生局（新舊法不變）</div>
+    </li>
+    <li>
+      <div class="row-label">處罰決定權</div>
+      <div class="row-value">新法明文規定由衛生局局長決定（第 37 條 2 款）</div>
+    </li>
+    <li>
+      <div class="row-label">保全措施 <span class="tag tag-new">★ 新增</span></div>
+      <div class="row-value">衛生局局長可暫時遮蔽／禁止發佈，最長 6+6 個月（第 39 條）</div>
+    </li>
+    <li>
+      <div class="row-label">勸誡權 <span class="tag tag-new">★ 新增</span></div>
+      <div class="row-value">第 50 條：先勸誡補正，補正則歸檔</div>
+    </li>
+    <li>
+      <div class="row-label">罰款歸屬 <span class="tag tag-extend">重大變化</span></div>
+      <div class="row-value">舊法：歸澳門特區 → 新法：<strong>直接歸衛生局</strong>（增強執法誘因）</div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════════════ 9. 附加制度 ══════════════ -->
+<div id="s9" class="section-title">九、附加制度</div>
+
+<div class="card">
+  <ul class="row-list">
+    <li>
+      <div class="row-label">附加處罰</div>
+      <div class="row-value">舊法僅充公 → 新法：禁止從業（1 個月–1 年）+ 公開處罰決定（中葡報章 + 官網）</div>
+    </li>
+    <li>
+      <div class="row-label">舉證責任</div>
+      <div class="row-value">新法：應監察實體要求須提供證明，否則<strong>推定不準確</strong>（加重廣告主負擔）</div>
+    </li>
+    <li>
+      <div class="row-label">過失處罰</div>
+      <div class="row-value">新法：下限及上限均減至一半（對行為人更有利）</div>
+    </li>
+    <li>
+      <div class="row-label">累犯定義</div>
+      <div class="row-value">處罰決定不可申訴之日起 1 年內，且距上次違法不足 5 年</div>
+    </li>
+  </ul>
+</div>
+
+<!-- ══════════════ 10. 綜合評估 ══════════════ -->
+<div id="s10" class="section-title">十、綜合評估</div>
+
+<div class="card">
+  <div class="card-title">變化方向總覽</div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>禁止事項數量</strong>5 項 → 7 項（顯著強化）</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>禁止事項表述</strong>概括 → 列舉，覆蓋面更廣（顯著強化）</div></div>
+  <div class="eval-row"><div class="eval-icon">🟡</div><div class="eval-text"><strong>警語要求</strong>完全一致，維持不變</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>場所限制</strong>無 → 教育及未成年人場所全面禁止（重大新增）</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>罰款上限</strong>MOP 12,000/28,000 → MOP 80,000（大幅提高）</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>受規範主體</strong>3 類 → 6 類，覆蓋代言人、直播、平台</div></div>
+  <div class="eval-row"><div class="eval-icon">🔴</div><div class="eval-text"><strong>執法工具</strong>新增勸誡制度、保全措施、附加處罰</div></div>
+  <div class="eval-row"><div class="eval-icon">🟢</div><div class="eval-text"><strong>未成年人出現在酒類廣告</strong>絕對禁止 → 條件容許（可能減弱）</div></div>
+  <div class="eval-row" style="border-bottom:none;"><div class="eval-icon">🟢</div><div class="eval-text"><strong>過失處罰</strong>上下限均減半（對行為人更有利）</div></div>
+</div>
+
+<!-- 過渡期 -->
+<div class="card" style="margin-top:10px;">
+  <div class="card-title">過渡期注意事項</div>
+  <div class="transition-item">
+    <div class="t-dot"></div>
+    <div><strong>適用時點：</strong>新法 2027 年 1 月 1 日生效。此前發布的廣告仍適用舊法。</div>
+  </div>
+  <div class="transition-item">
+    <div class="t-dot"></div>
+    <div><strong>持續性廣告：</strong>跨越 2027.01.01 的廣告（戶外廣告牌、網站橫幅等）須在生效日前完成合規整改。</div>
+  </div>
+  <div class="transition-item" style="border-bottom:none;">
+    <div class="t-dot"></div>
+    <div><strong>法律引用：</strong>第 6/2023 號法律第 27 條（酒精廣告警語）於新法生效日被廢止。法律文書中的引用條文需更新，但警語內容無需調整。</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-disclaimer">AI 比對，僅供參考</div>
+  本文件由 AI 自動比對生成，內容不構成法律意見。如需引用請核對原始法律條文。
+</div>
+
+</body>
+</html>
