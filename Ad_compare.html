@@ -6,39 +6,41 @@
 <title>新舊廣告法——酒精飲料廣告規範比較</title>
 <style>
   :root {
-    --bg: #f7f5f2;
+    --bg: #f5f0e6;
     --card: #ffffff;
-    --old: #c0392b;
-    --old-bg: #fdf2f1;
-    --old-border: #e8b4b0;
-    --new: #1a5276;
-    --new-bg: #eaf2fb;
-    --new-border: #aacde8;
-    --accent: #1a5276;
+    --old: #8b1a2b;
+    --old-bg: #faf0f0;
+    --old-border: #e0b8b5;
+    --new: #1a2a3a;
+    --new-bg: #edf0f4;
+    --new-border: #b8c4d0;
+    --accent: #1a2a3a;
     --text: #1c1c1e;
-    --sub: #6b6b6e;
-    --divider: #e0ddd8;
-    --tag-new: #d4edda;
-    --tag-new-text: #1a6e35;
-    --tag-extend: #fff3cd;
-    --tag-extend-text: #7d5c00;
-    --tag-strengthen: #cfe2ff;
-    --tag-strengthen-text: #0a3870;
-    --warn: #fff3cd;
-    --warn-border: #ffc107;
-    --warn-text: #6b4c00;
+    --sub: #6b6760;
+    --divider: #e5e0d5;
+    --tag-new: #dce8e0;
+    --tag-new-text: #2a5a35;
+    --tag-extend: #fdf0e0;
+    --tag-extend-text: #6b4c1a;
+    --tag-strengthen: #dce4f2;
+    --tag-strengthen-text: #1a2a3a;
+    --warn: #fdf0e0;
+    --warn-border: #8b7536;
+    --warn-text: #5c3d1a;
     --radius: 12px;
     --shadow: 0 2px 12px rgba(0,0,0,0.07);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 17px; }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, 'PingFang TC', 'Noto Sans TC', sans-serif;
-    font-size: 15px;
-    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Microsoft JhengHei', 'Heiti TC', 'Noto Sans TC', sans-serif;
+    font-size: 1rem;
+    line-height: 1.85;
+    font-weight: 500;
     padding: 0 0 40px;
   }
 
@@ -49,16 +51,17 @@
     padding: 20px 16px 24px;
   }
   .site-header .eyebrow {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.08em;
     opacity: 0.7;
     text-transform: uppercase;
     margin-bottom: 8px;
   }
   .site-header h1 {
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 1.4;
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: .04em;
     margin-bottom: 12px;
   }
   .meta-row {
@@ -70,7 +73,7 @@
   .meta-chip {
     background: rgba(255,255,255,0.18);
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 3px 10px;
   }
 
@@ -81,7 +84,7 @@
     border-radius: var(--radius);
     padding: 14px 16px;
     box-shadow: var(--shadow);
-    font-size: 13.5px;
+    font-size: 14.5px;
     color: var(--sub);
     border-left: 4px solid var(--accent);
   }
@@ -89,12 +92,11 @@
 
   /* Section headers */
   .section-title {
-    font-size: 13px;
+    font-size: clamp(18px, 3.5vw, 22px);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--accent);
-    padding: 24px 16px 8px;
+    padding: 28px 16px 12px;
   }
 
   /* Law comparison pill */
@@ -112,15 +114,15 @@
   .law-card.old { background: var(--old-bg); border: 1px solid var(--old-border); }
   .law-card.new { background: var(--new-bg); border: 1px solid var(--new-border); }
   .law-label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
     margin-bottom: 4px;
   }
   .law-card.old .law-label { color: var(--old); }
   .law-card.new .law-label { color: var(--new); }
-  .law-card .law-name { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
-  .law-card .law-detail { font-size: 11.5px; color: var(--sub); margin-top: 4px; }
+  .law-card .law-name { font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+  .law-card .law-detail { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
 
   /* Generic cards */
   .card {
@@ -131,7 +133,7 @@
     overflow: hidden;
   }
   .card-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     padding: 14px 16px 10px;
     border-bottom: 1px solid var(--divider);
@@ -143,7 +145,7 @@
     background: var(--accent);
     color: #fff;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     padding: 2px 7px;
     font-weight: 700;
   }
@@ -153,11 +155,11 @@
   .row-list li {
     padding: 11px 16px;
     border-bottom: 1px solid var(--divider);
-    font-size: 13.5px;
+    font-size: 14.5px;
   }
   .row-list li:last-child { border-bottom: none; }
-  .row-label { font-size: 11px; color: var(--sub); margin-bottom: 2px; }
-  .row-value { font-size: 13.5px; }
+  .row-label { font-size: 12px; color: var(--sub); margin-bottom: 2px; }
+  .row-value { font-size: 14.5px; }
 
   /* Compare rows (old vs new) */
   .compare-row {
@@ -166,7 +168,7 @@
   }
   .compare-row:last-child { border-bottom: none; }
   .compare-row .cr-topic {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     margin-bottom: 8px;
     display: flex;
@@ -181,13 +183,13 @@
   .compare-two .side {
     border-radius: 8px;
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
   }
   .compare-two .side.old { background: var(--old-bg); border: 1px solid var(--old-border); }
   .compare-two .side.new { background: var(--new-bg); border: 1px solid var(--new-border); }
   .compare-two .side-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     margin-bottom: 3px;
     letter-spacing: 0.04em;
@@ -199,16 +201,16 @@
   .tag {
     display: inline-block;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 2px 8px;
+    padding: 3px 9px;
     margin-left: 4px;
   }
   .tag-new { background: var(--tag-new); color: var(--tag-new-text); }
   .tag-extend { background: var(--tag-extend); color: var(--tag-extend-text); }
   .tag-strengthen { background: var(--tag-strengthen); color: var(--tag-strengthen-text); }
-  .tag-same { background: #f0f0f0; color: #555; }
-  .tag-warn { background: #ffe4e4; color: #c0392b; }
+  .tag-same { background: #eae6dd; color: #6b6760; }
+  .tag-warn { background: #faf0f0; color: #8b1a2b; }
 
   /* Warning box */
   .warn-box {
@@ -217,14 +219,14 @@
     border-radius: var(--radius);
     margin: 10px 16px 0;
     padding: 13px 16px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--warn-text);
     line-height: 1.6;
   }
   .warn-box .warn-title {
     font-weight: 700;
     margin-bottom: 6px;
-    font-size: 13.5px;
+    font-size: 14.5px;
   }
 
   /* Fine comparison */
@@ -233,15 +235,15 @@
     border-bottom: 1px solid var(--divider);
   }
   .fine-row:last-child { border-bottom: none; }
-  .fine-subject { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+  .fine-subject { font-size: 14.5px; font-weight: 700; margin-bottom: 6px; }
   .fine-bars { display: flex; flex-direction: column; gap: 5px; }
   .fine-bar-wrap { display: flex; align-items: center; gap: 8px; }
-  .fine-bar-label { font-size: 11px; color: var(--sub); min-width: 28px; }
+  .fine-bar-label { font-size: 12px; color: var(--sub); min-width: 28px; }
   .fine-bar-bg { flex: 1; height: 12px; background: var(--divider); border-radius: 6px; overflow: hidden; }
   .fine-bar-fill { height: 100%; border-radius: 6px; }
   .fine-bar-fill.old { background: var(--old); }
   .fine-bar-fill.new { background: var(--new); }
-  .fine-amount { font-size: 11.5px; color: var(--sub); min-width: 90px; text-align: right; }
+  .fine-amount { font-size: 12.5px; color: var(--sub); min-width: 90px; text-align: right; }
 
   /* Summary evaluation */
   .eval-row {
@@ -250,7 +252,7 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    font-size: 13.5px;
+    font-size: 14.5px;
   }
   .eval-row:last-child { border-bottom: none; }
   .eval-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
@@ -261,7 +263,7 @@
   .transition-item {
     padding: 11px 16px;
     border-bottom: 1px solid var(--divider);
-    font-size: 13.5px;
+    font-size: 14.5px;
     display: flex;
     gap: 10px;
     align-items: flex-start;
@@ -279,7 +281,7 @@
   .footer {
     margin: 28px 16px 0;
     text-align: center;
-    font-size: 12.5px;
+    font-size: 13.5px;
     color: var(--sub);
     padding: 14px;
     background: var(--card);
@@ -289,7 +291,7 @@
   }
   .footer-disclaimer {
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--accent);
     margin-bottom: 4px;
   }
@@ -304,11 +306,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px; height: 22px;
+    width: 24px; height: 24px;
     background: var(--accent);
     color: #fff;
     border-radius: 50%;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     flex-shrink: 0;
     margin-right: 6px;
@@ -317,7 +319,7 @@
     display: flex;
     align-items: center;
     margin-bottom: 8px;
-    font-size: 13.5px;
+    font-size: 14.5px;
     font-weight: 700;
   }
   .prohi-compare {
@@ -329,13 +331,13 @@
   .prohi-side {
     border-radius: 8px;
     padding: 8px 10px;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
   }
   .prohi-side.old { background: var(--old-bg); border: 1px solid var(--old-border); }
   .prohi-side.new { background: var(--new-bg); border: 1px solid var(--new-border); }
   .prohi-side .ps-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     margin-bottom: 3px;
     letter-spacing: 0.04em;
@@ -349,7 +351,7 @@
   details summary {
     cursor: pointer;
     padding: 12px 16px;
-    font-size: 13.5px;
+    font-size: 14.5px;
     font-weight: 600;
     border-bottom: 1px solid var(--divider);
     list-style: none;
@@ -371,11 +373,11 @@
   details[open] summary { border-bottom-color: var(--divider); }
   .details-body {
     padding: 12px 16px;
-    font-size: 13.5px;
+    font-size: 14.5px;
     line-height: 1.7;
     color: var(--text);
     border-bottom: 1px solid var(--divider);
-    background: #fafaf9;
+    background: #f5f1ea;
   }
   .details-body:last-child { border-bottom: none; }
 
@@ -399,7 +401,7 @@
     background: var(--card);
     border: 1px solid var(--divider);
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 5px 13px;
     cursor: pointer;
     color: var(--text);
@@ -572,15 +574,15 @@
   <div class="card-title">新增禁止事項的實務影響</div>
   <div class="compare-row">
     <div class="cr-topic">治療功效禁止（第5項）</div>
-    <div style="font-size:13px;color:var(--sub);">藥酒廣告不得聲稱「驅寒祛濕」、「活血化瘀」、「安神助眠」等治療或保健功效，藥酒類廣告需徹底改版。</div>
+    <div style="font-size:14px;color:var(--sub);">藥酒廣告不得聲稱「驅寒祛濕」、「活血化瘀」、「安神助眠」等治療或保健功效，藥酒類廣告需徹底改版。</div>
   </div>
   <div class="compare-row">
     <div class="cr-topic">健康正面關聯（第6項健康部分）</div>
-    <div style="font-size:13px;color:var(--sub);">禁止啤酒廣告中常見的運動、戶外活力場景與飲酒的正面連結。</div>
+    <div style="font-size:14px;color:var(--sub);">禁止啤酒廣告中常見的運動、戶外活力場景與飲酒的正面連結。</div>
   </div>
   <div class="compare-row" style="border-bottom:none;">
     <div class="cr-topic">酒精含量正面評價（第7項）</div>
-    <div style="font-size:13px;color:var(--sub);">「原釀精華」、「高純度」、「濃郁醇厚」等正面描述酒精含量的廣告語均被禁止。</div>
+    <div style="font-size:14px;color:var(--sub);">「原釀精華」、「高純度」、「濃郁醇厚」等正面描述酒精含量的廣告語均被禁止。</div>
   </div>
 </div>
 
@@ -592,10 +594,10 @@
     <span class="tag tag-same" style="margin-left:0;">維持不變</span>
     &nbsp;三語警語——新舊法完全一致
   </div>
-  <div style="padding:12px 16px;font-size:13px;border-bottom:1px solid var(--divider);">
+  <div style="padding:12px 16px;font-size:14px;border-bottom:1px solid var(--divider);">
     適用於酒精濃度 ≥ 1.2% 的飲料廣告，須以<strong>中、葡、英三語</strong>標明以下警語：
   </div>
-  <div style="padding:12px 16px;font-size:13px;line-height:1.8;">
+  <div style="padding:12px 16px;font-size:14px;line-height:1.8;">
     <div style="margin-bottom:6px;"> <strong>過量飲酒危害健康</strong></div>
     <div style="margin-bottom:6px;"> <strong>禁止向未滿十八歲人士銷售或提供酒精飲料</strong></div>
     <div style="margin-bottom:6px;"> <strong>CONSUMIR BEBIDAS ALCOÓLICAS EM EXCESSO PREJUDICA A SAÚDE</strong></div>
@@ -603,7 +605,7 @@
     <div style="margin-bottom:6px;"> <strong>EXCESSIVE DRINKING OF ALCOHOLIC BEVERAGES IS HARMFUL TO HEALTH</strong></div>
     <div style="margin-bottom:6px;"> <strong>THE SALE OR SUPPLY OF ALCOHOLIC BEVERAGES TO ANYONE UNDER THE AGE OF 18 IS PROHIBITED</strong></div>
   </div>
-  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+  <div style="padding:10px 16px;background:#fafaf9;font-size:13.5px;color:var(--sub);border-top:1px solid var(--divider);">
     ⚠ 新法生效後，第 6/2023 號法律（控酒法）第 27 條被廢止。酒精廣告警語的法律依據由「控酒法修訂廣告法」的間接模式，改為「廣告法直接規定」的直接模式。
   </div>
 </div>
@@ -615,7 +617,7 @@
   <div class="card-title">
     <span class="num">★</span> 全新規範——新法第 14 條第 3 款
   </div>
-  <div style="padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--divider);">舊法對場所<strong>無任何限制</strong>。新法在以下場所<strong>全面禁止</strong>宣傳或發佈酒精飲料廣告及其<strong>註冊商標</strong>：</div>
+  <div style="padding:12px 16px;font-size:14.5px;border-bottom:1px solid var(--divider);">舊法對場所<strong>無任何限制</strong>。新法在以下場所<strong>全面禁止</strong>宣傳或發佈酒精飲料廣告及其<strong>註冊商標</strong>：</div>
   <ul class="row-list">
     <li>🏫 教育場所</li>
     <li>🎨 未成年人文化活動場所</li>
@@ -623,7 +625,7 @@
     <li>🎪 未成年人康樂活動場所</li>
     <li>📋 其他未成年人同類活動場所（概括條款）</li>
   </ul>
-  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+  <div style="padding:10px 16px;background:#fafaf9;font-size:13.5px;color:var(--sub);border-top:1px solid var(--divider);">
     禁止範圍包括：①任何形式的酒精飲料廣告；②酒精飲料<strong>註冊商標</strong>（即使不構成完整廣告亦被禁止）。<br>
     此為「內容 + 空間」雙重管制。
   </div>
@@ -660,7 +662,7 @@
         <span class="fine-amount" style="color:var(--new);font-weight:700;">5,000 – 80,000</span>
       </div>
     </div>
-    <div style="font-size:12px;color:var(--sub);margin-top:6px;">個人上限提升 6.7 倍｜法人上限提升 2.9 倍</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px;">個人上限提升 6.7 倍｜法人上限提升 2.9 倍</div>
   </div>
 
   <!-- 代言人/直播/平台 -->
@@ -700,14 +702,14 @@
 <div class="card">
   <div class="card-title">受規範主體：舊法 3 類 → 新法 6 類</div>
   <ul class="row-list">
-    <li>① 廣告主 <span style="font-size:12px;color:var(--sub);">（原：廣告客戶）</span></li>
-    <li>② 廣告經營者 <span style="font-size:12px;color:var(--sub);">（原：廣告公司）</span></li>
-    <li>③ 廣告發佈者 <span style="font-size:12px;color:var(--sub);">（原：廣告媒介所有人）</span></li>
+    <li>① 廣告主 <span style="font-size:13px;color:var(--sub);">（原：廣告客戶）</span></li>
+    <li>② 廣告經營者 <span style="font-size:13px;color:var(--sub);">（原：廣告公司）</span></li>
+    <li>③ 廣告發佈者 <span style="font-size:13px;color:var(--sub);">（原：廣告媒介所有人）</span></li>
     <li>④ 廣告代言人 <span class="tag tag-new">★ 全新</span></li>
     <li>⑤ 直播行銷人員 <span class="tag tag-new">★ 全新</span></li>
     <li>⑥ 互聯網平台經營者／管理者 <span class="tag tag-new">★ 全新</span></li>
   </ul>
-  <div style="padding:10px 16px;background:#fafaf9;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+  <div style="padding:10px 16px;background:#fafaf9;font-size:13.5px;color:var(--sub);border-top:1px solid var(--divider);">
     新增三類主體覆蓋了社交媒體時代酒類行銷的新興渠道——網紅代言、直播帶貨、平台傳播。
   </div>
 </div>
@@ -734,14 +736,14 @@
       </div>
     </div>
   </div>
-  <div style="padding:10px 16px;font-size:12.5px;color:var(--sub);border-top:1px solid var(--divider);">
+  <div style="padding:10px 16px;font-size:13.5px;color:var(--sub);border-top:1px solid var(--divider);">
     需觀察衛生局後續執法實務及指引是否對此作出嚴格限縮。
   </div>
 </div>
 
 <div class="card" style="margin-top:10px;">
   <div class="card-title">場所限制（新增保護）</div>
-  <div style="padding:12px 16px;font-size:13.5px;">新法第 14 條第 3 款：禁止在教育場所及供未成年人參與的活動場所發佈酒精廣告及其商標。<span class="tag tag-new">★ 新增</span></div>
+  <div style="padding:12px 16px;font-size:14.5px;">新法第 14 條第 3 款：禁止在教育場所及供未成年人參與的活動場所發佈酒精廣告及其商標。<span class="tag tag-new">★ 新增</span></div>
 </div>
 
 <!-- ══════════════ 8. 監察執法 ══════════════ -->
