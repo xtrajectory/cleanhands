@@ -190,7 +190,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 
         .label-main {
@@ -198,8 +198,10 @@
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
-            flex: 1;
+            flex: 1 1 auto;
             min-width: 0;
+            position: relative;
+            z-index: 2;
         }
 
         label {
@@ -275,6 +277,9 @@
         .toggle-group {
             display: flex;
             gap: 6px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
 
         .toggle-btn {
@@ -289,6 +294,9 @@
             color: var(--ink-soft);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
         }
 
         .toggle-btn.active {
@@ -302,6 +310,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
 
         .counter-btn {
@@ -320,6 +331,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
         }
 
         .counter-btn:active {
@@ -352,6 +366,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
         }
 
         .custom-checkbox input {
@@ -361,6 +379,12 @@
             accent-color: var(--navy);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            pointer-events: auto;
+        }
+
+        .custom-checkbox label {
+            cursor: pointer;
+            pointer-events: auto;
         }
 
         /* ===== Amount display ===== */
@@ -369,10 +393,13 @@
             font-weight: 800;
             color: var(--navy);
             text-align: right;
-            min-width: 6.25rem;
+            min-width: 5.5rem;
+            max-width: 42%;
             font-variant-numeric: tabular-nums;
-            flex-shrink: 0;
+            flex-shrink: 1;
             line-height: 1.15;
+            pointer-events: none;
+            user-select: none;
         }
 
         .amount-display.zero {
@@ -734,11 +761,11 @@
                         <div class="label-main">
                             <label>年資</label>
                             <div class="counter-group">
-                                <button class="counter-btn" id="seniority-minus" aria-label="減少年資">
+                                <button type="button" class="counter-btn" id="seniority-minus" aria-label="減少年資">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <div class="counter-value" id="seniority-count">0</div>
-                                <button class="counter-btn" id="seniority-plus" aria-label="增加年資">
+                                <button type="button" class="counter-btn" id="seniority-plus" aria-label="增加年資">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -757,11 +784,11 @@
                         <div class="label-main">
                             <label>人數</label>
                             <div class="counter-group">
-                                <button class="counter-btn" id="family-minus" aria-label="減少家庭津貼人數">
+                                <button type="button" class="counter-btn" id="family-minus" aria-label="減少家庭津貼人數">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <div class="counter-value" id="family-count">0</div>
-                                <button class="counter-btn" id="family-plus" aria-label="增加家庭津貼人數">
+                                <button type="button" class="counter-btn" id="family-plus" aria-label="增加家庭津貼人數">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -779,8 +806,8 @@
                     <div class="label-container">
                         <div class="label-main">
                             <div class="toggle-group">
-                                <button class="toggle-btn active" id="housing-yes">領取</button>
-                                <button class="toggle-btn" id="housing-no">無領取</button>
+                                <button type="button" class="toggle-btn active" id="housing-yes">領取</button>
+                                <button type="button" class="toggle-btn" id="housing-no">無領取</button>
                             </div>
                         </div>
                         <div class="amount-display zero" id="housing-display">MOP $0.00</div>
@@ -815,7 +842,7 @@
             </div>
         </div>
 
-        <button class="clear-btn" id="clear-btn">
+        <button type="button" class="clear-btn" id="clear-btn">
             <i class="fas fa-eraser"></i> 清除所有資料
         </button>
 
@@ -933,11 +960,7 @@
                 const now = Date.now();
                 const target = event.target;
                 // 只阻止在非按鈕、非輸入框元素上的雙擊
-                const isInteractiveElement = target.tagName === 'BUTTON' ||
-                                            target.tagName === 'INPUT' ||
-                                            target.closest('button') ||
-                                            target.closest('input') ||
-                                            target.closest('.info-tooltip');
+                const isInteractiveElement = target.closest('button, input, label, .info-tooltip, .custom-checkbox');
 
                 if (!isInteractiveElement && now - lastTouchEnd <= 300) {
                     event.preventDefault();
