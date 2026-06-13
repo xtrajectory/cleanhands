@@ -54,9 +54,7 @@
         html {
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            font-size: 16px;
-            overscroll-behavior: none;
+            overflow-x: hidden;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
             touch-action: manipulation;
@@ -66,16 +64,14 @@
             width: 100%;
             min-height: 100dvh;
             height: 100dvh;
-            overflow: hidden;
-            overscroll-behavior: none;
-            position: fixed;
-            inset: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
             background: var(--navy);
             background-image:
                 radial-gradient(ellipse 900px 500px at 15% -5%, rgba(201, 162, 75, 0.16), transparent 60%),
                 radial-gradient(ellipse 700px 500px at 100% 100%, rgba(45, 74, 110, 0.5), transparent 60%);
             color: var(--ink);
-            padding: env(safe-area-inset-top) 0.625rem env(safe-area-inset-bottom);
+            padding: max(4px, env(safe-area-inset-top)) 10px max(2px, env(safe-area-inset-bottom));
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -89,47 +85,39 @@
             width: 100%;
             max-width: 460px;
             max-height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            overflow-x: hidden;
-            overflow-y: auto;
-            overscroll-behavior: none;
-            -webkit-overflow-scrolling: touch;
         }
 
         /* ===== Header ===== */
         header {
             text-align: center;
-            padding: 0 0.25rem 0.35rem;
+            padding: 0 4px 4px;
             color: var(--paper);
-            flex-shrink: 0;
         }
 
         .header-eyebrow {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             color: var(--gold-soft);
             font-weight: 600;
-            margin-top: 0.15rem;
+            margin-top: 2px;
         }
 
         h1 {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.38rem;
+            font-size: 1.32rem;
             font-weight: 900;
             letter-spacing: 0.04em;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.375rem;
-            line-height: 1.15;
+            gap: 6px;
+            line-height: 1.2;
         }
 
         h1 i {
             color: var(--gold);
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
 
         .header-sub {
@@ -145,11 +133,10 @@
             border-radius: var(--radius);
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .calc-section {
-            padding: 0.5rem 0.75rem;
+            padding: 7px 12px;
             border-bottom: 1px solid var(--line);
         }
 
@@ -158,27 +145,27 @@
         }
 
         .section-title {
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             color: var(--navy);
-            margin-bottom: 0.35rem;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
-            gap: 0.375rem;
+            gap: 6px;
             font-weight: 700;
             letter-spacing: 0.01em;
         }
 
         .section-title i {
             color: var(--gold);
-            width: 1rem;
+            width: 16px;
             text-align: center;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
         }
 
         .input-row {
             display: flex;
             flex-direction: column;
-            margin-bottom: 0.4rem;
+            margin-bottom: 6px;
         }
 
         .input-row:last-child {
@@ -190,7 +177,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 10px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
         }
 
         .label-main {
@@ -198,19 +185,17 @@
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
-            flex: 1 1 auto;
+            flex: 1;
             min-width: 0;
-            position: relative;
-            z-index: 2;
         }
 
         label {
             font-weight: 600;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             color: var(--ink);
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 5px;
             white-space: nowrap;
         }
 
@@ -221,11 +206,11 @@
         }
 
         input[type="number"] {
-            width: 4.25rem;
-            padding: 0.32rem 0.25rem;
+            width: 68px;
+            padding: 5px 4px;
             border: 1.5px solid var(--line);
-            border-radius: 0.5rem;
-            font-size: 0.98rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
             text-align: center;
             font-weight: 700;
             color: var(--navy);
@@ -251,7 +236,7 @@
         input[type="number"]::placeholder {
             color: var(--ink-soft);
             font-weight: 500;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
         }
 
         input[type="number"]::-webkit-outer-spin-button,
@@ -268,7 +253,7 @@
         }
 
         .unit {
-            font-size: 0.84rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--ink-soft);
         }
@@ -277,16 +262,13 @@
         .toggle-group {
             display: flex;
             gap: 6px;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 2;
         }
 
         .toggle-btn {
-            padding: 0.32rem 0.75rem;
+            padding: 5px 12px;
             border: 1.5px solid var(--line);
-            border-radius: 0.5rem;
-            font-size: 0.94rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -294,9 +276,6 @@
             color: var(--ink-soft);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            position: relative;
-            z-index: 2;
-            pointer-events: auto;
         }
 
         .toggle-btn.active {
@@ -310,19 +289,16 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 2;
         }
 
         .counter-btn {
-            width: 1.8rem;
-            height: 1.8rem;
-            border-radius: 0.5rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
             border: 1.5px solid var(--line);
             background: #fff;
             color: var(--navy);
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.15s;
@@ -331,9 +307,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            z-index: 2;
-            pointer-events: auto;
         }
 
         .counter-btn:active {
@@ -347,9 +320,9 @@
         }
 
         .counter-value {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 800;
-            min-width: 1.4rem;
+            min-width: 22px;
             text-align: center;
             color: var(--navy);
             font-variant-numeric: tabular-nums;
@@ -366,40 +339,27 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 2;
-            pointer-events: auto;
         }
 
         .custom-checkbox input {
-            width: 1.125rem;
-            height: 1.125rem;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: var(--navy);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            pointer-events: auto;
-        }
-
-        .custom-checkbox label {
-            cursor: pointer;
-            pointer-events: auto;
         }
 
         /* ===== Amount display ===== */
         .amount-display {
-            font-size: 1.1rem;
+            font-size: 1.02rem;
             font-weight: 800;
             color: var(--navy);
             text-align: right;
-            min-width: 5.5rem;
-            max-width: 42%;
+            min-width: 96px;
             font-variant-numeric: tabular-nums;
-            flex-shrink: 1;
-            line-height: 1.15;
-            pointer-events: none;
-            user-select: none;
+            flex-shrink: 0;
+            line-height: 1.2;
         }
 
         .amount-display.zero {
@@ -415,7 +375,7 @@
         .total-section {
             background: var(--navy);
             background-image: linear-gradient(135deg, var(--navy), var(--slate));
-            padding: 0.65rem 0.875rem;
+            padding: 10px 14px;
             text-align: center;
             color: var(--paper);
             position: relative;
@@ -428,20 +388,20 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 0.375rem;
+            height: 6px;
             background: repeating-linear-gradient(
                 -45deg,
                 var(--paper) 0 5px,
                 transparent 5px 10px
             );
-            transform: translateY(-0.375rem);
+            transform: translateY(-6px);
         }
 
         .total-label {
-            font-size: 0.74rem;
+            font-size: 0.7rem;
             letter-spacing: 0.16em;
             text-transform: uppercase;
-            margin-bottom: 0.15rem;
+            margin-bottom: 2px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -452,11 +412,11 @@
 
         .total-amount {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.88rem;
+            font-size: 1.72rem;
             font-weight: 900;
             letter-spacing: 0.01em;
             font-variant-numeric: tabular-nums;
-            line-height: 1.1;
+            line-height: 1.15;
         }
 
         .total-amount.negative {
@@ -466,38 +426,36 @@
         /* ===== Footer ===== */
         .footer-note {
             text-align: center;
-            margin-top: 0.25rem;
+            margin-top: 4px;
             color: rgba(250, 248, 245, 0.5);
-            font-size: 0.7rem;
-            line-height: 1.3;
-            padding: 0 0.375rem 0.35rem;
-            flex-shrink: 0;
+            font-size: 0.68rem;
+            line-height: 1.35;
+            padding: 0 6px 0;
         }
 
         .clear-btn {
             background: var(--negative-dark);
             color: #F0D4D0;
             border: none;
-            border-radius: 0.375rem;
-            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            padding: 5px 12px;
             width: auto;
-            margin: 0.25rem auto 0;
+            margin: 4px auto 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.3rem;
-            font-size: 0.8rem;
+            gap: 5px;
+            font-size: 0.76rem;
             font-weight: 600;
             letter-spacing: 0.02em;
             cursor: pointer;
             transition: background 0.2s, transform 0.2s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            flex-shrink: 0;
         }
 
         .clear-btn i {
-            font-size: 0.76rem;
+            font-size: 0.72rem;
             opacity: 0.9;
         }
 
@@ -513,7 +471,7 @@
             align-items: center;
             cursor: pointer;
             color: var(--slate);
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -616,28 +574,34 @@
             }
         }
 
-        /* 桌面端：允許自然高度與捲動，避免底部說明被裁切 */
-        @media (hover: hover) and (pointer: fine) and (min-width: 769px) {
-            html {
-                height: auto;
-                min-height: 100%;
-                overflow-x: hidden;
-                overflow-y: auto;
-            }
-
+        /* ===== Mobile tightening ===== */
+        @media (max-width: 380px) {
             body {
-                position: static;
-                height: auto;
-                min-height: 100dvh;
-                overflow-x: hidden;
-                overflow-y: auto;
-                padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+                padding: max(2px, env(safe-area-inset-top)) 8px max(1px, env(safe-area-inset-bottom));
             }
-
-            .container {
-                max-height: none;
-                overflow-y: visible;
-                padding-bottom: 0.25rem;
+            h1 {
+                font-size: 1.2rem;
+            }
+            .calc-section {
+                padding: 6px 10px;
+            }
+            input[type="number"] {
+                width: 62px;
+                padding: 4px 3px;
+                font-size: 0.9rem;
+            }
+            .amount-display {
+                font-size: 0.94rem;
+                min-width: 88px;
+            }
+            .total-amount {
+                font-size: 1.52rem;
+            }
+            label {
+                font-size: 0.84rem;
+            }
+            .section-title {
+                font-size: 0.84rem;
             }
         }
 
@@ -761,11 +725,11 @@
                         <div class="label-main">
                             <label>年資</label>
                             <div class="counter-group">
-                                <button type="button" class="counter-btn" id="seniority-minus" aria-label="減少年資">
+                                <button class="counter-btn" id="seniority-minus" aria-label="減少年資">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <div class="counter-value" id="seniority-count">0</div>
-                                <button type="button" class="counter-btn" id="seniority-plus" aria-label="增加年資">
+                                <button class="counter-btn" id="seniority-plus" aria-label="增加年資">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -784,11 +748,11 @@
                         <div class="label-main">
                             <label>人數</label>
                             <div class="counter-group">
-                                <button type="button" class="counter-btn" id="family-minus" aria-label="減少家庭津貼人數">
+                                <button class="counter-btn" id="family-minus" aria-label="減少家庭津貼人數">
                                     <i class="fas fa-minus"></i>
                                 </button>
                                 <div class="counter-value" id="family-count">0</div>
-                                <button type="button" class="counter-btn" id="family-plus" aria-label="增加家庭津貼人數">
+                                <button class="counter-btn" id="family-plus" aria-label="增加家庭津貼人數">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
@@ -806,8 +770,8 @@
                     <div class="label-container">
                         <div class="label-main">
                             <div class="toggle-group">
-                                <button type="button" class="toggle-btn active" id="housing-yes">領取</button>
-                                <button type="button" class="toggle-btn" id="housing-no">無領取</button>
+                                <button class="toggle-btn active" id="housing-yes">領取</button>
+                                <button class="toggle-btn" id="housing-no">無領取</button>
                             </div>
                         </div>
                         <div class="amount-display zero" id="housing-display">MOP $0.00</div>
@@ -842,7 +806,7 @@
             </div>
         </div>
 
-        <button type="button" class="clear-btn" id="clear-btn">
+        <button class="clear-btn" id="clear-btn">
             <i class="fas fa-eraser"></i> 清除所有資料
         </button>
 
@@ -852,103 +816,6 @@
     </div>
 
     <script>
-        // 依螢幕高度自動放大文字，填滿可視區域（僅初次與旋轉時計算，避免拉動時抖動）
-        (function initViewportFit() {
-            const root = document.documentElement;
-            const body = document.body;
-            const container = document.querySelector('.container');
-            const MIN_FONT = 14;
-            const MAX_FONT = 26;
-            const STEP = 0.25;
-            let rafId = null;
-            let isFitted = false;
-            let lockedAvailableHeight = null;
-
-            function useViewportFill() {
-                return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
-            }
-
-            function getAvailableHeight() {
-                if (lockedAvailableHeight !== null) {
-                    return lockedAvailableHeight;
-                }
-                const bodyStyle = getComputedStyle(body);
-                const padTop = parseFloat(bodyStyle.paddingTop) || 0;
-                const padBottom = parseFloat(bodyStyle.paddingBottom) || 0;
-                lockedAvailableHeight = window.innerHeight - padTop - padBottom;
-                return lockedAvailableHeight;
-            }
-
-            function measureHeight() {
-                return container.getBoundingClientRect().height;
-            }
-
-            function fitToViewport(force) {
-                if (!container) return;
-                if (isFitted && !force) return;
-
-                if (force) {
-                    lockedAvailableHeight = null;
-                }
-
-                if (!useViewportFill()) {
-                    root.style.fontSize = '16px';
-                    container.style.overflowY = 'visible';
-                    isFitted = true;
-                    return;
-                }
-
-                let size = MIN_FONT;
-                root.style.fontSize = size + 'px';
-                const available = getAvailableHeight();
-                const fillTarget = available * 0.985;
-
-                while (size < MAX_FONT) {
-                    root.style.fontSize = (size + STEP) + 'px';
-                    if (measureHeight() > fillTarget) {
-                        root.style.fontSize = size + 'px';
-                        break;
-                    }
-                    size += STEP;
-                }
-
-                while (size > MIN_FONT && measureHeight() > available) {
-                    size -= STEP;
-                    root.style.fontSize = size + 'px';
-                }
-
-                container.style.overflowY = measureHeight() > available ? 'auto' : 'hidden';
-                isFitted = true;
-            }
-
-            function scheduleFit(force) {
-                if (rafId !== null) cancelAnimationFrame(rafId);
-                rafId = requestAnimationFrame(function() {
-                    rafId = null;
-                    fitToViewport(force);
-                });
-            }
-
-            function resetAndFit() {
-                isFitted = false;
-                lockedAvailableHeight = null;
-                scheduleFit(true);
-            }
-
-            if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(function() { scheduleFit(true); });
-            } else {
-                scheduleFit(true);
-            }
-
-            window.addEventListener('orientationchange', function() {
-                setTimeout(resetAndFit, 150);
-            });
-            window.addEventListener('load', function() {
-                if (!isFitted) scheduleFit(true);
-            });
-        })();
-
         // 防止手機螢幕縮放和放大
         (function() {
             let lastTouchEnd = 0;
@@ -960,7 +827,11 @@
                 const now = Date.now();
                 const target = event.target;
                 // 只阻止在非按鈕、非輸入框元素上的雙擊
-                const isInteractiveElement = target.closest('button, input, label, .info-tooltip, .custom-checkbox');
+                const isInteractiveElement = target.tagName === 'BUTTON' ||
+                                            target.tagName === 'INPUT' ||
+                                            target.closest('button') ||
+                                            target.closest('input') ||
+                                            target.closest('.info-tooltip');
 
                 if (!isInteractiveElement && now - lastTouchEnd <= 300) {
                     event.preventDefault();
