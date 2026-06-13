@@ -61,7 +61,8 @@
 
         body {
             width: 100%;
-            min-height: 100vh;
+            min-height: 100dvh;
+            height: 100dvh;
             overflow-x: hidden;
             overflow-y: auto;
             background: var(--navy);
@@ -69,9 +70,10 @@
                 radial-gradient(ellipse 900px 500px at 15% -5%, rgba(201, 162, 75, 0.16), transparent 60%),
                 radial-gradient(ellipse 700px 500px at 100% 100%, rgba(45, 74, 110, 0.5), transparent 60%);
             color: var(--ink);
-            padding: 20px 12px 32px;
+            padding: max(8px, env(safe-area-inset-top)) 10px max(8px, env(safe-area-inset-bottom));
             display: flex;
             justify-content: center;
+            align-items: center;
             touch-action: manipulation;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
@@ -81,38 +83,39 @@
         .container {
             width: 100%;
             max-width: 460px;
+            max-height: 100%;
         }
 
         /* ===== Header ===== */
         header {
             text-align: center;
-            padding: 6px 4px 18px;
+            padding: 0 4px 6px;
             color: var(--paper);
         }
 
         .header-eyebrow {
-            font-size: 0.7rem;
-            letter-spacing: 0.22em;
+            font-size: 0.62rem;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
             color: var(--gold-soft);
             font-weight: 600;
-            margin-top: 6px;
+            margin-top: 3px;
         }
 
         h1 {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.6rem;
+            font-size: 1.22rem;
             font-weight: 900;
             letter-spacing: 0.04em;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 6px;
         }
 
         h1 i {
             color: var(--gold);
-            font-size: 1.25rem;
+            font-size: 0.98rem;
         }
 
         .header-sub {
@@ -126,12 +129,12 @@
         .payslip {
             background: var(--paper);
             border-radius: var(--radius);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
             overflow: hidden;
         }
 
         .calc-section {
-            padding: 14px 16px;
+            padding: 7px 12px;
             border-bottom: 1px solid var(--line);
         }
 
@@ -140,27 +143,27 @@
         }
 
         .section-title {
-            font-size: 0.95rem;
+            font-size: 0.82rem;
             color: var(--navy);
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 700;
             letter-spacing: 0.01em;
         }
 
         .section-title i {
             color: var(--gold);
-            width: 18px;
+            width: 16px;
             text-align: center;
-            font-size: 0.95rem;
+            font-size: 0.82rem;
         }
 
         .input-row {
             display: flex;
             flex-direction: column;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .input-row:last-child {
@@ -178,7 +181,7 @@
         .label-main {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
             flex: 1;
             min-width: 0;
@@ -186,11 +189,11 @@
 
         label {
             font-weight: 600;
-            font-size: 0.92rem;
+            font-size: 0.84rem;
             color: var(--ink);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             white-space: nowrap;
         }
 
@@ -201,11 +204,11 @@
         }
 
         input[type="number"] {
-            width: 76px;
-            padding: 8px 6px;
+            width: 68px;
+            padding: 5px 4px;
             border: 1.5px solid var(--line);
-            border-radius: 10px;
-            font-size: 1rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
             text-align: center;
             font-weight: 700;
             color: var(--navy);
@@ -248,7 +251,7 @@
         }
 
         .unit {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--ink-soft);
         }
@@ -256,14 +259,14 @@
         /* ===== Toggle buttons ===== */
         .toggle-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .toggle-btn {
-            padding: 7px 16px;
+            padding: 5px 12px;
             border: 1.5px solid var(--line);
-            border-radius: 10px;
-            font-size: 0.95rem;
+            border-radius: 8px;
+            font-size: 0.86rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -283,13 +286,13 @@
         .counter-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .counter-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
             border: 1.5px solid var(--line);
             background: #fff;
             color: var(--navy);
@@ -315,9 +318,9 @@
         }
 
         .counter-value {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 800;
-            min-width: 26px;
+            min-width: 22px;
             text-align: center;
             color: var(--navy);
             font-variant-numeric: tabular-nums;
@@ -337,8 +340,8 @@
         }
 
         .custom-checkbox input {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: var(--navy);
             touch-action: manipulation;
@@ -347,11 +350,11 @@
 
         /* ===== Amount display ===== */
         .amount-display {
-            font-size: 0.95rem;
+            font-size: 0.86rem;
             font-weight: 800;
             color: var(--navy);
             text-align: right;
-            min-width: 92px;
+            min-width: 84px;
             font-variant-numeric: tabular-nums;
             flex-shrink: 0;
         }
@@ -369,7 +372,7 @@
         .total-section {
             background: var(--navy);
             background-image: linear-gradient(135deg, var(--navy), var(--slate));
-            padding: 18px 20px;
+            padding: 10px 14px;
             text-align: center;
             color: var(--paper);
             position: relative;
@@ -382,34 +385,35 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 10px;
+            height: 6px;
             background: repeating-linear-gradient(
                 -45deg,
-                var(--paper) 0 7px,
-                transparent 7px 14px
+                var(--paper) 0 5px,
+                transparent 5px 10px
             );
-            transform: translateY(-10px);
+            transform: translateY(-6px);
         }
 
         .total-label {
-            font-size: 0.78rem;
-            letter-spacing: 0.18em;
+            font-size: 0.66rem;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: var(--gold-soft);
             font-weight: 700;
         }
 
         .total-amount {
             font-family: 'Noto Serif TC', serif;
-            font-size: 2.2rem;
+            font-size: 1.55rem;
             font-weight: 900;
             letter-spacing: 0.01em;
             font-variant-numeric: tabular-nums;
+            line-height: 1.15;
         }
 
         .total-amount.negative {
@@ -419,36 +423,43 @@
         /* ===== Footer ===== */
         .footer-note {
             text-align: center;
-            margin-top: 16px;
-            color: rgba(250, 248, 245, 0.55);
-            font-size: 0.78rem;
-            line-height: 1.6;
-            padding: 0 8px;
+            margin-top: 6px;
+            color: rgba(250, 248, 245, 0.5);
+            font-size: 0.68rem;
+            line-height: 1.45;
+            padding: 0 6px;
         }
 
         .clear-btn {
-            background: rgba(250, 248, 245, 0.08);
-            color: var(--paper);
-            border: 1.5px solid rgba(250, 248, 245, 0.25);
-            border-radius: 50px;
-            padding: 11px 0;
-            width: 100%;
-            margin-top: 16px;
+            background: none;
+            color: rgba(250, 248, 245, 0.42);
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            width: auto;
+            margin: 6px auto 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            font-weight: 700;
+            gap: 5px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: color 0.2s, background 0.2s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
 
+        .clear-btn i {
+            font-size: 0.72rem;
+            opacity: 0.85;
+        }
+
         .clear-btn:active {
-            transform: scale(0.98);
-            background: rgba(250, 248, 245, 0.16);
+            transform: scale(0.97);
+            color: rgba(250, 248, 245, 0.65);
+            background: rgba(250, 248, 245, 0.06);
         }
 
         /* ===== Tooltip ===== */
@@ -458,7 +469,7 @@
             align-items: center;
             cursor: pointer;
             color: var(--slate);
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -552,40 +563,44 @@
 
         @media (hover: hover) {
             .toggle-btn:not(.active):hover,
-            .counter-btn:hover,
+            .counter-btn:hover {
+                border-color: var(--slate);
+            }
+
             .clear-btn:hover {
-                border-color: var(--gold);
+                color: rgba(250, 248, 245, 0.72);
+                background: rgba(250, 248, 245, 0.06);
             }
         }
 
         /* ===== Mobile tightening ===== */
         @media (max-width: 380px) {
             body {
-                padding: 14px 8px 24px;
+                padding: max(6px, env(safe-area-inset-top)) 8px max(6px, env(safe-area-inset-bottom));
             }
             h1 {
-                font-size: 1.35rem;
+                font-size: 1.12rem;
             }
             .calc-section {
-                padding: 12px 12px;
+                padding: 6px 10px;
             }
             input[type="number"] {
-                width: 68px;
-                padding: 7px 4px;
-                font-size: 0.92rem;
+                width: 62px;
+                padding: 4px 3px;
+                font-size: 0.88rem;
             }
             .amount-display {
-                font-size: 0.86rem;
-                min-width: 82px;
+                font-size: 0.8rem;
+                min-width: 76px;
             }
             .total-amount {
-                font-size: 1.85rem;
+                font-size: 1.38rem;
             }
             label {
-                font-size: 0.86rem;
+                font-size: 0.8rem;
             }
             .section-title {
-                font-size: 0.88rem;
+                font-size: 0.78rem;
             }
         }
 
