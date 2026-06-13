@@ -54,8 +54,9 @@
         html {
             width: 100%;
             height: 100%;
-            overflow-x: hidden;
+            overflow: hidden;
             font-size: 16px;
+            overscroll-behavior: none;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
             touch-action: manipulation;
@@ -65,8 +66,10 @@
             width: 100%;
             min-height: 100dvh;
             height: 100dvh;
-            overflow-x: hidden;
-            overflow-y: hidden;
+            overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed;
+            inset: 0;
             background: var(--navy);
             background-image:
                 radial-gradient(ellipse 900px 500px at 15% -5%, rgba(201, 162, 75, 0.16), transparent 60%),
@@ -85,9 +88,14 @@
         .container {
             width: 100%;
             max-width: 460px;
+            max-height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* ===== Header ===== */
@@ -435,7 +443,7 @@
             color: rgba(250, 248, 245, 0.5);
             font-size: 0.7rem;
             line-height: 1.3;
-            padding: 0 0.375rem;
+            padding: 0 0.375rem 0.35rem;
             flex-shrink: 0;
         }
 
@@ -578,6 +586,31 @@
 
             .clear-btn:hover {
                 background: #8B4038;
+            }
+        }
+
+        /* 桌面端：允許自然高度與捲動，避免底部說明被裁切 */
+        @media (hover: hover) and (pointer: fine) and (min-width: 769px) {
+            html {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
+            body {
+                position: static;
+                height: auto;
+                min-height: 100dvh;
+                overflow-x: hidden;
+                overflow-y: auto;
+                padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+            }
+
+            .container {
+                max-height: none;
+                overflow-y: visible;
+                padding-bottom: 0.25rem;
             }
         }
 
@@ -792,7 +825,7 @@
     </div>
 
     <script>
-        // 依螢幕高度自動放大文字，填滿可視區域
+        // 依螢幕高度自動放大文字，填滿可視區域（僅初次與旋轉時計算，避免拉動時抖動）
         (function initViewportFit() {
             const root = document.documentElement;
             const body = document.body;
@@ -801,28 +834,54 @@
             const MAX_FONT = 26;
             const STEP = 0.25;
             let rafId = null;
+            let isFitted = false;
+            let lockedAvailableHeight = null;
+
+            function useViewportFill() {
+                return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+            }
 
             function getAvailableHeight() {
+                if (lockedAvailableHeight !== null) {
+                    return lockedAvailableHeight;
+                }
                 const bodyStyle = getComputedStyle(body);
                 const padTop = parseFloat(bodyStyle.paddingTop) || 0;
                 const padBottom = parseFloat(bodyStyle.paddingBottom) || 0;
-                return window.innerHeight - padTop - padBottom;
+                lockedAvailableHeight = window.innerHeight - padTop - padBottom;
+                return lockedAvailableHeight;
             }
 
             function measureHeight() {
                 return container.getBoundingClientRect().height;
             }
 
-            function fitToViewport() {
+            function fitToViewport(force) {
                 if (!container) return;
+                if (isFitted && !force) return;
+
+                if (force) {
+                    lockedAvailableHeight = null;
+                }
+
+                if (!useViewportFill()) {
+                    root.style.fontSize = '16px';
+                    container.style.overflowY = 'visible';
+                    isFitted = true;
+                    return;
+                }
 
                 let size = MIN_FONT;
                 root.style.fontSize = size + 'px';
                 const available = getAvailableHeight();
+                const fillTarget = available * 0.985;
 
                 while (size < MAX_FONT) {
-                    root.style.fontSize = size + 'px';
-                    if (measureHeight() >= available * 0.998) break;
+                    root.style.fontSize = (size + STEP) + 'px';
+                    if (measureHeight() > fillTarget) {
+                        root.style.fontSize = size + 'px';
+                        break;
+                    }
                     size += STEP;
                 }
 
@@ -831,28 +890,36 @@
                     root.style.fontSize = size + 'px';
                 }
 
-                body.style.overflowY = measureHeight() > available ? 'auto' : 'hidden';
+                container.style.overflowY = measureHeight() > available ? 'auto' : 'hidden';
+                isFitted = true;
             }
 
-            function scheduleFit() {
+            function scheduleFit(force) {
                 if (rafId !== null) cancelAnimationFrame(rafId);
                 rafId = requestAnimationFrame(function() {
                     rafId = null;
-                    fitToViewport();
+                    fitToViewport(force);
                 });
             }
 
-            if (document.fonts && document.fonts.ready) {
-                document.fonts.ready.then(scheduleFit);
-            } else {
-                scheduleFit();
+            function resetAndFit() {
+                isFitted = false;
+                lockedAvailableHeight = null;
+                scheduleFit(true);
             }
 
-            window.addEventListener('resize', scheduleFit);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(function() { scheduleFit(true); });
+            } else {
+                scheduleFit(true);
+            }
+
             window.addEventListener('orientationchange', function() {
-                setTimeout(scheduleFit, 120);
+                setTimeout(resetAndFit, 150);
             });
-            window.addEventListener('load', scheduleFit);
+            window.addEventListener('load', function() {
+                if (!isFitted) scheduleFit(true);
+            });
         })();
 
         // 防止手機螢幕縮放和放大
