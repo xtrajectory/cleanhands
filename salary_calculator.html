@@ -96,7 +96,7 @@
             text-transform: uppercase;
             color: var(--gold-soft);
             font-weight: 600;
-            margin-top: 6px;
+            margin-bottom: 6px;
         }
 
         h1 {
@@ -611,8 +611,8 @@
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-feather-pointed"></i> 薪俸計算器</h1>
             <div class="header-eyebrow">某特別職程 · 薪俸試算</div>
+            <h1><i class="fas fa-feather-pointed"></i> 薪俸計算器</h1>
         </header>
 
         <div class="payslip">
@@ -658,7 +658,7 @@
                             <label>0.75% 輪值</label>
                             <div class="info-tooltip">
                                 <i class="fas fa-circle-info"></i>
-                                <span class="tooltiptext">（一）在星期六、星期日及公眾假期早上八時至晚上八時期間的工作，給予每月薪俸的百分之零點七五的津貼；</span>
+                                <span class="tooltiptext">（一）在星期六、星期日及公眾假期早上八時至晚上八時期間的工作，給予每月薪俸的百分之零點七五的津貼；<br>（二）在晚上八時至零時期間的工作給予每月薪俸的百分之零點七五的津貼；</span>
                             </div>
                             <input type="number" id="allowance2-days" placeholder="天數" inputmode="numeric" pattern="[0-9]*">
                         </div>
@@ -677,7 +677,7 @@
                             <label>大鐘</label>
                             <div class="info-tooltip">
                                 <i class="fas fa-circle-info"></i>
-                                <span class="tooltiptext">每小時的晚間、每周休息日、公眾假期及補假日的超時工作。<br>*下午八時至翌日上午七時所提供的工作，按大鐘計算。</span>
+                                <span class="tooltiptext">每小時的晚間、每周休息日、公眾假期及補假日的超時工作。<br>*下午八時至翌日上午七時所提供的工作，視為晚間工作。</span>
                             </div>
                             <input type="number" id="overtime-big" placeholder="小時" inputmode="numeric" pattern="[0-9]*">
                         </div>
@@ -1000,153 +1000,345 @@
                     } else if (max !== null && value > max) {
                         input.value = max;
                     }
-                    updateCalculations();
                 });
 
                 input.addEventListener('blur', function() {
-                    validateInput(input, false);
-                    updateCalculations();
+                    let value = validateInput(input, false);
+                    if (value < min) {
+                        input.value = min;
+                    } else if (max !== null && value > max) {
+                        input.value = max;
+                    }
+                    calculateSalary();
                 });
             }
 
-            // 計算各項金額
-            function updateCalculations() {
-                const salaryPoints = validateInput(salaryPointsInput);
-                const allowance1Days = validateInput(allowance1DaysInput);
-                const allowance2Days = validateInput(allowance2DaysInput);
-                const overtimeBigHours = validateInput(overtimeBigInput);
-                const overtimeSmallHours = validateInput(overtimeSmallInput);
+            // 計算所有薪資項目
+            function calculateSalary() {
+                // 1. 基本薪俸
+                const points = validateInput(salaryPointsInput, true);
+                const baseSalary = points * 94;
+                setAmount(salaryDisplay, baseSalary);
 
-                const perPoint = 94;
+                // 2. 特別職程輪值
+                const allowance1Days = validateInput(allowance1DaysInput, false);
+                const allowance1Amount = allowance1Days * baseSalary * 0.0125;
+                setAmount(allowance1Display, allowance1Amount);
 
-                // 薪俸計算
-                const salary = salaryPoints * perPoint;
-                setAmount(salaryDisplay, salary);
+                const allowance2Days = validateInput(allowance2DaysInput, false);
+                const allowance2Amount = allowance2Days * baseSalary * 0.0075;
+                setAmount(allowance2Display, allowance2Amount);
 
-                // 輪值津貼計算
-                const allowance1 = (salary * 0.0125) * allowance1Days;
-                const allowance2 = (salary * 0.0075) * allowance2Days;
-                setAmount(allowance1Display, allowance1);
-                setAmount(allowance2Display, allowance2);
+                // 3. 超時工作
+                // 每小時費率 = (月薪 * 12) / (52週 * 36小時/週)
+                const hourlyRate = points > 0 ? (baseSalary * 12) / (52 * 36) : 0;
 
-                // 超時工作計算
-                const dailyRate = salary / 30;
-                const hourlyRate = dailyRate / 8;
-                const overtimeBig = hourlyRate * 1.5 * overtimeBigHours;
-                const overtimeSmall = hourlyRate * 0.5 * overtimeSmallHours;
-                setAmount(overtimeBigDisplay, overtimeBig);
-                setAmount(overtimeSmallDisplay, overtimeSmall);
+                const overtimeBigHours = validateInput(overtimeBigInput, true);
+                const overtimeBigAmount = overtimeBigHours * hourlyRate * 2;
+                setAmount(overtimeBigDisplay, overtimeBigAmount);
 
-                // 年資計算（每年增加一個月的薪俸）
-                const seniorityBonus = salary * seniorityCount;
-                setAmount(seniorityDisplay, seniorityBonus);
+                const overtimeSmallHours = validateInput(overtimeSmallInput, true);
+                const overtimeSmallAmount = overtimeSmallHours * hourlyRate * 1.5;
+                setAmount(overtimeSmallDisplay, overtimeSmallAmount);
 
-                // 家庭津貼（每人 MOP $500）
-                const familyAllowance = 500 * familyCount;
-                setAmount(familyDisplay, familyAllowance);
+                // 4. 年資津貼
+                const seniorityAmount = seniorityCount * 10 * 94;
+                setAmount(seniorityDisplay, seniorityAmount);
 
-                // 房屋津貼（MOP $2500 或 MOP $0）
-                const housingAllowance = housingSelected ? 2500 : 0;
-                setAmount(housingDisplay, housingAllowance);
+                // 5. 房屋津貼 (僅在輸入薪俸點數後才計算)
+                const housingAmount = (housingSelected && points > 0) ? 40 * 94 : 0;
+                setAmount(housingDisplay, housingAmount);
 
-                // 公積金扣款（7%）
-                const baseSalary = salary + allowance1 + allowance2 + overtimeBig + overtimeSmall + seniorityBonus + familyAllowance + housingAllowance;
-                const deduction = deductionCheckbox.checked ? baseSalary * 0.07 : 0;
-                setAmount(deductionDisplay, deduction, true);
+                // 6. 家庭津貼
+                const familyAmount = familyCount * 10 * 94;
+                setAmount(familyDisplay, familyAmount);
 
-                // 計算總額
-                const total = baseSalary - deduction;
-                setAmount(totalAmountDisplay, total);
+                // 7. 退休基金扣減 (只扣減基本薪俸)
+                const deductionAmount = deductionCheckbox.checked ? baseSalary * 0.07 : 0;
+                setAmount(deductionDisplay, deductionAmount, true);
+
+                // 8. 總額 (所有項目加總再減去扣減)
+                const total = (
+                    baseSalary +
+                    allowance1Amount +
+                    allowance2Amount +
+                    overtimeBigAmount +
+                    overtimeSmallAmount +
+                    seniorityAmount +
+                    housingAmount +
+                    familyAmount -
+                    deductionAmount
+                );
+
+                // 顯示總額 (帶正負號)
+                totalAmountDisplay.textContent = formatCurrency(total);
                 totalAmountDisplay.classList.toggle('negative', total < 0);
             }
 
-            // 初始化各輸入框
-            limitInput(salaryPointsInput, 0, 9999);
-            limitInput(allowance1DaysInput, 0, 31);
-            limitInput(allowance2DaysInput, 0, 31);
-            limitInput(overtimeBigInput, 0, 999);
-            limitInput(overtimeSmallInput, 0, 999);
+            // 設置輸入驗證和限制
+            limitInput(salaryPointsInput, 0, 1000); // 薪俸點數限制在0-1000
+            limitInput(allowance1DaysInput, 0, 31); // 天數限制在0-31
+            limitInput(allowance2DaysInput, 0, 31); // 天數限制在0-31
+            limitInput(overtimeBigInput, 0, 52); // 小時數限制在0-52
+            limitInput(overtimeSmallInput, 0, 52); // 小時數限制在0-52
 
-            // 年資計數器
+            // 事件監聽
+            salaryPointsInput.addEventListener('input', calculateSalary);
+            allowance1DaysInput.addEventListener('input', calculateSalary);
+            allowance2DaysInput.addEventListener('input', calculateSalary);
+            overtimeBigInput.addEventListener('input', calculateSalary);
+            overtimeSmallInput.addEventListener('input', calculateSalary);
+            deductionCheckbox.addEventListener('change', calculateSalary);
+
+            // 添加鍵盤事件支持（Enter鍵觸發計算）
+            [salaryPointsInput, allowance1DaysInput, allowance2DaysInput, overtimeBigInput, overtimeSmallInput].forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.target.blur();
+                        calculateSalary();
+                    }
+                });
+            });
+
+            // 房屋津貼按鈕
+            housingYesBtn.addEventListener('click', function() {
+                if (!housingSelected) {
+                    housingSelected = true;
+                    housingYesBtn.classList.add('active');
+                    housingNoBtn.classList.remove('active');
+                    calculateSalary();
+                }
+            });
+
+            housingNoBtn.addEventListener('click', function() {
+                if (housingSelected) {
+                    housingSelected = false;
+                    housingNoBtn.classList.add('active');
+                    housingYesBtn.classList.remove('active');
+                    calculateSalary();
+                }
+            });
+
+            // 年資津貼計數器
             const seniorityMinusBtn = document.getElementById('seniority-minus');
             const seniorityPlusBtn = document.getElementById('seniority-plus');
             const seniorityCountEl = document.getElementById('seniority-count');
 
-            seniorityMinusBtn.addEventListener('click', function() {
-                if (seniorityCount > 0) {
-                    seniorityCount--;
-                    seniorityCountEl.textContent = seniorityCount;
-                    updateCalculations();
-                }
-            });
+            // 更新計數器按鈕狀態
+            function updateCounterButtons() {
+                seniorityPlusBtn.disabled = seniorityCount >= 50;
+                seniorityMinusBtn.disabled = seniorityCount <= 0;
+                familyPlusBtn.disabled = familyCount >= 9;
+                familyMinusBtn.disabled = familyCount <= 0;
+            }
 
             seniorityPlusBtn.addEventListener('click', function() {
                 if (seniorityCount < 50) {
                     seniorityCount++;
                     seniorityCountEl.textContent = seniorityCount;
-                    updateCalculations();
+                    updateCounterButtons();
+                    calculateSalary();
+                } else {
+                    // 達到上限時的視覺反饋
+                    seniorityPlusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        seniorityPlusBtn.style.transform = '';
+                    }, 200);
                 }
             });
 
-            // 房屋津貼切換
-            housingYesBtn.addEventListener('click', function() {
-                housingSelected = true;
-                housingYesBtn.classList.add('active');
-                housingNoBtn.classList.remove('active');
-                updateCalculations();
-            });
-
-            housingNoBtn.addEventListener('click', function() {
-                housingSelected = false;
-                housingYesBtn.classList.remove('active');
-                housingNoBtn.classList.add('active');
-                updateCalculations();
+            seniorityMinusBtn.addEventListener('click', function() {
+                if (seniorityCount > 0) {
+                    seniorityCount--;
+                    seniorityCountEl.textContent = seniorityCount;
+                    updateCounterButtons();
+                    calculateSalary();
+                } else {
+                    // 達到下限時的視覺反饋
+                    seniorityMinusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        seniorityMinusBtn.style.transform = '';
+                    }, 200);
+                }
             });
 
             // 家庭津貼計數器
+            familyPlusBtn.addEventListener('click', function() {
+                if (familyCount < 9) {
+                    familyCount++;
+                    familyCountEl.textContent = familyCount;
+                    updateCounterButtons();
+                    calculateSalary();
+                } else {
+                    // 達到上限時的視覺反饋
+                    familyPlusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        familyPlusBtn.style.transform = '';
+                    }, 200);
+                }
+            });
+
             familyMinusBtn.addEventListener('click', function() {
                 if (familyCount > 0) {
                     familyCount--;
                     familyCountEl.textContent = familyCount;
-                    updateCalculations();
+                    updateCounterButtons();
+                    calculateSalary();
+                } else {
+                    // 達到下限時的視覺反饋
+                    familyMinusBtn.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        familyMinusBtn.style.transform = '';
+                    }, 200);
                 }
             });
 
-            familyPlusBtn.addEventListener('click', function() {
-                if (familyCount < 20) {
-                    familyCount++;
-                    familyCountEl.textContent = familyCount;
-                    updateCalculations();
-                }
-            });
-
-            // 公積金複選框
-            deductionCheckbox.addEventListener('change', function() {
-                updateCalculations();
-            });
+            // 初始化按鈕狀態
+            updateCounterButtons();
 
             // 清除按鈕
             clearBtn.addEventListener('click', function() {
+                // 重置所有輸入
                 salaryPointsInput.value = '';
                 allowance1DaysInput.value = '';
                 allowance2DaysInput.value = '';
                 overtimeBigInput.value = '';
                 overtimeSmallInput.value = '';
-                seniorityCount = 0;
-                familyCount = 0;
-                housingSelected = true;
-                deductionCheckbox.checked = true;
 
-                seniorityCountEl.textContent = '0';
-                familyCountEl.textContent = '0';
+                // 重置房屋津貼
+                housingSelected = true;
                 housingYesBtn.classList.add('active');
                 housingNoBtn.classList.remove('active');
 
-                updateCalculations();
+                // 重置年資津貼
+                seniorityCount = 0;
+                document.getElementById('seniority-count').textContent = '0';
+
+                // 重置家庭津貼
+                familyCount = 0;
+                familyCountEl.textContent = '0';
+
+                // 重置退休基金扣減
+                deductionCheckbox.checked = true;
+
+                // 更新按鈕狀態
+                updateCounterButtons();
+
+                // 重新計算
+                calculateSalary();
+
+                // 視覺反饋
+                clearBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    clearBtn.style.transform = '';
+                }, 200);
             });
 
-            // 初始化計算
-            updateCalculations();
+            // 初始計算
+            calculateSalary();
+
+            // 處理手機端tooltip點擊事件，確保顯示在螢幕內
+            const tooltips = document.querySelectorAll('.info-tooltip');
+            tooltips.forEach(tooltip => {
+                const tooltipText = tooltip.querySelector('.tooltiptext');
+
+                // 檢測是否為觸控設備
+                const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+                if (isTouchDevice) {
+                    // 觸控設備：使用點擊事件
+                    tooltip.addEventListener('click', function(e) {
+                        e.stopPropagation();
+
+                        // 關閉其他已打開的tooltip
+                        tooltips.forEach(t => {
+                            if (t !== tooltip) {
+                                t.classList.remove('active');
+                            }
+                        });
+
+                        // 切換當前tooltip
+                        const isActive = tooltip.classList.contains('active');
+                        if (isActive) {
+                            tooltip.classList.remove('active');
+                        } else {
+                            tooltip.classList.add('active');
+                            adjustTooltipPosition(tooltip, tooltipText);
+                        }
+                    });
+
+                    // 點擊其他地方關閉tooltip（使用事件委派，避免重複綁定）
+                    if (!document.tooltipClickHandler) {
+                        document.tooltipClickHandler = function(e) {
+                            tooltips.forEach(t => {
+                                if (!t.contains(e.target)) {
+                                    t.classList.remove('active');
+                                }
+                            });
+                        };
+                        document.addEventListener('click', document.tooltipClickHandler);
+                    }
+                }
+            });
+
+            // 調整tooltip位置，確保在螢幕內
+            function adjustTooltipPosition(tooltip, tooltipText) {
+                // 移除之前的定位類別
+                tooltipText.classList.remove('tooltip-left', 'tooltip-right', 'tooltip-top');
+
+                // 獲取元素位置
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const tooltipTextRect = tooltipText.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+
+                // 計算tooltip應該顯示的位置
+                const spaceRight = viewportWidth - tooltipRect.right;
+                const spaceLeft = tooltipRect.left;
+                const spaceBottom = viewportHeight - tooltipRect.bottom;
+                const spaceTop = tooltipRect.top;
+
+                // 預設顯示在右側
+                let position = 'right';
+
+                // 如果右側空間不足，嘗試顯示在左側
+                if (spaceRight < 200 && spaceLeft > spaceRight) {
+                    position = 'left';
+                    tooltipText.classList.add('tooltip-left');
+                }
+                // 如果左右空間都不足，顯示在上方
+                else if (spaceRight < 200 && spaceLeft < 200 && spaceTop > 100) {
+                    position = 'top';
+                    tooltipText.classList.add('tooltip-top');
+                }
+                // 否則顯示在右側（預設）
+                else {
+                    tooltipText.classList.add('tooltip-right');
+                }
+            }
+
+            // 視窗大小改變時重新調整tooltip位置
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    tooltips.forEach(tooltip => {
+                        if (tooltip.classList.contains('active')) {
+                            const tooltipText = tooltip.querySelector('.tooltiptext');
+                            adjustTooltipPosition(tooltip, tooltipText);
+                        }
+                    });
+                }, 250);
+            });
+
+            // 添加ESC鍵關閉tooltip
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    tooltips.forEach(tooltip => {
+                        tooltip.classList.remove('active');
+                    });
+                }
+            });
         });
     </script>
 </body>
