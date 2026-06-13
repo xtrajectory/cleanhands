@@ -55,6 +55,7 @@
             width: 100%;
             height: 100%;
             overflow-x: hidden;
+            font-size: 16px;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
             touch-action: manipulation;
@@ -65,13 +66,13 @@
             min-height: 100dvh;
             height: 100dvh;
             overflow-x: hidden;
-            overflow-y: auto;
+            overflow-y: hidden;
             background: var(--navy);
             background-image:
                 radial-gradient(ellipse 900px 500px at 15% -5%, rgba(201, 162, 75, 0.16), transparent 60%),
                 radial-gradient(ellipse 700px 500px at 100% 100%, rgba(45, 74, 110, 0.5), transparent 60%);
             color: var(--ink);
-            padding: max(4px, env(safe-area-inset-top)) 10px max(2px, env(safe-area-inset-bottom));
+            padding: env(safe-area-inset-top) 0.625rem env(safe-area-inset-bottom);
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -84,40 +85,43 @@
         .container {
             width: 100%;
             max-width: 460px;
-            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         /* ===== Header ===== */
         header {
             text-align: center;
-            padding: 0 4px 4px;
+            padding: 0 0.25rem 0.35rem;
             color: var(--paper);
+            flex-shrink: 0;
         }
 
         .header-eyebrow {
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             letter-spacing: 0.18em;
             text-transform: uppercase;
             color: var(--gold-soft);
             font-weight: 600;
-            margin-top: 2px;
+            margin-top: 0.15rem;
         }
 
         h1 {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.32rem;
+            font-size: 1.38rem;
             font-weight: 900;
             letter-spacing: 0.04em;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            line-height: 1.2;
+            gap: 0.375rem;
+            line-height: 1.15;
         }
 
         h1 i {
             color: var(--gold);
-            font-size: 1.05rem;
+            font-size: 1.1rem;
         }
 
         .header-sub {
@@ -133,10 +137,11 @@
             border-radius: var(--radius);
             box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .calc-section {
-            padding: 7px 12px;
+            padding: 0.5rem 0.75rem;
             border-bottom: 1px solid var(--line);
         }
 
@@ -145,27 +150,27 @@
         }
 
         .section-title {
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             color: var(--navy);
-            margin-bottom: 5px;
+            margin-bottom: 0.35rem;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 0.375rem;
             font-weight: 700;
             letter-spacing: 0.01em;
         }
 
         .section-title i {
             color: var(--gold);
-            width: 16px;
+            width: 1rem;
             text-align: center;
-            font-size: 0.88rem;
+            font-size: 0.92rem;
         }
 
         .input-row {
             display: flex;
             flex-direction: column;
-            margin-bottom: 6px;
+            margin-bottom: 0.4rem;
         }
 
         .input-row:last-child {
@@ -191,11 +196,11 @@
 
         label {
             font-weight: 600;
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             color: var(--ink);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 0.3rem;
             white-space: nowrap;
         }
 
@@ -206,11 +211,11 @@
         }
 
         input[type="number"] {
-            width: 68px;
-            padding: 5px 4px;
+            width: 4.25rem;
+            padding: 0.32rem 0.25rem;
             border: 1.5px solid var(--line);
-            border-radius: 8px;
-            font-size: 0.95rem;
+            border-radius: 0.5rem;
+            font-size: 0.98rem;
             text-align: center;
             font-weight: 700;
             color: var(--navy);
@@ -236,7 +241,7 @@
         input[type="number"]::placeholder {
             color: var(--ink-soft);
             font-weight: 500;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
         }
 
         input[type="number"]::-webkit-outer-spin-button,
@@ -253,7 +258,7 @@
         }
 
         .unit {
-            font-size: 0.8rem;
+            font-size: 0.84rem;
             font-weight: 600;
             color: var(--ink-soft);
         }
@@ -265,10 +270,10 @@
         }
 
         .toggle-btn {
-            padding: 5px 12px;
+            padding: 0.32rem 0.75rem;
             border: 1.5px solid var(--line);
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            font-size: 0.94rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
@@ -292,13 +297,13 @@
         }
 
         .counter-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+            width: 1.8rem;
+            height: 1.8rem;
+            border-radius: 0.5rem;
             border: 1.5px solid var(--line);
             background: #fff;
             color: var(--navy);
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.15s;
@@ -320,9 +325,9 @@
         }
 
         .counter-value {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 800;
-            min-width: 22px;
+            min-width: 1.4rem;
             text-align: center;
             color: var(--navy);
             font-variant-numeric: tabular-nums;
@@ -342,8 +347,8 @@
         }
 
         .custom-checkbox input {
-            width: 18px;
-            height: 18px;
+            width: 1.125rem;
+            height: 1.125rem;
             cursor: pointer;
             accent-color: var(--navy);
             touch-action: manipulation;
@@ -352,14 +357,14 @@
 
         /* ===== Amount display ===== */
         .amount-display {
-            font-size: 1.02rem;
+            font-size: 1.1rem;
             font-weight: 800;
             color: var(--navy);
             text-align: right;
-            min-width: 96px;
+            min-width: 6.25rem;
             font-variant-numeric: tabular-nums;
             flex-shrink: 0;
-            line-height: 1.2;
+            line-height: 1.15;
         }
 
         .amount-display.zero {
@@ -375,7 +380,7 @@
         .total-section {
             background: var(--navy);
             background-image: linear-gradient(135deg, var(--navy), var(--slate));
-            padding: 10px 14px;
+            padding: 0.65rem 0.875rem;
             text-align: center;
             color: var(--paper);
             position: relative;
@@ -388,20 +393,20 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 6px;
+            height: 0.375rem;
             background: repeating-linear-gradient(
                 -45deg,
                 var(--paper) 0 5px,
                 transparent 5px 10px
             );
-            transform: translateY(-6px);
+            transform: translateY(-0.375rem);
         }
 
         .total-label {
-            font-size: 0.7rem;
+            font-size: 0.74rem;
             letter-spacing: 0.16em;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 0.15rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -412,11 +417,11 @@
 
         .total-amount {
             font-family: 'Noto Serif TC', serif;
-            font-size: 1.72rem;
+            font-size: 1.88rem;
             font-weight: 900;
             letter-spacing: 0.01em;
             font-variant-numeric: tabular-nums;
-            line-height: 1.15;
+            line-height: 1.1;
         }
 
         .total-amount.negative {
@@ -426,36 +431,38 @@
         /* ===== Footer ===== */
         .footer-note {
             text-align: center;
-            margin-top: 4px;
+            margin-top: 0.25rem;
             color: rgba(250, 248, 245, 0.5);
-            font-size: 0.68rem;
-            line-height: 1.35;
-            padding: 0 6px 0;
+            font-size: 0.7rem;
+            line-height: 1.3;
+            padding: 0 0.375rem;
+            flex-shrink: 0;
         }
 
         .clear-btn {
             background: var(--negative-dark);
             color: #F0D4D0;
             border: none;
-            border-radius: 6px;
-            padding: 5px 12px;
+            border-radius: 0.375rem;
+            padding: 0.35rem 0.75rem;
             width: auto;
-            margin: 4px auto 0;
+            margin: 0.25rem auto 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            font-size: 0.76rem;
+            gap: 0.3rem;
+            font-size: 0.8rem;
             font-weight: 600;
             letter-spacing: 0.02em;
             cursor: pointer;
             transition: background 0.2s, transform 0.2s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
         }
 
         .clear-btn i {
-            font-size: 0.72rem;
+            font-size: 0.76rem;
             opacity: 0.9;
         }
 
@@ -471,7 +478,7 @@
             align-items: center;
             cursor: pointer;
             color: var(--slate);
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -571,37 +578,6 @@
 
             .clear-btn:hover {
                 background: #8B4038;
-            }
-        }
-
-        /* ===== Mobile tightening ===== */
-        @media (max-width: 380px) {
-            body {
-                padding: max(2px, env(safe-area-inset-top)) 8px max(1px, env(safe-area-inset-bottom));
-            }
-            h1 {
-                font-size: 1.2rem;
-            }
-            .calc-section {
-                padding: 6px 10px;
-            }
-            input[type="number"] {
-                width: 62px;
-                padding: 4px 3px;
-                font-size: 0.9rem;
-            }
-            .amount-display {
-                font-size: 0.94rem;
-                min-width: 88px;
-            }
-            .total-amount {
-                font-size: 1.52rem;
-            }
-            label {
-                font-size: 0.84rem;
-            }
-            .section-title {
-                font-size: 0.84rem;
             }
         }
 
@@ -816,6 +792,69 @@
     </div>
 
     <script>
+        // 依螢幕高度自動放大文字，填滿可視區域
+        (function initViewportFit() {
+            const root = document.documentElement;
+            const body = document.body;
+            const container = document.querySelector('.container');
+            const MIN_FONT = 14;
+            const MAX_FONT = 26;
+            const STEP = 0.25;
+            let rafId = null;
+
+            function getAvailableHeight() {
+                const bodyStyle = getComputedStyle(body);
+                const padTop = parseFloat(bodyStyle.paddingTop) || 0;
+                const padBottom = parseFloat(bodyStyle.paddingBottom) || 0;
+                return window.innerHeight - padTop - padBottom;
+            }
+
+            function measureHeight() {
+                return container.getBoundingClientRect().height;
+            }
+
+            function fitToViewport() {
+                if (!container) return;
+
+                let size = MIN_FONT;
+                root.style.fontSize = size + 'px';
+                const available = getAvailableHeight();
+
+                while (size < MAX_FONT) {
+                    root.style.fontSize = size + 'px';
+                    if (measureHeight() >= available * 0.998) break;
+                    size += STEP;
+                }
+
+                while (size > MIN_FONT && measureHeight() > available) {
+                    size -= STEP;
+                    root.style.fontSize = size + 'px';
+                }
+
+                body.style.overflowY = measureHeight() > available ? 'auto' : 'hidden';
+            }
+
+            function scheduleFit() {
+                if (rafId !== null) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(function() {
+                    rafId = null;
+                    fitToViewport();
+                });
+            }
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(scheduleFit);
+            } else {
+                scheduleFit();
+            }
+
+            window.addEventListener('resize', scheduleFit);
+            window.addEventListener('orientationchange', function() {
+                setTimeout(scheduleFit, 120);
+            });
+            window.addEventListener('load', scheduleFit);
+        })();
+
         // 防止手機螢幕縮放和放大
         (function() {
             let lastTouchEnd = 0;
