@@ -134,19 +134,16 @@
 
   /* ── PHASE PANELS ── */
   #school-list {
-    flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+    flex: 1; display: flex; flex-direction: column;
+    overflow-y: auto; min-height: 0;
   }
+  #school-list::-webkit-scrollbar { width: 4px; }
+  #school-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
   .phase-group {
     display: flex; flex-direction: column;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    min-height: 0;
-    transition: flex 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-  .phase-group.expanded {
-    flex: 1;
-    min-height: 0;
   }
 
   .phase-header {
@@ -171,24 +168,23 @@
     background: rgba(0,0,0,0.07); border-radius: 10px; padding: 1px 7px;
   }
   .phase-chevron {
-    font-size: 14px; color: var(--green); transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    font-size: 14px; color: var(--green); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .phase-group.expanded .phase-chevron { transform: rotate(180deg); }
 
+  /* 平滑開闔：grid row 0fr → 1fr，可流暢動畫高度（避免 max-height:none 的瞬間跳變） */
   .phase-body {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
-    flex-shrink: 0;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .phase-group.expanded .phase-body {
-    overflow-y: auto;
-    max-height: none;
-    flex: 1;
+    grid-template-rows: 1fr;
+  }
+  .phase-body-inner {
+    overflow: hidden;
     min-height: 0;
   }
-  .phase-body::-webkit-scrollbar { width: 3px; }
-  .phase-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
   /* ── SCHOOL ROW ── */
   .school-row {
@@ -399,6 +395,9 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
   const body = document.createElement('div');
   body.className = 'phase-body';
 
+  const bodyInner = document.createElement('div');
+  bodyInner.className = 'phase-body-inner';
+
   phaseSchools.forEach((s, localIdx) => {
     const globalIdx = schools.length;
     schools.push(s);
@@ -426,50 +425,25 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
       </div>
     `;
     row.addEventListener('click', () => locateOnMap(globalIdx));
-    body.appendChild(row);
+    bodyInner.appendChild(row);
   });
 
-  // 互斥折疊的核心處理函數
-  function triggerToggle() {
-    if (phaseId === 1) {
-      if (!group.classList.contains('expanded')) {
-        group.classList.add('expanded');
-        if (phase2Group) phase2Group.classList.remove('expanded');
-      }
-    } else if (phaseId === 2) {
-      if (!group.classList.contains('expanded')) {
-        group.classList.add('expanded');
-        if (phase1Group) phase1Group.classList.remove('expanded');
-      }
-    }
-  }
-
-  // 點擊事件
+  // 點擊切換（互斥：同時僅一個展開，確保左側列表始終有可視內容；移除懸停自動開闔以消除開闔打架）
   header.addEventListener('click', (e) => {
     e.stopPropagation();
-    // 如果點擊的是已經打開的階段，則做反向切換（維持總有一個是開的）
+    const sibling = phaseId === 1 ? phase2Group : phase1Group;
     if (group.classList.contains('expanded')) {
-      if (phaseId === 1 && phase2Group) {
-        group.classList.remove('expanded');
-        phase2Group.classList.add('expanded');
-      } else if (phaseId === 2 && phase1Group) {
-        group.classList.remove('expanded');
-        phase1Group.classList.add('expanded');
-      }
+      group.classList.remove('expanded');
+      if (sibling) sibling.classList.add('expanded');
     } else {
-      triggerToggle();
+      group.classList.add('expanded');
+      if (sibling) sibling.classList.remove('expanded');
     }
   });
-
-  // 新增：滑鼠移過（懸停）時直接觸發與點擊類似的效果（僅限非手機非觸控裝置）
-  if (!isMobile) {
-    header.addEventListener('mouseenter', () => {
-      triggerToggle();
-    });
-  }
 
   group.appendChild(header);
   group.appendChild(body);
+  body.appendChild(bodyInner);
   return group;
 }
 
