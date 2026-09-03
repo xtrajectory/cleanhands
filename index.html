@@ -72,6 +72,67 @@
             display: inline-block;
         }
 
+        /* === 標題列：標題框置中，定位圖示置於框外 === */
+        .title-row {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .title-row h1 { margin-bottom: 0; }
+        .title-box {
+            position: relative;
+            display: inline-block;
+        }
+
+        .locate-btn {
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            line-height: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .locate-btn:hover { transform: translateY(-50%) scale(1.25); }
+        .locate-btn:active { transform: translateY(-50%) scale(0.88); }
+        .locate-btn.is-loading { animation: locatePulse 1s ease-in-out infinite; pointer-events: none; }
+        @keyframes locatePulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+        /* 喚起失敗提示（不自動跳轉，僅供手動點選） */
+        .map-fallback-tip {
+            position: fixed;
+            left: 50%;
+            bottom: 95px;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 30, 30, 0.96);
+            border: 1px solid var(--glass-border);
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 13px;
+            color: #ddd;
+            white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            animation: fadeInUp 0.3s ease-out;
+        }
+        .map-fallback-tip a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            border-left: 1px solid var(--glass-border);
+            padding-left: 12px;
+        }
+        .map-fallback-tip a:hover { text-decoration: underline; }
+
         /* === 主結果顯示區 (強化優化版) === */
         #result {
             margin-top: 10px;
@@ -514,6 +575,7 @@
 
             #toggleBtn { width: 25px; font-size: 20px; padding: 0; margin: 0; }
             .footer-info { margin-bottom: 140px; }
+            .map-fallback-tip { bottom: 150px; font-size: 12px; gap: 10px; padding: 9px 14px; }
         }
     </style>
 
@@ -534,7 +596,12 @@
         <div id="heroDate" class="hero-date">Loading...</div>
     </div>
 
-    <h1 id="randomTitle">日期計算</h1>
+    <div class="title-row">
+        <div class="title-box">
+            <h1 id="randomTitle"><span id="titleText">日期計算</span></h1>
+            <span id="locateBtn" class="locate-btn" role="button" tabindex="0" title="開啟 Google 地圖並定位目前位置" aria-label="開啟 Google 地圖並定位目前位置"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></span>
+        </div>
+    </div>
     
     <div id="result">計算中...</div>
     
@@ -871,6 +938,92 @@
         } catch (error) { console.error('導出失敗:', error); alert('導出失敗，請查看控制台'); }
     }
 
+    // === 標題右側：一鍵開啟 Google 地圖並定位目前位置 ===
+    // 依平台產生對應連結：iOS 用 comgooglemaps://，Android(Chrome) 用 intent://，其餘 Android 用 geo:，桌面用 https
+    function buildMapUrls(pos) {
+        var hasPos = !!(pos && pos.coords && typeof pos.coords.latitude === 'number');
+        var p = hasPos ? (pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6)) : null;
+        var web = p ? 'https://www.google.com/maps/search/?api=1&query=' + p : 'https://www.google.com/maps/';
+        var android = p ? 'geo:' + p + '?q=' + p + '&z=16' : 'geo:0,0?q=My+Location';
+        return {
+            web: web,
+            ios: p ? 'comgooglemaps://?center=' + p + '&zoom=16' : 'comgooglemaps://',
+            android: android,
+            // Chrome intent：由系統決定性處理，有安裝 App 就開 App，沒有才走 S.browser_fallback_url
+            intent: 'intent://' + web.replace(/^https:\/\//, '') +
+                    '#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=' +
+                    encodeURIComponent(web) + ';end'
+        };
+    }
+
+    // 喚起失敗時不自動跳轉，只顯示可手動點選的提示，避免從 App 返回後殘留多餘的地圖網頁
+    function showMapFallback(webUrl) {
+        var old = document.getElementById('mapFallbackTip');
+        if (old) { old.parentNode.removeChild(old); }
+
+        var tip = document.createElement('div');
+        tip.id = 'mapFallbackTip';
+        tip.className = 'map-fallback-tip';
+        tip.innerHTML = '<span>未能開啟 Google 地圖 App</span>' +
+                        '<a href="' + webUrl + '" target="_blank" rel="noopener noreferrer">改以網頁版開啟</a>';
+        document.body.appendChild(tip);
+
+        var dismiss = function () {
+            if (tip.parentNode) { tip.parentNode.removeChild(tip); }
+        };
+        tip.addEventListener('click', function (e) {
+            if (e.target.tagName !== 'A') { dismiss(); }
+        });
+        window.setTimeout(dismiss, 8000);
+    }
+
+    function launchMap(urls) {
+        var ua = navigator.userAgent || '';
+        var isIOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isAndroid = /Android/i.test(ua);
+        var isChrome = /Chrome\/|Chromium\//i.test(ua) && !/EdgA|OPR|Opera/i.test(ua);
+
+        // 桌面或其他平台：直接開啟網頁版
+        if (!isIOS && !isAndroid) { window.location.href = urls.web; return; }
+
+        // Android + Chrome：intent:// 由系統決定性處理，不會有競態，故不需後備計時器
+        if (isAndroid && isChrome) { window.location.href = urls.intent; return; }
+
+        // iOS 與非 Chrome 的 Android：先喚起 App；逾時後只顯示提示，不自動跳轉網頁
+        window.location.href = isIOS ? urls.ios : urls.android;
+        window.setTimeout(function () {
+            if (document.visibilityState === 'visible') { showMapFallback(urls.web); }
+        }, 2500);
+    }
+
+    function openMyLocation() {
+        var btn = document.getElementById('locateBtn');
+        btn.classList.add('is-loading');
+
+        var done = function (pos) {
+            btn.classList.remove('is-loading');
+            launchMap(buildMapUrls(pos || null));
+        };
+
+        if (navigator.geolocation && window.isSecureContext !== false) {
+            navigator.geolocation.getCurrentPosition(done, function () { done(null); }, {
+                enableHighAccuracy: false,
+                timeout: 5000,
+                maximumAge: 120000
+            });
+        } else {
+            done(null);
+        }
+    }
+
+    function initLocateButton() {
+        var btn = document.getElementById('locateBtn');
+        btn.addEventListener('click', function (e) { e.stopPropagation(); openMyLocation(); });
+        btn.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openMyLocation(); }
+        });
+    }
+
     // === 底部導航欄折疊邏輯 ===
     function initNavToggle() {
         const toggleBtn = document.getElementById('toggleBtn');
@@ -901,9 +1054,10 @@
     }
 
     function init() {
-        document.getElementById('randomTitle').textContent = CONFIG.titles[Math.floor(Math.random() * CONFIG.titles.length)];
+        document.getElementById('titleText').textContent = CONFIG.titles[Math.floor(Math.random() * CONFIG.titles.length)];
         updateTimeDisplays();
         updateMainDisplay();
+        initLocateButton();
         initNavToggle(); 
         setInterval(updateTimeDisplays, 1000);
         setInterval(updateMainDisplay, 60000);
