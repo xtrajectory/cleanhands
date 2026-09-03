@@ -96,13 +96,12 @@
             padding: 2px;
             line-height: 0;
             cursor: pointer;
+            text-decoration: none;
             -webkit-tap-highlight-color: transparent;
             transition: transform 0.2s ease, opacity 0.2s ease;
         }
         .locate-btn:hover { transform: translateY(-50%) scale(1.25); }
         .locate-btn:active { transform: translateY(-50%) scale(0.88); }
-        .locate-btn.is-loading { animation: locatePulse 1s ease-in-out infinite; pointer-events: none; }
-        @keyframes locatePulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 
         /* === 主結果顯示區 (強化優化版) === */
         #result {
@@ -569,7 +568,7 @@
     <div class="title-row">
         <div class="title-box">
             <h1 id="randomTitle"><span id="titleText">日期計算</span></h1>
-            <span id="locateBtn" class="locate-btn" role="button" tabindex="0" title="開啟 Google 地圖並定位目前位置（未安裝 App 時開啟網頁版）" aria-label="開啟 Google 地圖並定位目前位置（未安裝 App 時開啟網頁版）"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></span>
+            <a id="locateBtn" class="locate-btn" href="https://www.google.com/maps/" title="開啟 Google 地圖 App" aria-label="開啟 Google 地圖 App"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></a>
         </div>
     </div>
     
@@ -593,7 +592,7 @@
             <a href="schedule.html"><button class="map-button">📅 Schedule</button></a>
             <a href="salary_calculator.html"><button class="map-button">💰 薪俸</button></a>
             <a href="age_calculator.html"><button class="map-button">🧮 年齡</button></a>
-            <a href="map.html"><button class="map-button">🗺️ 地圖</button></a>
+            <a href="https://www.google.com/maps/d/edit?mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA&amp;usp=drive_link" target="_blank" rel="noopener noreferrer"><button class="map-button">🗺️ 地圖</button></a>
             <a href="school_map.html"><button class="map-button">🏫 學校</button></a>
             <button id="toggleBtn">▼</button>
         </div>
@@ -908,99 +907,56 @@
         } catch (error) { console.error('導出失敗:', error); alert('導出失敗，請查看控制台'); }
     }
 
-    // === 標題右側：開啟指定的 Google 我的地圖，並以目前位置為地圖中心 ===
-    const MY_MAP = {
-        path: 'https://www.google.com/maps/d/u/0/edit',
-        query: 'hl=zh-TW&mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA',
-        zoom: 14,
-        // 無法取得定位時使用的預設中心點（即原本網址內的 ll 值）
-        defaultCenter: '22.198266945323063,113.54491889999997'
+    // === 標題右側：一鍵直接開啟 Google 地圖 App（不彈出任何提示） ===
+    // 設計原則：
+    //   1. 不呼叫 Geolocation API —— 避免「網站要求取用您的位置」權限詢問框；
+    //      圖示改為真實 <a>，href 於載入時依平台填入，讓開啟動作發生在使用者點擊的當下。
+    //   2. iOS Safari 以 transient activation 判定是否為使用者手勢：只要在 geolocation 等非同步
+    //      回呼中才導向，手勢就失效，iOS 便會彈出「在『Google 地圖』中打開此頁面？」確認框。
+    //      因此必須「同步」導向，才能無提示直接開啟 App。
+    //   3. 不設計時器後備：App 冷啟動較慢會被誤判，且先前因此產生多餘的網頁分頁。
+    //      改由平台原生的後備機制處理（Android intent:// 的 S.browser_fallback_url）。
+    //   4. Google 地圖 App 開啟後本來就會顯示目前位置，無須由網頁傳入座標。
+    const GMAP = {
+        // iOS：Google 地圖 App 專屬協定，無參數即開啟 App 首頁（App 自行定位）
+        iosApp: 'comgooglemaps://',
+        // iOS 替代方案（若實測仍出現確認框，把下行改為 true 即可改用 Universal Link，
+        // 缺點是可能被 Safari 直接開啟網頁而不交給 App）
+        iosUseUniversalLink: false,
+        iosUniversalLink: 'https://maps.google.com/maps?q=My+Location',
+        // 桌面或其他平台
+        web: 'https://www.google.com/maps/',
+        androidPackage: 'com.google.android.apps.maps'
     };
 
-    // 以 ll（緯度,經度）帶入目前位置，讓「我的地圖」開啟時即落在所在位置
-    function buildMapUrls(pos) {
-        var hasPos = !!(pos && pos.coords && typeof pos.coords.latitude === 'number');
-        var center = hasPos
-            ? (pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6))
-            : MY_MAP.defaultCenter;
-
-        // 網頁版：指定的我的地圖，以 ll 作為地圖中心
-        var web = MY_MAP.path + '?' + MY_MAP.query +
-                  '&ll=' + encodeURIComponent(center) +
-                  '&z=' + MY_MAP.zoom;
-
-        return {
-            web: web,
-            // iOS：comgooglemapsurl:// 為 Google 官方提供的協定，可將電腦版 Google 地圖網址
-            //      （符合 www.google.{TLD}/maps/ 形式，我的地圖亦在內）交給 App 開啟
-            ios: 'comgooglemapsurl://' + web.replace(/^https:\/\//, ''),
-            // Android：geo: 由系統解析給地圖 App（此協定無法攜帶我的地圖，僅能帶座標）
-            android: 'geo:' + center + '?q=' + center + '&z=' + MY_MAP.zoom,
-            // Android(Chrome 系)：intent:// 將我的地圖網址交給 App，未安裝才走 S.browser_fallback_url
-            intent: 'intent://' + web.replace(/^https:\/\//, '') +
-                    '#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=' +
-                    encodeURIComponent(web) + ';end'
-        };
-    }
-
-    // 兩段式偵測：App 冷啟動可能較慢，須連續兩次檢查都停留在本頁，才判定「未安裝」並改開網頁
-    function fallbackIfNotLaunched(webUrl) {
-        var CHECKS = [1800, 3400];
-        var step = 0;
-        var next = function () {
-            if (step >= CHECKS.length) { window.location.href = webUrl; return; }
-            var delay = CHECKS[step] - (step === 0 ? 0 : CHECKS[step - 1]);
-            step++;
-            window.setTimeout(function () {
-                if (document.visibilityState === 'visible') { next(); }
-            }, delay);
-        };
-        next();
-    }
-
-    function launchMap(urls) {
+    // 依平台產生目標網址，於頁面載入時寫入 <a> 的 href
+    function resolveMapUrl() {
         var ua = navigator.userAgent || '';
         var isIOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var isAndroid = /Android/i.test(ua);
-        var isChromium = /Chrome\/|Chromium\/|SamsungBrowser\//i.test(ua) && !/EdgA|OPR|Opera/i.test(ua);
 
-        // 桌面或其他平台：直接開啟網頁版
-        if (!isIOS && !isAndroid) { window.location.href = urls.web; return; }
-
-        // Android + Chrome 系：intent:// 無競態，有 App 開 App，沒有才自動開網頁
-        if (isAndroid && isChromium) { window.location.href = urls.intent; return; }
-
-        // iOS 與其他 Android 瀏覽器：先喚起 App，確認沒喚起才開網頁
-        window.location.href = isIOS ? urls.ios : urls.android;
-        fallbackIfNotLaunched(urls.web);
-    }
-
-    function openMyLocation() {
-        var btn = document.getElementById('locateBtn');
-        btn.classList.add('is-loading');
-
-        var done = function (pos) {
-            btn.classList.remove('is-loading');
-            launchMap(buildMapUrls(pos || null));
-        };
-
-        if (navigator.geolocation && window.isSecureContext !== false) {
-            navigator.geolocation.getCurrentPosition(done, function () { done(null); }, {
-                enableHighAccuracy: true,
-                timeout: 6000,
-                maximumAge: 60000
-            });
-        } else {
-            done(null);
+        if (isIOS) {
+            return GMAP.iosUseUniversalLink ? GMAP.iosUniversalLink : GMAP.iosApp;
         }
+
+        if (isAndroid) {
+            var isChromium = /Chrome\/|Chromium\/|SamsungBrowser\//i.test(ua) && !/EdgA|OPR|Opera/i.test(ua);
+            if (isChromium) {
+                // intent:// 明確指定套件名稱 → 系統直接交給 Google 地圖，不會出現「選擇應用程式」清單；
+                // 未安裝時由 S.browser_fallback_url 導向網頁版，也不會顯示錯誤
+                return 'intent://maps.google.com/maps' +
+                       '#Intent;scheme=https;package=' + GMAP.androidPackage +
+                       ';S.browser_fallback_url=' + encodeURIComponent(GMAP.web) + ';end';
+            }
+            // 其他 Android 瀏覽器：geo: 為系統標準協定，交由地圖 App 顯示目前位置
+            return 'geo:0,0?q=My+Location';
+        }
+
+        return GMAP.web;
     }
 
     function initLocateButton() {
-        var btn = document.getElementById('locateBtn');
-        btn.addEventListener('click', function (e) { e.stopPropagation(); openMyLocation(); });
-        btn.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openMyLocation(); }
-        });
+        document.getElementById('locateBtn').href = resolveMapUrl();
     }
 
     // === 底部導航欄折疊邏輯 ===
