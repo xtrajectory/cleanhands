@@ -104,35 +104,6 @@
         .locate-btn.is-loading { animation: locatePulse 1s ease-in-out infinite; pointer-events: none; }
         @keyframes locatePulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 
-        /* 喚起失敗提示（不自動跳轉，僅供手動點選） */
-        .map-fallback-tip {
-            position: fixed;
-            left: 50%;
-            bottom: 95px;
-            transform: translateX(-50%);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(30, 30, 30, 0.96);
-            border: 1px solid var(--glass-border);
-            border-radius: 999px;
-            padding: 10px 18px;
-            font-size: 13px;
-            color: #ddd;
-            white-space: nowrap;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-            animation: fadeInUp 0.3s ease-out;
-        }
-        .map-fallback-tip a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 600;
-            border-left: 1px solid var(--glass-border);
-            padding-left: 12px;
-        }
-        .map-fallback-tip a:hover { text-decoration: underline; }
-
         /* === 主結果顯示區 (強化優化版) === */
         #result {
             margin-top: 10px;
@@ -575,7 +546,6 @@
 
             #toggleBtn { width: 25px; font-size: 20px; padding: 0; margin: 0; }
             .footer-info { margin-bottom: 140px; }
-            .map-fallback-tip { bottom: 150px; font-size: 12px; gap: 10px; padding: 9px 14px; }
         }
     </style>
 
@@ -599,7 +569,7 @@
     <div class="title-row">
         <div class="title-box">
             <h1 id="randomTitle"><span id="titleText">日期計算</span></h1>
-            <span id="locateBtn" class="locate-btn" role="button" tabindex="0" title="開啟 Google 地圖並定位目前位置" aria-label="開啟 Google 地圖並定位目前位置"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></span>
+            <span id="locateBtn" class="locate-btn" role="button" tabindex="0" title="開啟 Google 地圖並定位目前位置（未安裝 App 時開啟網頁版）" aria-label="開啟 Google 地圖並定位目前位置（未安裝 App 時開啟網頁版）"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></span>
         </div>
     </div>
     
@@ -938,62 +908,71 @@
         } catch (error) { console.error('導出失敗:', error); alert('導出失敗，請查看控制台'); }
     }
 
-    // === 標題右側：一鍵開啟 Google 地圖並定位目前位置 ===
-    // 依平台產生對應連結：iOS 用 comgooglemaps://，Android(Chrome) 用 intent://，其餘 Android 用 geo:，桌面用 https
+    // === 標題右側：開啟指定的 Google 我的地圖，並以目前位置為地圖中心 ===
+    const MY_MAP = {
+        path: 'https://www.google.com/maps/d/u/0/edit',
+        query: 'hl=zh-TW&mid=11twLLP7pK2SMFY7x_0Xl_rDlWOA',
+        zoom: 14,
+        // 無法取得定位時使用的預設中心點（即原本網址內的 ll 值）
+        defaultCenter: '22.198266945323063,113.54491889999997'
+    };
+
+    // 以 ll（緯度,經度）帶入目前位置，讓「我的地圖」開啟時即落在所在位置
     function buildMapUrls(pos) {
         var hasPos = !!(pos && pos.coords && typeof pos.coords.latitude === 'number');
-        var p = hasPos ? (pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6)) : null;
-        var web = p ? 'https://www.google.com/maps/search/?api=1&query=' + p : 'https://www.google.com/maps/';
-        var android = p ? 'geo:' + p + '?q=' + p + '&z=16' : 'geo:0,0?q=My+Location';
+        var center = hasPos
+            ? (pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6))
+            : MY_MAP.defaultCenter;
+
+        // 網頁版：指定的我的地圖，以 ll 作為地圖中心
+        var web = MY_MAP.path + '?' + MY_MAP.query +
+                  '&ll=' + encodeURIComponent(center) +
+                  '&z=' + MY_MAP.zoom;
+
         return {
             web: web,
-            ios: p ? 'comgooglemaps://?center=' + p + '&zoom=16' : 'comgooglemaps://',
-            android: android,
-            // Chrome intent：由系統決定性處理，有安裝 App 就開 App，沒有才走 S.browser_fallback_url
+            // iOS：comgooglemapsurl:// 為 Google 官方提供的協定，可將電腦版 Google 地圖網址
+            //      （符合 www.google.{TLD}/maps/ 形式，我的地圖亦在內）交給 App 開啟
+            ios: 'comgooglemapsurl://' + web.replace(/^https:\/\//, ''),
+            // Android：geo: 由系統解析給地圖 App（此協定無法攜帶我的地圖，僅能帶座標）
+            android: 'geo:' + center + '?q=' + center + '&z=' + MY_MAP.zoom,
+            // Android(Chrome 系)：intent:// 將我的地圖網址交給 App，未安裝才走 S.browser_fallback_url
             intent: 'intent://' + web.replace(/^https:\/\//, '') +
                     '#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=' +
                     encodeURIComponent(web) + ';end'
         };
     }
 
-    // 喚起失敗時不自動跳轉，只顯示可手動點選的提示，避免從 App 返回後殘留多餘的地圖網頁
-    function showMapFallback(webUrl) {
-        var old = document.getElementById('mapFallbackTip');
-        if (old) { old.parentNode.removeChild(old); }
-
-        var tip = document.createElement('div');
-        tip.id = 'mapFallbackTip';
-        tip.className = 'map-fallback-tip';
-        tip.innerHTML = '<span>未能開啟 Google 地圖 App</span>' +
-                        '<a href="' + webUrl + '" target="_blank" rel="noopener noreferrer">改以網頁版開啟</a>';
-        document.body.appendChild(tip);
-
-        var dismiss = function () {
-            if (tip.parentNode) { tip.parentNode.removeChild(tip); }
+    // 兩段式偵測：App 冷啟動可能較慢，須連續兩次檢查都停留在本頁，才判定「未安裝」並改開網頁
+    function fallbackIfNotLaunched(webUrl) {
+        var CHECKS = [1800, 3400];
+        var step = 0;
+        var next = function () {
+            if (step >= CHECKS.length) { window.location.href = webUrl; return; }
+            var delay = CHECKS[step] - (step === 0 ? 0 : CHECKS[step - 1]);
+            step++;
+            window.setTimeout(function () {
+                if (document.visibilityState === 'visible') { next(); }
+            }, delay);
         };
-        tip.addEventListener('click', function (e) {
-            if (e.target.tagName !== 'A') { dismiss(); }
-        });
-        window.setTimeout(dismiss, 8000);
+        next();
     }
 
     function launchMap(urls) {
         var ua = navigator.userAgent || '';
         var isIOS = /iPad|iPhone|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var isAndroid = /Android/i.test(ua);
-        var isChrome = /Chrome\/|Chromium\//i.test(ua) && !/EdgA|OPR|Opera/i.test(ua);
+        var isChromium = /Chrome\/|Chromium\/|SamsungBrowser\//i.test(ua) && !/EdgA|OPR|Opera/i.test(ua);
 
         // 桌面或其他平台：直接開啟網頁版
         if (!isIOS && !isAndroid) { window.location.href = urls.web; return; }
 
-        // Android + Chrome：intent:// 由系統決定性處理，不會有競態，故不需後備計時器
-        if (isAndroid && isChrome) { window.location.href = urls.intent; return; }
+        // Android + Chrome 系：intent:// 無競態，有 App 開 App，沒有才自動開網頁
+        if (isAndroid && isChromium) { window.location.href = urls.intent; return; }
 
-        // iOS 與非 Chrome 的 Android：先喚起 App；逾時後只顯示提示，不自動跳轉網頁
+        // iOS 與其他 Android 瀏覽器：先喚起 App，確認沒喚起才開網頁
         window.location.href = isIOS ? urls.ios : urls.android;
-        window.setTimeout(function () {
-            if (document.visibilityState === 'visible') { showMapFallback(urls.web); }
-        }, 2500);
+        fallbackIfNotLaunched(urls.web);
     }
 
     function openMyLocation() {
@@ -1007,9 +986,9 @@
 
         if (navigator.geolocation && window.isSecureContext !== false) {
             navigator.geolocation.getCurrentPosition(done, function () { done(null); }, {
-                enableHighAccuracy: false,
-                timeout: 5000,
-                maximumAge: 120000
+                enableHighAccuracy: true,
+                timeout: 6000,
+                maximumAge: 60000
             });
         } else {
             done(null);
