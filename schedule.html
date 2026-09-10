@@ -7,12 +7,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         /* 在這裡加入您的 CSS 樣式 */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            margin: 16px;
+            margin: 16px auto;
+            width: fit-content;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden;
+            overscroll-behavior-x: none;
+            position: relative;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
@@ -20,26 +34,69 @@
         }
 
         h1 {
-            margin-bottom: 5px;
+            margin: 0 0 4px 0;
         }
 
        .calendar {
             margin-bottom: 24px;
             width: 500px;
+            max-width: 100%;
             text-align: center;
+            box-sizing: border-box;
+            border: 2px solid #4a4a4a;
+            border-radius: 6px;
+            padding: 8px 0 10px;
+            background-color: #ffffff; /* 預設底色，會被下方年份規則覆蓋 */
+        }
+
+        /* 2026 年月曆底色：淺綠色 */
+       .calendar[data-year="2026"] {
+            background-color: #d9f2d9;
+        }
+
+        /* 2027 年月曆底色：淺藍色 */
+       .calendar[data-year="2027"] {
+            background-color: #d9e8f9;
         }
 
        .calendar table {
             border-collapse: collapse;
             width: 100%;
+            table-layout: fixed;
         }
 
         th,
         td {
-            border: 1px solid #ddd;
+            border: 1px solid #888;
             padding: 8px;
             text-align: center;
             font-size: 16px;
+            background-color: transparent;
+        }
+
+        th {
+            border-top: 3px solid #333;
+        }
+
+       .month-title {
+            position: relative;
+            font-size: 22px;
+            font-weight: bold;
+            height: 40px;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+       .rest-days {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            font-weight: normal;
+            color: #555;
         }
 
        .shift-label {
@@ -66,14 +123,14 @@
         }
 
        .shift-buttons {
-            margin: 6px 0 2px 0;
+            margin: 2px 0 0 0;
             display: flex;
             justify-content: center;
         }
 
        .shift-button {
             padding: 10px 20px;
-            margin: 10px;
+            margin: 4px 10px;
             font-size: 20px; /* 按钮文字大小为 24px */
             font-weight: bold;
             cursor: pointer;
@@ -96,7 +153,7 @@
 
        .odd-even-buttons {
             margin-top: 0;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: center;
             gap: 20px;
@@ -135,7 +192,7 @@
 
         /* 添加當前週的樣式 */
        .current-week {
-            background-color: #9ec0c5;
+            background-color: #ffff00;
             font-weight: bold;
         }
         
@@ -194,6 +251,30 @@
             border-bottom-color: rgba(0, 0, 0, 0.9);
         }
 
+        /* 最左欄（週日）：提示框往右內移，避免被月曆左邊框裁切 */
+        td:first-child .holiday-tooltip {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        td:first-child .holiday-tooltip::after {
+            left: 18px;
+            transform: translateX(0);
+        }
+
+        /* 最右欄（週六）：提示框往左內移，避免被月曆右邊框裁切 */
+        td:last-child .holiday-tooltip {
+            left: auto;
+            right: 0;
+            transform: translateX(0);
+        }
+
+        td:last-child .holiday-tooltip::after {
+            left: auto;
+            right: 18px;
+            transform: translateX(0);
+        }
+
         td.holiday-cell:hover .holiday-tooltip {
             opacity: 1;
         }
@@ -217,6 +298,7 @@
         @media screen and (max-width: 768px) {
            .calendar {
                 width: 400px;
+                max-width: 100%;
             }
 
             th,
@@ -398,6 +480,22 @@
             return selectedShift;
         }
 
+        // 計算某年某月的假期天數（週六、週日 + 特別假期，重複日期只算一次）
+        function countRestDays(year, month) {
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let count = 0;
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateObj = new Date(year, month, d);
+                const dayOfWeek = dateObj.getDay();
+                const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                const isHoliday = formatDateToString(dateObj) in specialHolidays;
+                if (isWeekend || isHoliday) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         function createCalendar(year, month, initialShift) {
             const today = new Date();
             const currentYear = today.getFullYear();
@@ -411,9 +509,10 @@
 
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
+            const restDaysCount = countRestDays(year, month);
 
             let html = `<div class="calendar" data-year="${year}" data-month="${month + 1}">
-                    <div class="month-title">${year}年 ${getMonthName(month)}</div>
+                    <div class="month-title">${year}年 ${getMonthName(month)}<span class="rest-days">(休假${restDaysCount}天)</span></div>
                     <table>
                         <tr>
                             <th>週日</th>
