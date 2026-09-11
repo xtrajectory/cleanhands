@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<html lang="zh-TW" data-page-node-id="ubC2yZUCQCyqZnkHiIwfL4">
+<head data-page-node-id="mY1XvE64vFFIRFEzNijn7k">
+    <meta charset="UTF-8" data-page-node-id="buwygNDFSjP9shJ09zXEgc">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" data-page-node-id="07c5kGXLnUhNldUvNcEVoA">
     <title>Cleanhands page</title>
-    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=160&id=0WINekHENi8b&format=png" sizes="96x96">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=160&id=0WINekHENi8b&format=png" sizes="96x96" data-page-node-id="aJd0LkbD1MnCKIeTExdlPv">
     <style>
         /* === 全局變量與基礎設置 === */
         :root {
@@ -27,7 +27,8 @@
             min-height: 100vh;
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            padding: 20px 0 100px 0;
+            /* 底部留白：預留固定按鈕列的高度，避免內容被列遮蔽（實際值由 JS 依列高精算覆寫） */
+            padding: 20px 0 130px 0;
             box-sizing: border-box;
             -webkit-user-select: none;
             user-select: none;
@@ -407,31 +408,39 @@
         }
 
 
-        /* === 底部導航欄 === */
+        /* === 底部導航列 ===
+           電腦與手機一致：固定貼齊視窗最下緣。兩列共用同一組欄寬（4 個按鈕 + 1 個固定寬度的尾欄），確保上下對齊 */
         .map-button-container {
             position: fixed;
-            right: 20px;
-            bottom: 30px;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            width: fit-content;
-            max-width: 800px; 
-            transition: all 0.3s ease;
+            padding: 8px 20px calc(8px + env(safe-area-inset-bottom, 0px));
+            background-color: rgba(0, 0, 0, 0.95);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            box-sizing: border-box;
         }
 
         .map-button-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) 30px;
             gap: 8px;
             width: 100%;
-            justify-content: flex-end;
+            /* 每個按鈕寬度為原設計的 3/4（139.5px → 105px） */
+            max-width: 480px;
+            margin-left: auto;   /* 整列靠右下排列，維持「右下角」的操作習慣 */
+            align-items: center;
         }
 
         #hiddenRow {
             display: none;
             width: 100%;
-            justify-content: flex-start;
             animation: slideUp 0.3s ease-out;
         }
 
@@ -441,7 +450,7 @@
             color: white;
             cursor: pointer;
             border-radius: 8px;
-            padding: 10px 15px;
+            padding: 10px 8px;
             font-size: 14px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             white-space: nowrap;
@@ -449,32 +458,71 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
             transition: transform 0.2s, background-color 0.2s;
         }
         
         .map-button:active { transform: scale(0.95); }
-        .map-button-row a { text-decoration: none; }
+        .map-button-row a { text-decoration: none; display: flex; min-width: 0; }
+        .map-button-row a button { width: 100%; }
 
+        /* === 收合鈕：立體深灰 ▼（7 秒一次反光；展開時先反轉、再漸變為棕色） === */
         #toggleBtn {
             background: transparent;
             border: none;
             box-shadow: none;
-            width: 30px;
+            width: 100%;
             padding: 0;
-            color: #666;
-            font-size: 26px;
-            flex: 0 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.3s ease, color 0.3s;
-            margin-left: 2px;
+            -webkit-tap-highlight-color: transparent;
+            transform-origin: 50% 50%;
+            /* 反轉較快（0.34s）且帶極輕微回彈；顏色漸變延後 0.3s 才開始，形成「先反轉、後變色」 */
+            transition: transform 0.34s cubic-bezier(0.34, 1.32, 0.64, 1);
         }
-        
-        #toggleBtn:hover { color: #aaa; transform: scale(1.1); }
-        #toggleBtn.rotated { transform: rotate(180deg); }
+
+        #toggleBtn .chev {
+            display: block;
+            width: 22px;
+            height: 22px;
+            filter: drop-shadow(0 1.5px 1.1px rgba(0, 0, 0, 0.8));
+        }
+
+        /* 深灰立體本體（底層，常駐） */
+        #toggleBtn .chev-body-grey { opacity: 1; }
+
+        /* 棕色本體（上層），僅在展開時淡入 */
+        #toggleBtn .chev-body-brown {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #toggleBtn.rotated .chev-body-brown {
+            opacity: 1;
+            transition-delay: 0.3s;
+        }
+
+        /* 反光帶：每 7 秒由左至右掠過一次（以三角形為遮罩，不會溢出外形） */
+        #toggleBtn .chev-shine {
+            animation: chevShine 7s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+        @keyframes chevShine {
+            0%   { transform: translateX(-30px); }
+            18%  { transform: translateX(30px); }
+            100% { transform: translateX(30px); }
+        }
+
+        #toggleBtn:hover { transform: scale(1.1); }
+        #toggleBtn.rotated { transform: rotate(180deg) scale(1.1); }
+        #toggleBtn.rotated:hover { transform: rotate(180deg) scale(1.18); }
+
+        @media (prefers-reduced-motion: reduce) {
+            #toggleBtn .chev-shine { animation: none; opacity: 0; }
+            #toggleBtn .chev-body-brown { transition-delay: 0s; transition-duration: 0.01s; }
+        }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(10px); }
@@ -513,38 +561,33 @@
                 padding: 10px 2px;
             }
 
+            body {
+                /* 手機維持滿版底欄；底部留白再加上 iPhone 底部安全區（Home Indicator） */
+                padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+            }
+
             .map-button-container {
-                right: 0; bottom: 0; left: 0;
-                width: 100%; max-width: 100vw;
-                background-color: rgba(0, 0, 0, 0.95);
-                backdrop-filter: blur(10px);
-                padding: 6px 4px;
-                border-top: 1px solid #333;
+                padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
                 gap: 6px;
-                box-sizing: border-box;
-                display: flex;
-                flex-direction: column;
             }
 
             .map-button-row {
-                display: flex; flex-wrap: nowrap;
-                justify-content: space-between;
-                width: 100%; overflow-x: visible;
-                gap: 6px; 
+                grid-template-columns: repeat(4, minmax(0, 1fr)) 25px;
+                gap: 5px;
+                width: 100%;
+                max-width: none;   /* 手機：按鈕列維持滿版 */
             }
-
-            #hiddenRow { justify-content: flex-start; }
 
             .map-button {
-                font-size: 13px; padding: 0 5px; height: 36px;
-                width: auto; min-width: 0; white-space: nowrap; flex: 0 1 auto;
+                font-size: 12.5px;
+                padding: 0 4px;
+                height: 36px;
+                width: 100%;
+                letter-spacing: -0.2px;
             }
 
-            .map-button-row a { flex: 1 1 auto; min-width: 0; display: flex; }
-            .map-button-row a button { width: 100%; }
-
-            #toggleBtn { width: 25px; font-size: 20px; padding: 0; margin: 0; }
-            .footer-info { margin-bottom: 140px; }
+            #toggleBtn { width: 100%; padding: 0; margin: 0; }
+            #toggleBtn .chev { width: 19px; height: 19px; }
         }
     </style>
 
@@ -558,51 +601,85 @@
   gtag('config', 'G-EZTW98Q8GK');
 </script> 
 
-<body oncontextmenu="return false;">
+<body oncontextmenu="return false;" data-page-node-id="BEAFI4OCHvC0eMC0P7FVwG">
 
-    <div class="hero-section">
-        <div id="heroTime" class="hero-time">00:00:00</div>
-        <div id="heroDate" class="hero-date">Loading...</div>
+    <div class="hero-section" data-page-node-id="AOzppyIYulNXVCCKI1W4F0">
+        <div id="heroTime" class="hero-time" data-page-node-id="gsDnzD2eSoYWjNiIJ9gooa">00:00:00</div>
+        <div id="heroDate" class="hero-date" data-page-node-id="Vjl8TkQ92XXUVZUFHiXSS2">Loading...</div>
     </div>
 
-    <div class="title-row">
-        <div class="title-box">
-            <h1 id="randomTitle"><span id="titleText">日期計算</span></h1>
-            <a id="locateBtn" class="locate-btn" href="https://www.google.com/maps/" title="開啟 Google 地圖 App" aria-label="開啟 Google 地圖 App"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300"/><circle cx="12" cy="9" r="2.6" fill="#111111"/></svg></a>
+    <div class="title-row" data-page-node-id="ZHI2yveR7LcBEZ2TsMG9pW">
+        <div class="title-box" data-page-node-id="4rxDC41mnZozY9GrPp0P3C">
+            <h1 id="randomTitle" data-page-node-id="x1faNLKDLd0wdTIZmv3ph0"><span id="titleText" data-page-node-id="38LrLRHqdch0GPRMX738Fl">日期計算</span></h1>
+            <a id="locateBtn" class="locate-btn" href="https://www.google.com/maps/" title="開啟 Google 地圖 App" aria-label="開啟 Google 地圖 App" data-page-node-id="KSclliDgfuc7IZ2OgKN6IA"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" data-page-node-id="bLUUqydRIfcffpUeiPjbga"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#C6A300" data-page-node-id="HBoNLxGF88dHeUKT6PxkOz"/><circle cx="12" cy="9" r="2.6" fill="#111111" data-page-node-id="OcAEv0WDgdZsvqirKSC7aA"/></svg></a>
         </div>
     </div>
     
-    <div id="result">計算中...</div>
+    <div id="result" data-page-node-id="EsXTa5g4gFofab4mFpTn6c">計算中...</div>
     
-    <div class="button-container">
-        <button onclick="toggleFutureDates()">未來五天</button>
-        <button onclick="toggleVerification()">驗算</button>
-        <button onclick="export120DaysTable()">導出120天</button>
+    <div class="button-container" data-page-node-id="Iaj3bvfEkeHipO6ZZzHvNq">
+        <button onclick="toggleFutureDates()" data-page-node-id="OYg7jdjGjPOaNgNFXpsQfT">未來五天</button>
+        <button onclick="toggleVerification()" data-page-node-id="S2G34zmARrcSllwb2WUt2l">驗算</button>
+        <button onclick="export120DaysTable()" data-page-node-id="GgZXSDRsHzJfqMezGhvVvm">導出120天</button>
     </div>
 
-    <div id="futureDatesTable" style="display: none;"></div>
-    <div id="verificationResult" style="display: none;"></div>
+    <div id="futureDatesTable" style="display: none;" data-page-node-id="OVQu3UUcFhDrEp2g6R5ILI"></div>
+    <div id="verificationResult" style="display: none;" data-page-node-id="5V9nxELv0LdOZelqa8b6MD"></div>
     
-    <div class="footer-info">
-        <p id="disclaimer">計算結果僅供參考。</p>
+    <div class="footer-info" data-page-node-id="DcCY0PDLtxAQGrdg7lHgkw">
+        <p id="disclaimer" data-page-node-id="3pbf6xNQmziNotq5qTfUYF">計算結果僅供參考。</p>
     </div>
 
-    <div class="map-button-container" id="navContainer">
-        <div class="map-button-row">
-            <a href="schedule.html"><button class="map-button">📅 Schedule</button></a>
-            <a href="salary_calculator.html"><button class="map-button">💰 薪俸</button></a>
-            <a href="age_calculator.html"><button class="map-button">🧮 年齡</button></a>
-            <a href="map.html"><button class="map-button">🗺️ 地圖</button></a>
-            <a href="school_map.html"><button class="map-button">🏫 學校</button></a>
-            <button id="toggleBtn">▼</button>
+    <div class="map-button-container" id="navContainer" data-page-node-id="IkVIdfCruNCBecN34vfCBx">
+        <div class="map-button-row" data-page-node-id="WGPKHqYHp9DsbXOP0YU4Cs">
+            <a href="schedule.html" data-page-node-id="V850rZeNXvgANPC84sCnkp"><button class="map-button" data-page-node-id="V8Ycgbn8PBtY5svjTKp76F">📅 Schedule</button></a>
+            <a href="salary_calculator.html" data-page-node-id="go1yV34GoSAAZWNmFw1wox"><button class="map-button" data-page-node-id="Zk90dJsMxTZDZi90hHKNGE">💰 薪俸</button></a>
+            <a href="age_calculator.html" data-page-node-id="HADqdJdtXnvpQ4dtZBG2zJ"><button class="map-button" data-page-node-id="PdeGQ3C8PwANBZjEz8PPbi">🧮 年齡</button></a>
+            <a href="map.html" data-page-node-id="nnWAJx4g9tdCnTMLHhBXvS"><button class="map-button" data-page-node-id="aGLDCHl45AETFz7nwn1bv0">🗺️ 地圖</button></a>
+            <button id="toggleBtn" data-page-node-id="BcaoukZSpsvdijDF7xDHi8" type="button" aria-label="展開更多連結" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <defs>
+                    <linearGradient id="chevGrey" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#a6a6a6"/>
+                        <stop offset="32%" stop-color="#6c6c6c"/>
+                        <stop offset="72%" stop-color="#3a3a3a"/>
+                        <stop offset="100%" stop-color="#161616"/>
+                    </linearGradient>
+                    <linearGradient id="chevBrown" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#e8bd4e"/>
+                        <stop offset="38%" stop-color="#b08d00"/>
+                        <stop offset="100%" stop-color="#574400"/>
+                    </linearGradient>
+                    <linearGradient id="chevBevel" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="20" y2="0">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+                        <stop offset="25%" stop-color="#ffffff" stop-opacity="0.38"/>
+                        <stop offset="75%" stop-color="#ffffff" stop-opacity="0.38"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="chevShineGrad" x1="0" y1="0.1" x2="1" y2="0.9">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+                        <stop offset="43%" stop-color="#ffffff" stop-opacity="0"/>
+                        <stop offset="50%" stop-color="#ffffff" stop-opacity="0.62"/>
+                        <stop offset="57%" stop-color="#ffffff" stop-opacity="0"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                    </linearGradient>
+                    <mask id="chevTriMask" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+                        <polygon points="4,5.5 20,5.5 12,18.5" fill="#ffffff" stroke="#ffffff" stroke-width="3.4" stroke-linejoin="round"/>
+                    </mask>
+                </defs>
+                <polygon class="chev-body-grey" points="4,5.5 20,5.5 12,18.5" fill="url(#chevGrey)" stroke="url(#chevGrey)" stroke-width="3.4" stroke-linejoin="round"/>
+                <polygon class="chev-body-brown" points="4,5.5 20,5.5 12,18.5" fill="url(#chevBrown)" stroke="url(#chevBrown)" stroke-width="3.4" stroke-linejoin="round"/>
+                <g mask="url(#chevTriMask)">
+                    <path d="M4 5.5 L20 5.5" stroke="url(#chevBevel)" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                    <rect class="chev-shine" x="0" y="0" width="26" height="24" fill="url(#chevShineGrad)"/>
+                </g>
+            </svg></button>
         </div>
         
-        <div class="map-button-row" id="hiddenRow">
-            <a href="https://app.iam.gov.mo/LFBPriceEnquiry" target="_blank" rel="noopener noreferrer"><button class="map-button">IAM牌照</button></a>
-            <a href="https://www.dst.gov.mo/zh-hant/public-services/licensing/licensed-entities.html" target="_blank" rel="noopener noreferrer"><button class="map-button">DST准照</button></a>
-            <a href="https://webmap.gis.gov.mo/InetGIS/chn/index.html" target="_blank" rel="noopener noreferrer"><button class="map-button">地籍地圖</button></a>
-            <a href="sheet.html" target="_blank" rel="noopener noreferrer"><button class="map-button">Sheet</button></a>
-            <a href="sums_calculator.html"><button class="map-button">🔢 總和</button></a>
+        <div class="map-button-row" id="hiddenRow" data-page-node-id="h39iqYL4eFtpJCpieCVV2Z">
+            <a href="https://app.iam.gov.mo/LFBPriceEnquiry" target="_blank" rel="noopener noreferrer" data-page-node-id="UG8mdGPIbbeDYZW6MjxS4t"><button class="map-button" data-page-node-id="bBcSS3N4AvQ0sbBMlj97vb">IAM牌照</button></a>
+            <a href="https://www.dst.gov.mo/zh-hant/public-services/licensing/licensed-entities.html" target="_blank" rel="noopener noreferrer" data-page-node-id="rx8I2fxGGVlIqSd5aXv5rL"><button class="map-button" data-page-node-id="OnTSyZ5yb4rCeIUFTjcmeG">DST准照</button></a>
+            <a href="https://webmap.gis.gov.mo/InetGIS/chn/index.html" target="_blank" rel="noopener noreferrer" data-page-node-id="ve8QPVd8jQi84BElaEcwgB"><button class="map-button" data-page-node-id="Ug8IMM4upVGq97flAQKMTY">地籍地圖</button></a>
+            <a href="school_map.html" data-page-node-id="EqTqXECq2micHcvLGCtBWP"><button class="map-button" data-page-node-id="CMcRcNRs1U9ztz1AmZuNA6">🏫 學校</button></a>
         </div>
     </div>
 
@@ -997,9 +1074,10 @@
         toggleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             isOpen = !isOpen;
+            toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             
             if (isOpen) {
-                hiddenRow.style.display = 'flex';
+                hiddenRow.style.display = 'grid';
                 toggleBtn.classList.add('rotated');
             } else {
                 hiddenRow.style.display = 'none';
@@ -1010,10 +1088,33 @@
         document.addEventListener('click', function(e) {
             if (isOpen && !navContainer.contains(e.target)) {
                 isOpen = false;
+                toggleBtn.setAttribute('aria-expanded', 'false');
                 hiddenRow.style.display = 'none';
                 toggleBtn.classList.remove('rotated');
             }
         });
+    }
+
+    // === 依「展開後」的實際列高回推 <body> 底部留白 ===
+    // 用途：固定底欄必然會浮在內容之上，因此需在文件尾端預留等高的空間，
+    //      否則捲到最底時，最後一段內容仍會被按鈕列蓋住。
+    // 注意：一律以「展開狀態」量測，這樣展開時留白不會變動，
+    //      內容也就不會在點擊收合鈕時突然位移（js 只影響 padding，不造成重排跳動）。
+    function syncNavSpacer() {
+        const nav = document.getElementById('navContainer');
+        const hiddenRow = document.getElementById('hiddenRow');
+        if (!nav || !hiddenRow) return;
+
+        const prevDisplay = hiddenRow.style.display;
+        const prevVisibility = hiddenRow.style.visibility;
+
+        hiddenRow.style.display = 'grid';
+        hiddenRow.style.visibility = 'hidden';   // 只為量測而展開，不顯示，避免畫面閃動
+        const fullHeight = nav.getBoundingClientRect().height;
+        hiddenRow.style.display = prevDisplay || 'none';
+        hiddenRow.style.visibility = prevVisibility || '';
+
+        document.body.style.paddingBottom = Math.ceil(fullHeight + 20) + 'px';
     }
 
     function init() {
@@ -1022,13 +1123,15 @@
         updateMainDisplay();
         initLocateButton();
         initNavToggle(); 
+        syncNavSpacer();
+        window.addEventListener('resize', syncNavSpacer);
         setInterval(updateTimeDisplays, 1000);
         setInterval(updateMainDisplay, 60000);
     }
     init();
     </script>
-    <div id="holidayTooltip" class="calendar-tooltip" style="display:none;">
-        <span id="holidayTooltipText"></span>
+    <div id="holidayTooltip" class="calendar-tooltip" style="display:none;" data-page-node-id="6JhumHUmOfZiu8E5JKZgPb">
+        <span id="holidayTooltipText" data-page-node-id="zEM9Gc5IkNIliL2lcqsrFq"></span>
     </div>
 </body>
 </html>
