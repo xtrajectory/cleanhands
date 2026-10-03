@@ -275,17 +275,29 @@
 
         .timeline-date { color: #fff; font-size: 15px; }
         .timeline-reason { color: #ff6666; font-size: 14px; text-align: right; flex-shrink: 0; white-space: nowrap; }
+
+        /* 週末（星期六／日）又逢節日時，節日名稱以括號接續於後方顯示 */
+        .timeline-reason .timeline-holiday {
+            color: var(--accent-color);
+            letter-spacing: 0.5px;
+            margin-left: 3px;
+            white-space: nowrap;
+        }
         .timeline-empty { color: #4CAF50; text-align: center; padding: 15px; font-style: italic; white-space: nowrap; }
 
-        /* 驗算框：依假期文字長度自動增寬，避免橫向滾動 */
+        /* 驗算框：依內容（含接續的節日名稱）自動決定寬度，超出時才允許水平捲動 */
         .result-box.verify-box {
             width: max-content;
             max-width: 95vw;
             min-width: min(320px, 95vw);
-            overflow-x: visible;
+            overflow-x: auto;
         }
         .result-box.verify-box .timeline-list {
-            overflow-x: visible;
+            overflow-x: auto;
+        }
+        /* 單列內容比框更寬時，該列以內容寬度展開，帶動整個框自動加寬 */
+        .result-box.verify-box .timeline-row {
+            min-width: max-content;
         }
 
         
@@ -549,7 +561,19 @@
             .res-weekday { font-size: 20px; }
 
             .result-box { max-width: 95%; overflow-x: auto; }
-            .result-box.verify-box { max-width: 95vw; overflow-x: visible; width: max-content; }
+            .result-box.verify-box {
+                max-width: 95vw;
+                overflow-x: auto;
+                width: max-content;
+                padding: 22px 18px;   /* 窄螢幕收窄內距，換取更多可用寬度 */
+            }
+            /* 窄螢幕已無加寬空間時改以換行容納，確保接續的節日名稱不被水平捲動遮蔽 */
+            .result-box.verify-box .timeline-row {
+                min-width: 0;
+                flex-wrap: wrap;
+                row-gap: 2px;
+            }
+            .result-box.verify-box .timeline-reason { margin-left: auto; }
             
             .button-container {
                 gap: 8px; 
@@ -773,10 +797,12 @@
     function checkRestDay(date) {
         const dayOfWeek = date.getDay();
         const dateStr = formatDateKey(date); 
-        if (dayOfWeek === 0) return { isRestDay: true, reason: "星期日" };
-        if (dayOfWeek === 6) return { isRestDay: true, reason: "星期六" };
-        if (SPECIAL_HOLIDAYS[dateStr]) return { isRestDay: true, reason: SPECIAL_HOLIDAYS[dateStr] };
-        return { isRestDay: false, reason: "" };
+        // 節日名稱（若該日同時為星期六／日，主因仍顯示週末，節日名稱另存於 holiday 供驗算列表次行顯示）
+        const holidayName = SPECIAL_HOLIDAYS[dateStr] || "";
+        if (dayOfWeek === 0) return { isRestDay: true, reason: "星期日", holiday: holidayName };
+        if (dayOfWeek === 6) return { isRestDay: true, reason: "星期六", holiday: holidayName };
+        if (holidayName) return { isRestDay: true, reason: holidayName, holiday: "" };
+        return { isRestDay: false, reason: "", holiday: "" };
     }
 
     function calculateWorkdayDate(startDate, daysToAdd) {
@@ -788,7 +814,7 @@
         while (true) {
             const status = checkRestDay(targetDate);
             if (status.isRestDay) {
-                logs.push({ dateStr: formatDateKey(targetDate), dateObj: new Date(targetDate), reason: status.reason });
+                logs.push({ dateStr: formatDateKey(targetDate), dateObj: new Date(targetDate), reason: status.reason, holiday: status.holiday || "" });
                 targetDate.setDate(targetDate.getDate() + 1);
             } else { break; }
         }
@@ -964,7 +990,9 @@
                 result.logs.forEach(log => {
                     const dateShort = `${log.dateObj.getFullYear()}/${log.dateObj.getMonth()+1}/${log.dateObj.getDate()}`;
                     const weekDayShort = WEEKDAYS[log.dateObj.getDay()].replace('星期','');
-                    html += `<div class="timeline-row"><div class="timeline-left"><span class="timeline-dot"></span><span class="timeline-date">${dateShort} (${weekDayShort})</span></div><span class="timeline-reason">${log.reason}</span></div>`;
+                    // 週末撞節日：於「星期六／星期日」後方以括號接續顯示節日名稱
+                    const holidayText = log.holiday ? `<span class="timeline-holiday">(${log.holiday})</span>` : '';
+                    html += `<div class="timeline-row"><div class="timeline-left"><span class="timeline-dot"></span><span class="timeline-date">${dateShort} (${weekDayShort})</span></div><span class="timeline-reason">${log.reason}${holidayText}</span></div>`;
                 });
                 html += `</div>`;
             } else { 
