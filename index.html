@@ -480,6 +480,15 @@
         .map-button-row a { text-decoration: none; display: flex; min-width: 0; }
         .map-button-row a button { width: 100%; }
 
+        /* 跨兩個按鈕寬度（對齊 2 格） */
+        .map-button-row a.map-button-double { grid-column: span 2; }
+        .map-button-icon { margin-right: 6px; font-size: 15px; line-height: 1; }
+
+        /* 左紅右綠 + 中央白色波浪分隔（背景以 SVG 繪製，隨寬度自適應） */
+        .map-button.map-button-wave {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect width='100' height='100' fill='%231f7a4d'/%3E%3Cpath d='M0,0 H50 C55,8 55,17 50,25 C45,33 45,42 50,50 C55,58 55,67 50,75 C45,83 45,92 50,100 H0 Z' fill='%23c0273a'/%3E%3Cpath d='M50.9,0 C55.9,8 55.9,17 50.9,25 C45.9,33 45.9,42 50.9,50 C55.9,58 55.9,67 50.9,75 C45.9,83 45.9,92 50.9,100 L49.1,100 C44.1,92 44.1,83 49.1,75 C54.1,67 54.1,58 49.1,50 C44.1,42 44.1,33 49.1,25 C54.1,17 54.1,8 49.1,0 Z' fill='%23ffffff' fill-opacity='0.9'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+        }
+
         /* === 收合鈕：立體深灰 ▼（7 秒一次反光；展開時先反轉、再漸變為棕色） === */
         #toggleBtn {
             background: transparent;
@@ -700,8 +709,7 @@
         </div>
         
         <div class="map-button-row" id="hiddenRow" data-page-node-id="h39iqYL4eFtpJCpieCVV2Z">
-            <a href="https://app.iam.gov.mo/LFBPriceEnquiry" target="_blank" rel="noopener noreferrer" data-page-node-id="UG8mdGPIbbeDYZW6MjxS4t"><button class="map-button" data-page-node-id="bBcSS3N4AvQ0sbBMlj97vb">IAM牌照</button></a>
-            <a href="https://www.dst.gov.mo/zh-hant/public-services/licensing/licensed-entities.html" target="_blank" rel="noopener noreferrer" data-page-node-id="rx8I2fxGGVlIqSd5aXv5rL"><button class="map-button" data-page-node-id="OnTSyZ5yb4rCeIUFTjcmeG">DST准照</button></a>
+            <a href="food-travel_hub.html" class="map-button-double" data-page-node-id="UG8mdGPIbbeDYZW6MjxS4t"><button class="map-button map-button-wave" data-page-node-id="bBcSS3N4AvQ0sbBMlj97vb"><span class="map-button-icon">🍽️</span>DST | IAM 餐飲及活動</button></a>
             <a href="https://webmap.gis.gov.mo/InetGIS/chn/index.html" target="_blank" rel="noopener noreferrer" data-page-node-id="ve8QPVd8jQi84BElaEcwgB"><button class="map-button" data-page-node-id="Ug8IMM4upVGq97flAQKMTY">地籍地圖</button></a>
             <a href="school_map.html" data-page-node-id="EqTqXECq2micHcvLGCtBWP"><button class="map-button" data-page-node-id="CMcRcNRs1U9ztz1AmZuNA6">🏫 學校</button></a>
         </div>
