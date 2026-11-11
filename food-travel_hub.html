@@ -1405,9 +1405,11 @@ window.MACAU_FOODALERT_SNAPSHOT = {"capturedAt":"2026-11-08T17:16:34+08:00","lat
   var LINKS = [
     { key: 'dst', name: '旅遊局已領有准照之實體',
       href: 'https://www.dst.gov.mo/zh-hant/public-services/licensed-entities.html' },
-    /* 市政署查詢頁（app.iam.gov.mo）已被官方 WAF 攔截，改連政府開放數據平台的同一資料集 */
+    /* 注意：不可帶 ?execution=e1s1（Spring WebFlow 的 session 專用鍵），
+       由外部直接開啟會因無對應 session 而不斷重導，出現「太多重新導向」；
+       改用不含 execution 參數的入口，伺服器會自動建立新的流程並正常顯示。 */
     { key: 'iam', name: '市政署已領有准照／登記證明的飲食飲料場所',
-      href: 'https://app.iam.gov.mo/LFBPriceEnquiry/spring/main?execution=e1s1' }
+      href: 'https://app.iam.gov.mo/LFBPriceEnquiry/spring/main' }
   ];
 
   function esc(s) {
