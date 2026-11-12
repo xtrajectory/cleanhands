@@ -1,0 +1,3078 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+  /* 手機版固定為裝置寬度並禁止放大：iOS Safari 10+ 會忽略 user-scalable=no，
+     故另外攔截其專有的雙指手勢；touch-action 則由下方 CSS 停用雙擊縮放。 */
+  (function () {
+    function block(e) { e.preventDefault(); }
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (n) {
+      document.addEventListener(n, block, { passive: false });
+    });
+  })();
+</script>
+<script>
+  /* 於首次繪製前先套用系統偏好，避免深色系統出現淺色閃光（FOUC） */
+  (function () {
+    try {
+      var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    } catch (e) {}
+  })();
+</script>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#eef3fa">
+<title>cleanhands_hub</title>
+<meta name="description" content="旅遊局旅遊快訊活動資訊、市政署餐飲場所名單與旅遊局五類牌照場所資訊，以及交通事務局全澳巴士站與行經路線查詢。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1c30'/%3E%3Ctext x='32' y='44' font-size='34' font-family='serif' fill='%234fd1bd' text-anchor='middle'%3EI%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --header-h: 62px;
+    --bg: #080e19;
+    --bg-glow: rgba(79, 209, 189, .13);
+    --surface: #101a2b;
+    --surface-2: #16223a;
+    --surface-3: #1b2942;
+    --border: #22304a;
+    --border-soft: #1a2740;
+    --text: #e9f0fb;
+    --muted: #93a7c4;
+    --faint: #6b819f;
+    --accent: #4fd1bd;
+    --accent-2: #f4bd6a;
+    --shadow: 0 24px 60px rgba(2, 8, 18, .55);
+    --radius: 18px;
+  }
+  html[data-theme="light"] {
+    --bg: #eef3fa;
+    --bg-glow: rgba(15, 140, 114, .10);
+    --surface: #ffffff;
+    --surface-2: #f4f8fd;
+    --surface-3: #e9f0f9;
+    --border: #dbe5f1;
+    --border-soft: #e6eef8;
+    --text: #101d33;
+    --muted: #52678a;
+    --faint: #7c90ad;
+    --accent: #0f8c72;
+    --accent-2: #a56809;
+    --shadow: 0 20px 48px rgba(21, 43, 74, .10);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+
+  /* 版面寬度鎖定為裝置寬度；停用自動字級調整、雙指與雙擊放大 */
+  html {
+    width: 100%; max-width: 100%;
+    -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+    touch-action: pan-x pan-y;
+  }
+
+  body {
+    margin: 0;
+    width: 100%; max-width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei",
+                 "Noto Sans TC", "PingFang TC", "Hiragino Sans GB", sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color .25s ease, color .25s ease;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 480px at 50% -12%, var(--bg-glow), transparent 70%),
+      radial-gradient(700px 400px at 92% 8%, rgba(244, 189, 106, .07), transparent 72%);
+  }
+
+  .shell {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-inline: clamp(16px, 4vw, 32px);
+    position: relative;
+    z-index: 1;
+  }
+
+  a { color: inherit; }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--accent);
+    color: #04121a;
+    padding: 10px 16px;
+    border-radius: 0 0 10px 0;
+    font-weight: 700;
+    text-decoration: none;
+    z-index: 100;
+  }
+  .skip:focus { left: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* ---------------- 頁首 ---------------- */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 62px;
+    padding-block: 9px;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+  .brand-text strong { font-size: 17.5px; letter-spacing: .04em; white-space: nowrap; }
+
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .macau-clock {
+    display: flex; align-items: baseline; gap: 7px;
+    font-variant-numeric: tabular-nums;
+    font-size: 17px; font-weight: 700; letter-spacing: .05em;
+    color: var(--text);
+  }
+  .macau-clock small { font-size: 12px; font-weight: 500; color: var(--faint); letter-spacing: .06em; }
+
+  .icon-btn {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color .18s, border-color .18s, transform .18s;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .icon-btn:active { transform: translateY(1px); }
+  .icon-btn svg { width: 17px; height: 17px; }
+  html[data-theme="dark"] .icon-sun { display: block; }
+  html[data-theme="dark"] .icon-moon { display: none; }
+  html[data-theme="light"] .icon-sun { display: none; }
+  html[data-theme="light"] .icon-moon { display: block; }
+
+  /* ---------------- 分類切換按鈕（捲動時固定在頁首下方） ---------------- */
+  .view-tabs {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 25;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 9px;
+    margin-top: clamp(14px, 2vw, 20px);
+    margin-bottom: clamp(16px, 2vw, 22px);
+    padding-block: 10px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    border-bottom: 1px solid var(--border-soft);
+    border-radius: 0 0 14px 14px;
+  }
+  .view-tab {
+    flex: none;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 15px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    color: var(--muted);
+    font: inherit;
+    font-size: 14.5px; font-weight: 600;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color .18s, border-color .18s, background-color .18s, transform .18s;
+  }
+  .view-tab:hover { color: var(--text); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .view-tab:active { transform: translateY(1px); }
+  .view-tab.is-active {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  html[data-theme="light"] .view-tab.is-active {
+    color: #0a6b56;
+    border-color: rgba(15, 118, 92, .42);
+    background: rgba(15, 140, 114, .10);
+  }
+  .view-tab .tab-ico { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; flex: none; }
+  .view-tab .tab-ico + .tab-ico { margin-left: -4px; }
+  /* 牌照場所的兩枚標誌（旅遊局 MGTO、市政署 IAM）一律以原圖顏色顯示，不隨主題反相 */
+
+  /* 全站唯一的重新整理按鈕（頁首「澳門時間」右方，僅顯示圖示） */
+  .refresh-btn {
+    flex: none;
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border));
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    color: var(--accent);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 14%, transparent);
+    transition: border-color .18s, background-color .18s, transform .18s, opacity .18s;
+  }
+  .refresh-btn:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 20%, var(--surface)); }
+  .refresh-btn:active { transform: translateY(1px); }
+  .refresh-btn:disabled { opacity: .62; cursor: default; transform: none; }
+  .refresh-btn svg { width: 17px; height: 17px; flex: none; }
+  .refresh-btn.is-busy svg { animation: wb-spin .9s linear infinite; }
+  .refresh-btn [data-refresh-label] { display: none; }
+  @keyframes wb-spin { to { transform: rotate(360deg); } }
+  /* 淺色底提高文字對比，維持至少 WCAG AA */
+  html[data-theme="light"] .refresh-btn {
+    color: #0a6b56;
+    border-color: rgba(15, 118, 92, .42);
+    background: rgba(15, 140, 114, .10);
+  }
+  html[data-theme="light"] .refresh-btn:hover {
+    border-color: #0f8c72;
+    background: rgba(15, 140, 114, .18);
+  }
+
+  .tour-panel, .registry-panel, .bus-panel { margin-bottom: clamp(18px, 2.4vw, 26px); }
+
+  /* ---------------- 頁尾 ---------------- */
+  .site-footer {
+    margin-top: clamp(36px, 6vw, 60px);
+    padding: 22px 0 34px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 13.5px;
+    color: var(--faint);
+  }
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .footer-inner p { margin: 0; max-width: 66ch; line-height: 1.7; }
+  .footer-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 13.5px; font-weight: 600; letter-spacing: .06em;
+    white-space: nowrap;
+  }
+  .footer-tag .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+  .site-footer a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted currentColor; }
+  .site-footer a:hover { color: var(--accent); }
+
+  @media (max-width: 560px) {
+    :root { --header-h: 56px; }
+    .header-inner { min-height: 56px; gap: 8px; }
+    .header-right { gap: 8px; }
+    .brand-text small { display: none; }
+    .macau-clock small { display: none; }
+    .macau-clock { font-size: 15.5px; }
+    .refresh-btn { width: 32px; height: 32px; }
+    .refresh-btn svg { width: 15px; height: 15px; }
+    .view-tabs {
+      padding-block: 8px;
+      gap: 7px;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scroll-padding-inline: clamp(16px, 4vw, 32px);
+      scrollbar-width: none;
+    }
+    .view-tabs::-webkit-scrollbar { display: none; }
+    .view-tab { padding: 7px 12px; font-size: 13.5px; scroll-snap-align: start; }
+    .footer-tag { font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  }
+
+  @media print {
+    body::before, .site-header, .refresh-btn { display: none; }
+    .view-tabs { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; }
+  }
+</style>
+<!-- Google Analytics 4 (GA4) · G-EZTW98Q8GK -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EZTW98Q8GK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-EZTW98Q8GK');
+</script>
+</head>
+<body>
+<a class="skip" href="#main">跳至主要內容</a>
+
+<header class="site-header">
+  <div class="shell header-inner">
+    <div class="brand">
+      <span class="brand-text">
+        <strong>INFO HUB</strong>
+      </span>
+    </div>
+    <div class="header-right">
+      <span class="macau-clock" aria-label="澳門時間">
+        <span id="header-clock">--:--:--</span>
+        <small>澳門時間</small>
+      </span>
+      <button class="refresh-btn" id="global-refresh" type="button"
+              aria-label="重新整理全部資訊" title="重新整理全部資訊（旅遊快訊、牌照場所）">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+        </svg>
+        <span data-refresh-label hidden></span>
+      </button>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="切換深色／淺色模式" title="切換深色／淺色模式">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.8 6.8 0 0 0 9.8 9.8Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="shell view-tabs" aria-label="資訊分類">
+  <button class="view-tab" type="button" data-view="bus" aria-pressed="false" aria-controls="view-bus">巴士站</button>
+  <button class="view-tab is-active" type="button" data-view="registry" aria-pressed="true" aria-controls="view-registry"><img class="tab-ico" src="https://www.macaotourism.gov.mo/static/logo/mgto.svg" alt=""><img class="tab-ico" src="https://www.gov.mo/zh-hant/wp-content/uploads/sites/4/2021/01/IAM-logo_2019-_C03-300x300.png" alt="">牌照場所</button>
+  <button class="view-tab" type="button" data-view="tour" aria-pressed="false" aria-controls="view-tour">旅遊快訊</button>
+</nav>
+
+<main id="main" class="shell">
+
+  <div class="tour-panel view-panel" id="view-tour" data-view-panel="tour" hidden>
+    <macau-tour-widget refresh="300" theme="light" limit="9" no-auto></macau-tour-widget>
+  </div>
+
+  <div class="bus-panel view-panel" id="view-bus" data-view-panel="bus" hidden>
+    <macau-busstops-widget theme="light" limit="24" no-auto></macau-busstops-widget>
+  </div>
+  <div class="registry-panel view-panel" id="view-registry" data-view-panel="registry" hidden>
+    <macau-registry-widget refresh="300" theme="light" no-auto></macau-registry-widget>
+  </div>
+
+
+</main>
+
+<footer class="site-footer">
+  <div class="shell footer-inner">
+    <p>© Cleanhands HUB</p>
+    <p class="footer-tag"><span class="dot" aria-hidden="true"></span>資料來源：政府開放數據</p>
+  </div>
+</footer>
+
+
+<script>
+/**
+ * macau-tour-widget.js
+ * 「澳門旅遊快訊」按鈕分類所對應的活動資訊元件（旅遊局 What's On）
+ *
+ * 使用者提供的目錄 API（政府數據開放平台，非阻塞讀取資料集描述）：
+ *   https://api.data.gov.mo/document/download/aae52fd8-3d52-47ae-9b0d-bc77ec6ac232?token=g9MPxYmUloV6AusgTLbYJz1PvlvJ9wo9&isNeedFile=0&lang=TC
+ *   該目錄 2019 年登錄、2020 年最後更新，回傳的 url[] 為舊版 RSS：
+ *     https://whatson.macaotourism.gov.mo/rss/whatson_tc.xml
+ *   實測（2026-11-10）舊 RSS 已回 403 Forbidden，且整域 302 導向新官網，
+ *   因此實際活動資料改讀新官網現行端點。
+ *
+ * 現行資料端點（繁體中文，184 筆／月）：
+ *   https://www.macaotourism.gov.mo/api/enf/whatson?lang=zh-hant
+ *   欄位：results[] = id / name / showDate / eventDate / eventDateRange /
+ *         types[] / location[] / shortDesc / thumbnail / top / month；
+ *         top.introduction = 本月焦點標題與說明。
+ *   該端點 Access-Control-Allow-Origin 固定為官網自身，瀏覽器由本機 HTML
+ *   無法直接讀取，故第一順位經公開文字代理 r.jina.ai 轉取（回傳原始 JSON，
+ *   前面附 Title／URL Source／Markdown Content 三行，解析時由第一個「{」起算）；
+ *   代理失敗再試官網直連（供同源部署使用），兩者皆失敗使用內建官方快照。
+ *
+ * 內建快照：2026-11-10 由上述繁中端點取得之前 24 筆活動，僅供離線顯示；
+ *   即時資料成功即以完整 184 筆取代。不使用 localStorage，避免記憶狀態。
+ * 本月焦點保留官方完整說明（不截斷），預設顯示 3 行，點「更多」展開全文、
+ *   點「收起」復原；七枚分類按鈕固定 7 欄單一橫列（窄欄為名稱在上、數量在下），
+ *   任何寬度都不換行、不需左右滑動。分類文字放大時，四字名稱僅在框內折行，
+ *   欄寬、間距與位置維持不變，極窄螢幕另有字級斷點避免裁切。
+ *
+ * 可用屬性：refresh（秒，預設 300）／theme／title／limit
+ * 公開方法：element.refresh()
+ * 對外事件：macau-tour:update、macau-tour:error（bubbles + composed）
+ * 介面不出現「資料來源／查看資料集」文字（沿用全站既有偏好）。
+ */
+(function () {
+  'use strict';
+
+  if (window.customElements && window.customElements.get('macau-tour-widget')) return;
+
+  var CATALOG_API = 'https://api.data.gov.mo/document/download/aae52fd8-3d52-47ae-9b0d-bc77ec6ac232' +
+    '?token=g9MPxYmUloV6AusgTLbYJz1PvlvJ9wo9&isNeedFile=0&lang=TC';
+  var OFFICIAL_API = 'https://www.macaotourism.gov.mo/api/enf/whatson?lang=zh-hant';
+  var PROXY_API = 'https://r.jina.ai/' + OFFICIAL_API;
+  var DETAIL_BASE = 'https://www.macaotourism.gov.mo/zh-hant/events/whatson/';
+  var SNAPSHOT_DATE = '2026-11-10';
+  var PAGE_SIZE = 9;
+  var MACAU_TZ = 'Asia/Macau';
+  var TYPES = ['節日盛事', '體育', '表演', '展覽', '其他'];
+  var SNAPSHOT = [{"i":"13973","n":"第73屆澳門格蘭披治大賽車","d":"19-22/11","s":"2026-11-19","e":"2026-11-22","t":"體育","l":"塔石廣場","x":"澳門年度盛事之一的格蘭披治大賽車於本月展開，今屆賽車共舉行七項精彩賽事，包括：澳門格蘭披治大賽－國際汽聯FR世界盃、澳門GT盃－國際汽聯GT世界盃、澳門東望洋大賽－Kumho國際汽聯TCR世界巡迴賽澳門站、澳門四級方程式大賽－國際汽聯四級方程式世界盃、澳門格蘭","f":1},{"i":"13974","n":"第三十八屆澳門國際音樂節","d":"1-29/11","s":"2026-11-01","e":"2026-11-29","t":"節日盛事","l":"澳門文化中心","x":"今屆澳門國際音樂節匯聚一眾著名音樂藝術家和新銳菁英呈獻10套節目，涵蓋戲曲、歌劇、當代大師鉅作，以及交響盛典等。藉海上絲綢之路為靈感，這次的音樂節以「絲．韻」為主題，透過為期兩個月的活動為廣大樂迷帶來與絲路文化交融的音樂盛宴。音樂節特別推出的全城享樂活動設有1","f":1},{"i":"13975","n":"hush! 沙灘音樂會 × 城市運動節2026","d":"14-15/11","s":"2026-11-14","e":"2026-11-15","t":"節日盛事","l":"路環黑沙海灘","x":"活動第四度來到黑沙海灘，融合音樂舞台、城市運動和身心健康三大元素，這個文體多元戶外平台為市民及旅客帶來多個舞台表演，讓大家在沙灘上享受多個不同類型的音樂。另外，活動還設工作坊、市集、以及戶外運動挑戰項目等，歡迎大眾來嘗試不一樣的沙灘體驗。 時間｜活動日程請查閱","f":1},{"i":"13976","n":"塔石藝墟","d":"19-22, 26-29/11","s":"2026-11-19","e":"2026-11-29","t":"其他","l":"塔石廣場","x":"自2008年起，澳門在每年春季及秋季都會舉行塔石藝墟，是澳門及鄰近地區的一項手作文創盛事，不少本地及外地「創意人」均會在藝墟中一展創意。是次塔石藝墟繼續設創意市集和多個手作和飲食攤位，亦會舉辦多場手作坊及音樂演出，歡迎到場體驗。 時間｜週四至週五下午5時至晚上","f":1},{"i":"13977","n":"第二十六屆澳門美食節","d":"20/11 - 6/12","s":"2026-11-20","e":"2026-12-06","t":"其他","l":"西灣湖廣場","x":"澳門美食節匯聚各方美食，為入場人士帶來全方位感官饗宴。一連17天的活動期間，市民和旅客可到場享受蒸、炒、煮、炸等各種方式烹調而成的美食。現場除了豐富多樣的本地特色、國際風味、創意佳餚外，還有舞台表演和攤位遊戲。 時間｜週一至週四下午4時至晚上11時；週五至週日","f":1},{"i":"13978","n":"澳門，乾杯！美高梅澳門德國啤酒節2026","d":"1-8/11","s":"2026-11-01","e":"2026-11-08","t":"節日盛事","l":"美獅美高梅","x":"第十六屆美高梅澳門德國啤酒節帶著標誌性的巴伐利亞歡慶氣氛重返澳門，身穿傳統服飾的表演者和現場演奏的音樂打造出充滿活力的氛圍，參加者還能品嚐道地的德國燒烤特色美食，再享用經典佳釀。今年的啤酒節更首度邀請來自德國的人氣樂隊SAKRISCH GUAT來澳駐場演出，歡","f":0},{"i":"13979","n":"澳門當代偶劇節","d":"1-15/11","s":"2026-11-01","e":"2026-11-15","t":"其他","l":"曉角實驗室|益隆炮竹廠舊址","x":"這是澳門首個以當代偶劇、物件劇場及跨媒介表演為核心的國際性項目，匯聚來自粵港澳大灣區、台灣地區、法國、西班牙等地的專業偶劇團隊及本地創作者，帶來黑盒劇場和展覽。 11月1日 黑盒演出－《遺城密碼》 時間｜下午3時及晚上7時30分 時長｜約60分鐘 地點｜曉角實","f":0},{"i":"13980","n":"心寒影滙3","d":"1, 6-8, 13-15, 20-22/11","s":"2026-11-01","e":"2026-11-22","t":"其他","l":"澳門新濠影滙","x":"這個萬聖節來到新濠影滙，體驗一場步步驚心的沉浸式驚慄之旅。「心寒影滙」以電影級製作規格，融合懸疑劇情、特效化妝、機械裝置與互動玩法，讓玩家跳出旁觀者的角色，展開一場心跳狂飆的逃脫挑戰。 時間｜下午4時至6時（最後入場時間為5時30分）；下午6時至晚上8時（最後","f":0},{"i":"13981","n":"《粵潮漢韻》嶺南非遺樂種音樂會","d":"7/11","s":"2026-11-07","e":"2026-11-07","t":"表演","l":"澳門旅遊塔會展娛樂中心","x":"澳門中樂團特邀廣東省民族管弦樂學會嶺南音樂普及專業委員會共同策劃，讓樂迷在同一場音樂會當中就可享受到清麗婉轉的廣東音樂、古樸典雅的潮州音樂、大氣深沉的客家漢樂。以三大樂種為軸，為樂迷呈獻一場非遺音樂盛宴。 時間｜晚上8時 時長｜連中場休息約90分鐘 地點｜澳門","f":0},{"i":"13989","n":"寶寶的第一場音樂會","d":"21-22/11","s":"2026-11-21","e":"2026-11-22","t":"表演","l":"澳門文化中心","x":"去年的實驗音樂系列呈獻首個為寶寶而設的演出後，觀眾反應熱烈。今年，澳門樂團再次舉辦這個別出心裁的親子藝術體驗，構建寶寶探索古典音樂的第一步。是次音樂會由香港著名青年指揮家葉詠媛帶領。 時間｜下午2時45分及5時 時長｜約45分鐘（不設中場休息） 地點｜澳門文化","f":0},{"i":"13983","n":"羅菲與絲凱德的二十世紀鉅著","d":"7/11","s":"2026-11-07","e":"2026-11-07","t":"表演","l":"澳門文化中心","x":"法國籍的客席指揮帕斯卡．羅菲與拉脫維亞籍小提琴家貝芭．絲凱德聯手澳門樂團，呈獻這場二十世紀三首鉅著。俄羅斯作曲家蕭斯塔科維奇（1906-1975）的小提琴協奏曲透過三段華彩全面考驗獨奏家的技巧與詮釋深度。法國作曲家德布西（1862-1918）的《春天》分為兩部","f":0},{"i":"13984","n":"全民通達劇場－《迷機中年》","d":"7-8/11","s":"2026-11-07","e":"2026-11-08","t":"表演","l":"澳門文化中心","x":"這齣本地原創劇講述一個不懂科技的父親和追求智能生活的女兒，以及一群面對「數字鴻溝」的中年人之間的故事，故事圍繞遊戲、網紅、AI、舊照片、象棋和粵曲，彼此碰撞產生連串科技笑話。該劇提供視形傳譯、口述影像及通達字幕，為不同能力的觀眾提供相應輔助配套。 時間｜晚上7","f":0},{"i":"13985","n":"第57屆澳門明愛慈善園遊會","d":"7-8/11","s":"2026-11-07","e":"2026-11-08","t":"其他","l":"南灣湖水上活動中心","x":"今屆明愛慈善園遊會以「承傳關愛 擁抱未來」為主題，活動當天包括美食、遊戲和舞台節目，亦同場舉行賣旗活動，善款將用於明愛慈善用途，歡迎市民和旅客到場，在歡樂中行善。 時間｜11月7日下午2時至晚上11時；11月8日上午11時30分至晚上10時 地點｜南灣湖水上活","f":0},{"i":"13986","n":"紅船1866之武林秘笈","d":"8, 14-15/11","s":"2026-11-08","e":"2026-11-15","t":"其他","l":"媽閣碼頭|路環碼頭","x":"活動結合1866年紅船歷史、粵劇武打與非遺文化，以「媽閣－路環」單程海上導覽為主軸，參加者可欣賞甲板武打演出、遊歷八大景點，並會拿到一份《武林秘笈》，用以收集招式印章與商戶優惠，沉浸式感受澳門海洋歷史。 時間及地點｜媽閣碼頭出發至路環碼頭：下午3時及5時；路環","f":0},{"i":"13988","n":"﻿﻿《明月浮島》","d":"14-15/11","s":"2026-11-14","e":"2026-11-15","t":"表演","l":"澳門文化中心","x":"演出由文化體育局主辦，本地劇團卓劇場藝術會製作。劇作改編自葡萄牙諾貝爾文學獎得主若澤・薩拉馬戈（1922-2010）的《未知島傳說》，故事講述一名孤獨的清潔女工發現一張神秘白紙後，從日復一日的工作中離開，登上遭海鷗盤踞的舊帆船，決然航向未知，開啟一場自我尋溯的","f":0},{"i":"13990","n":"「新晉劇場人深化計劃」《異》","d":"27-29/11","s":"2026-11-27","e":"2026-11-29","t":"表演","l":"曉角實驗室","x":"故事講述一隻勇敢的小貓為了愛情，勇敢對抗世界及自我成長的故事。劇作由怪老樹劇團製作呈獻，是新晉劇場人深化計劃的一部分，冀持續地培育本地劇場工作者。 時間｜11月27日及28日晚上8時；11月29日下午3時及晚上8時 時長｜約75分鐘 語言｜粵語及肢體為主 地點","f":0},{"i":"13991","n":"星光．草地．交響樂","d":"28/11","s":"2026-11-28","e":"2026-11-28","t":"表演","l":"巴黎人花園","x":"清爽的秋夜最適宜開一場戶外音樂會。澳門樂團與音樂總監兼首席指揮廖國敏為觀眾送上一個賞心悅目的音樂盛宴。除了色彩斑斕的交響經典，還有管弦樂團演奏的香港流行曲。音樂會更邀請了唱作歌手馮允謙擔任特別嘉賓。 時間｜晚上8時 時長｜連中場休息約90分鐘 地點｜巴黎人花園","f":0},{"i":"13992","n":"麥麥主題列車","d":"1/11 - 14/12","s":"2026-11-01","e":"2026-12-14","t":"其他","l":"","x":"澳門旅遊吉祥物「麥麥」現身輕軌車廂，乘搭輕軌氹仔線的乘客有機會遇上「麥麥」主題列車。列車從車身到車廂內部繪上多款造型的「麥麥」，並融入澳門世界遺產、美食之都及盛事活動等元素，打造成「流動打卡點」，乘客可在車程中與「麥麥」拍照打卡，提升旅遊體驗。 時間｜氹仔線服","f":0},{"i":"13993","n":"「麥麥」體驗館","d":"1/11/2026 - 3/1/2027","s":"2026-11-01","e":"2027-01-03","t":"其他","l":"議事亭前地利斯大廈","x":"體驗館以「麥麥時光」為主題，展出澳門可愛的旅遊吉祥物「麥麥」生活中的各個精彩瞬間。館內還有「麥麥」主題文創商品供您挑選，每逢週末及指定日子更有特色咖啡與輕食店驚喜駐場，以及各種互動，包括吉祥物見面會、「麥麥」主題工作坊、繪本共讀會等。快來加入這場熱鬧的派對，與","f":0},{"i":"13994","n":"「休」遊巴士","d":"1/11/2026 - 3/1/2027","s":"2026-11-01","e":"2027-01-03","t":"其他","l":"觀音像海濱休憩區|康公廟|南灣‧雅文湖畔","x":"「休」遊巴士計劃連動澳門綜合度假休閒企業及本地旅遊業界，推出共14條途經社區站點、逢週六及日營運的免費接駁巴士路線。「休」遊巴士亦串連「社區賞樂」消費優惠活動，於指定社區站點落車的乘客可向站點工作人員領取一次性優惠兌換碼，每位乘客每周最多可領取兩次，相關優惠適","f":0},{"i":"13995","n":"第八屆「相約澳門－中葡文化藝術節」","d":"1/11/2026 - 29/1/2027","s":"2026-11-01","e":"2027-01-29","t":"節日盛事","l":"澳門文化中心|戀愛・電影館","x":"今屆中葡文化藝術節匯聚近690位海內外藝術家及演出者，呈獻約50場精彩節目，涵蓋嘉年華、社區傳統歌舞、繪本書展、音樂會、電影展及中葡藝術年展等多元活動。 亮點節目 有關詳細節目表，請查閱官網 11月14日 莫桑比克傳奇歌手Stewart Sukuma與澳門中樂","f":0},{"i":"13996","n":"實用聯繫方式","d":"","s":"","e":"","t":"其他","l":"","x":"緊急求助熱線｜警察 999．消防 110．救護車 112 出入境事務查詢電話｜(853) 2872 5488 24小時旅遊服務熱線｜(853) 2833 3000 澳門國際機場｜(853) 2886 1111 24小時天氣查詢｜(853) 2885 0530","f":0},{"i":"13997","n":"清真認證","d":"","s":"","e":"","t":"其他","l":"","x":"澳門美食文化多元，其中一些合資格的清真食肆更獲香港回教信託基金總會頒發清真認證。這些獲認證的食肆均嚴格遵循伊斯蘭教的飲食規範、滿足清真食品要求、並確保廚房用具的清潔及存放皆合符伊斯蘭教義。 網址｜ www.macaotourism.gov.mo/zh-hant","f":0},{"i":"13998","n":"旅遊熱線","d":"","s":"","e":"","t":"其他","l":"","x":"旅客如欲查詢澳門旅遊的最新資訊，可撥打24小時服務的旅遊熱線(853) 2833 3000，獲取包括酒店、觀光景點和城市地標等詳細資料。除了有工作人員在線接聽並提供即時協助，亦有提供旅遊資訊的電話錄音。 查詢電話｜(853) 2833 3000 語言選擇｜粵語","f":0}];
+  var SNAPSHOT_INTRO = {"t":"馳騁深秋 饗宴澳門","d":"引擎鳴動香氣裊裊 歡聚小城動感滿滿 秋色漸濃，澳門盛事連連的節奏始終未變。澳門十一月的日程有頂級體育賽事、有國際藝術項目，也有節慶感滿滿的戶外之夜。 引頸期盼，經過一年的等待， 第73屆澳門格蘭披治大賽車 （11月19日至22日）再度上演，車手於東望洋跑道上揮旗競速，開啟為期四天的極速奔馳。 本月盛事絕對不止如此，匯聚不同國籍的音樂家、表演團隊共同呈獻的 第三十八屆澳門國際音樂節 （至11月29日）以「絲．韻」為題，用音樂續寫文明交流的新篇章。 hush! 沙灘音樂會 × 城市運動節2026 （11月14日及15日）則結合音樂與體育，邀請大眾到場享受音樂、樂活身心。 除了能看、能聽、能享受的活動之外，澳門還有能吃的等您探索。逾兩星期的 第二十六屆澳門美食節 （11月20日至12月6日）為大家帶來琳琅滿目的各地特色美食。如果喜歡小酌兩杯，或想與三五知己好友聚會的話， 澳門，乾杯！美高梅澳門德國啤酒節2026 （至11月8日）也會是個好去處。 十一月的澳門，多元活動精彩不斷、活力節目源源奉上；熱情、激情、才情、好心情，通通都有。"};
+
+  var ENT = {
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+    rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”', ndash: '–', mdash: '—',
+    hellip: '…', middot: '·', times: '×', rsquor: '’', ldquor: '“'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  function plain(s) {
+    var t = String(s == null ? '' : s).replace(/<[^>]*>/g, ' ');
+    t = t.replace(/&(#\d+|#x[0-9a-f]+|[A-Za-z]+);/g, function (m, n) {
+      if (n.charAt(0) === '#') {
+        var code = n.charAt(1) === 'x' || n.charAt(1) === 'X'
+          ? parseInt(n.slice(2), 16) : parseInt(n.slice(1), 10);
+        return isFinite(code) && code > 0 && code < 0x110000 ? String.fromCharCode(code) : m;
+      }
+      return ENT[n] != null ? ENT[n] : m;
+    });
+    return clean(t);
+  }
+  function clampInt(n, min, max, fallback) {
+    n = parseInt(n, 10);
+    return isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  }
+  function macauToday() {
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: MACAU_TZ, year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(new Date());
+    } catch (e) {
+      return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    }
+  }
+  function macauHM(ts) {
+    try {
+      return new Intl.DateTimeFormat('zh-Hant', {
+        timeZone: MACAU_TZ, hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(new Date(ts || Date.now()));
+    } catch (e) { return '--:--'; }
+  }
+  function dayDiff(a, b) {
+    var x = Date.parse(a + 'T00:00:00Z'), y = Date.parse(b + 'T00:00:00Z');
+    return isFinite(x) && isFinite(y) ? Math.round((x - y) / 86400000) : 0;
+  }
+  function iso(s) { return /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')) ? String(s) : ''; }
+
+  function statusOf(start, end, today) {
+    if (!start) return { rank: 1, cls: 'soon', text: '日期待定' };
+    if (end && end < today) return { rank: 2, cls: 'done', text: '已結束' };
+    if (start <= today) return { rank: 0, cls: 'now', text: '進行中' };
+    var n = dayDiff(start, today);
+    return { rank: 1, cls: 'soon', text: n <= 1 ? '明日開始' : n + ' 天後開始' };
+  }
+
+  function normalize(x) {
+    if (!x) return null;
+    var name = clean(x.n || x.name);
+    if (!name) return null;
+    var id = clean(x.i || x.id);
+    var rawTypes = x.t != null ? x.t : x.types;
+    var types = [];
+    if (Array.isArray(rawTypes)) {
+      types = rawTypes.map(function (t) { return clean(t && t.name ? t.name : t); }).filter(Boolean);
+    } else {
+      types = String(rawTypes || '').split('|').map(clean).filter(Boolean);
+    }
+    var rawLoc = x.l != null ? x.l : x.location;
+    var locs = [];
+    if (Array.isArray(rawLoc)) {
+      locs = rawLoc.map(function (l) { return clean(l && l.name ? l.name : l); }).filter(Boolean);
+    } else {
+      locs = String(rawLoc || '').split('|').map(clean).filter(Boolean);
+    }
+    var start = iso(x.s), end = iso(x.e);
+    var rng = x.eventDateRange;
+    if (Array.isArray(rng) && rng.length) {
+      var vals = [];
+      rng.forEach(function (p) {
+        if (!Array.isArray(p)) return;
+        if (iso(p[0])) vals.push(iso(p[0]));
+        if (iso(p[1])) vals.push(iso(p[1]));
+      });
+      if (vals.length) { start = start || vals.reduce(function (a, b) { return a < b ? a : b; }); end = end || vals.reduce(function (a, b) { return a > b ? a : b; }); }
+    }
+    if (!start) {
+      var m = String(x.eventDate || '').match(/\d{4}-\d{2}-\d{2}/g);
+      if (m && m.length) { start = m[0]; end = end || m[m.length - 1]; }
+    }
+    var today = macauToday();
+    return {
+      id: id, name: name, date: clean(x.d || x.showDate) || '—',
+      start: start, end: end || start,
+      types: types.length ? types : ['其他'], locs: locs,
+      desc: plain(x.x != null ? x.x : x.shortDesc),
+      top: !!(x.f || x.top === 'yes'),
+      status: statusOf(start, end || start, today)
+    };
+  }
+
+  function sortRows(rows) {
+    return rows.slice().sort(function (a, b) {
+      var r = a.status.rank - b.status.rank;
+      if (r) return r;
+      var sa = a.start || '9999-12-31', sb = b.start || '9999-12-31';
+      if (sa !== sb) return sa < sb ? -1 : 1;
+      return (b.top ? 1 : 0) - (a.top ? 1 : 0);
+    });
+  }
+
+  function grab(url, ms) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms || 12000) : null;
+    var opts = { method: 'GET' };
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(url, opts).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }).then(function (t) {
+      if (timer) clearTimeout(timer);
+      return t;
+    }, function (e) {
+      if (timer) clearTimeout(timer);
+      throw e;
+    });
+  }
+
+  /** Jina Reader 會在原始 JSON 前加三行說明；官網直連則是純 JSON */
+  function parsePayload(txt) {
+    var s = String(txt || '');
+    var i = s.indexOf('{'), j = s.lastIndexOf('}');
+    if (i < 0 || j <= i) throw new Error('回應格式不正確');
+    var d = JSON.parse(s.slice(i, j + 1));
+    if (!d || !Array.isArray(d.results)) throw new Error('回應缺少活動清單');
+    return d;
+  }
+
+  function typeClass(t) {
+    var i = TYPES.indexOf(t);
+    return 't-' + (i < 0 ? 4 : i);
+  }
+
+  var STYLE = `
+    :host {
+      --c-bg: #101a2b; --c-bg2: #16223a; --c-bd: #22304a;
+      --c-tx: #e9f0fb; --c-mu: #93a7c4; --c-fa: #6b819f;
+      --c-ac: #4fd1bd; --c-am: #f4bd6a; --c-glass: rgba(79, 209, 189, .10);
+      /* 舉辦地點高亮：深色主題用亮琥珀，淺色主題用深琥珀，兩邊都夠對比 */
+      --c-loc: #ffd08a;
+      /* 搜尋框：比卡片底色再淺一層的膠囊底 */
+      --c-field: rgba(255, 255, 255, .10); --c-field-2: rgba(255, 255, 255, .17);
+      --c-field-line: rgba(255, 255, 255, .22);
+      display: block; color: var(--c-tx);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei",
+                   "Noto Sans TC", "PingFang TC", "Hiragino Sans GB", sans-serif;
+      container-type: inline-size;
+    }
+    :host([data-theme="light"]) {
+      --c-bg: #ffffff; --c-bg2: #f4f8fd; --c-bd: #dbe5f1;
+      --c-tx: #101d33; --c-mu: #52678a; --c-fa: #7c90ad;
+      --c-ac: #0f8c72; --c-am: #a56809; --c-glass: rgba(15, 140, 114, .09);
+      --c-loc: #8a5209;
+      --c-field: #ffffff; --c-field-2: #ffffff;
+      --c-field-line: rgba(16, 29, 51, .16);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    .card {
+      background: var(--c-bg);
+      border: 1px solid var(--c-bd);
+      border-radius: 18px;
+      padding: clamp(14px, 2vw, 20px);
+      box-shadow: 0 20px 48px rgba(2, 8, 18, .38);
+    }
+    :host([data-theme="light"]) .card { box-shadow: 0 18px 42px rgba(21, 43, 74, .10); }
+    .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .hd h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: .01em; line-height: 1.35; }
+    .hd h2 i { display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 50%;
+      background: var(--c-am); box-shadow: 0 0 0 4px rgba(244, 189, 106, .16); vertical-align: middle; }
+    .hd p { margin: 5px 0 0; font-size: 13px; color: var(--c-mu); line-height: 1.6; }
+    .badge { flex: none; margin-top: 2px; padding: 5px 11px; border-radius: 999px;
+      font-size: 12.5px; font-weight: 700; letter-spacing: .02em;
+      color: var(--c-ac); background: var(--c-glass);
+      border: 1px solid color-mix(in srgb, var(--c-ac) 34%, var(--c-bd)); }
+    .focus { position: relative; margin-top: 15px; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--c-am) 34%, var(--c-bd));
+      background: linear-gradient(118deg, color-mix(in srgb, var(--c-am) 13%, var(--c-bg2)), var(--c-bg2) 72%); }
+    .focus .k { display: inline-block; margin-bottom: 7px; font-size: 11.5px; font-weight: 700;
+      letter-spacing: .12em; color: var(--c-am); }
+    .focus h3 { margin: 0 0 6px; font-size: 16.5px; font-weight: 700; line-height: 1.4; }
+    .focus p { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--c-mu);
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .focus.is-open p { display: block; -webkit-line-clamp: unset; overflow: visible; }
+    .focus-ft { display: flex; justify-content: flex-end; margin-top: 9px; }
+    .focus-more { display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 8px; cursor: pointer;
+      font: inherit; font-size: 12.5px; font-weight: 700;
+      color: var(--c-am); background: color-mix(in srgb, var(--c-am) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-am) 40%, var(--c-bd)); }
+    .focus-more:hover { border-color: var(--c-am); }
+    .focus-more:focus-visible { outline: 2px solid var(--c-am); outline-offset: 2px; }
+    .focus-more::after { content: ''; width: 6px; height: 6px; flex: none;
+      border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor;
+      transform: translateY(-2px) rotate(45deg); }
+    .focus.is-open .focus-more::after { transform: translateY(2px) rotate(225deg); }
+    /* 搜尋框吸附卡片頂端：頁面捲動時只有下方資料移動 */
+    .tools { position: sticky; top: var(--sticky-top, 124px); z-index: 3;
+      margin-top: 15px; padding: 12px 0 10px; display: flex; justify-content: center;
+      /* 卡片底色為單色，鋪同色底即可遮住下方捲過的內容，平時不露痕跡 */
+      background: linear-gradient(180deg, var(--c-bg) 0%, var(--c-bg) 84%, transparent 100%); }
+    /* 搜尋框：Google 首頁式圓角膠囊，底色比卡片淺一層，載入前即可辨識 */
+    .search { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px;
+      padding: 11px 20px; border-radius: 999px;
+      background: var(--c-field); border: 1px solid var(--c-field-line);
+      box-shadow: 0 2px 10px rgba(3, 10, 24, .14), inset 0 1px 0 rgba(255, 255, 255, .08);
+      transition: background .18s, border-color .18s, box-shadow .18s; }
+    .search:hover { background: var(--c-field-2); box-shadow: 0 4px 18px rgba(3, 10, 24, .22); }
+    .search:focus-within { background: var(--c-field-2); border-color: var(--c-ac);
+      box-shadow: 0 6px 24px rgba(3, 10, 24, .26); }
+    .search svg { width: 18px; height: 18px; flex: none; color: var(--c-fa); }
+    .search input { flex: 1 1 auto; min-width: 0; border: 0; outline: none; background: transparent;
+      color: var(--c-tx); font: inherit; font-size: 15px; }
+    .search input::placeholder { color: var(--c-fa); }
+    /* 分類按鈕與搜尋框同軸置中；七枚固定一列，任何寬度都不換行 */
+    .chips { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 7px; width: 100%; max-width: 780px; margin: 10px auto 0; }
+    .chip { width: 100%; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+      gap: 5px; padding: 5px 4px; border-radius: 999px; cursor: pointer;
+      font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap;
+      color: var(--c-mu); background: var(--c-bg2);
+      border: 1px solid var(--c-bd); transition: color .18s, border-color .18s, background-color .18s; }
+    .chip .cn { display: inline-block; min-width: 0; }
+    .chip small { flex: none; font-size: 1em; font-weight: 600; line-height: 1; }
+    .chip:hover { color: var(--c-tx); border-color: var(--c-ac); }
+    .chip.on { color: var(--c-ac); background: var(--c-glass);
+      border-color: color-mix(in srgb, var(--c-ac) 42%, var(--c-bd)); }
+    :host([data-theme="light"]) .chip.on { color: #0a6b56; }
+    /* 「已結束」篩選：灰調，與類別篩選區隔 */
+    .chip.ended { color: var(--c-fa); }
+    .chip.ended.on {
+      color: var(--c-mu); background: color-mix(in srgb, var(--c-mu) 16%, transparent);
+      border-color: color-mix(in srgb, var(--c-mu) 40%, var(--c-bd)); }
+    .result { margin-top: 12px; font-size: 12.5px; color: var(--c-fa); }
+    .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 285px), 1fr));
+      gap: 10px; margin-top: 10px; }
+    .item { display: flex; flex-direction: column; gap: 7px; min-width: 0;
+      padding: 12px 13px; border-radius: 13px; text-decoration: none; color: inherit;
+      border: 1px solid var(--c-bd); background: var(--c-bg2);
+      transition: transform .18s, border-color .18s, box-shadow .18s; }
+    .item:hover { transform: translateY(-2px); border-color: var(--c-ac);
+      box-shadow: 0 12px 26px rgba(2, 8, 18, .26); }
+    :host([data-theme="light"]) .item:hover { box-shadow: 0 12px 24px rgba(21, 43, 74, .12); }
+    .item:focus-visible { outline: 2px solid var(--c-ac); outline-offset: 2px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .date { display: inline-block; min-width: 0; padding: 3px 8px; border-radius: 8px;
+      font-size: 12px; font-weight: 700; color: var(--c-ac); background: var(--c-glass);
+      border: 1px solid color-mix(in srgb, var(--c-ac) 26%, var(--c-bd)); white-space: nowrap; }
+    .st { flex: none; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    .st.now { color: #4fd1bd; background: rgba(79, 209, 189, .12); border: 1px solid rgba(79, 209, 189, .36); }
+    .st.soon { color: #f4bd6a; background: rgba(244, 189, 106, .12); border: 1px solid rgba(244, 189, 106, .36); }
+    .st.done { color: var(--c-fa); background: color-mix(in srgb, var(--c-fa) 10%, transparent); border: 1px solid var(--c-bd); }
+    :host([data-theme="light"]) .st.now { color: #0a6b56; background: rgba(15, 140, 114, .12); border-color: rgba(15, 140, 114, .32); }
+    :host([data-theme="light"]) .st.soon { color: #8a5405; background: rgba(165, 104, 9, .10); border-color: rgba(165, 104, 9, .30); }
+    /* 已結束的活動：整張卡改灰底、文字轉淡 */
+    .item.is-done {
+      background: color-mix(in srgb, var(--c-mu) 16%, var(--c-bg2));
+      border-color: color-mix(in srgb, var(--c-mu) 26%, var(--c-bd));
+    }
+    .item.is-done:hover { border-color: color-mix(in srgb, var(--c-mu) 44%, var(--c-bd)); }
+    .item.is-done h4 { color: var(--c-fa); }
+    .item.is-done .date {
+      color: var(--c-fa); background: color-mix(in srgb, var(--c-fa) 12%, transparent);
+      border-color: color-mix(in srgb, var(--c-fa) 26%, var(--c-bd));
+    }
+    .item.is-done .desc { color: var(--c-fa); }
+    .item.is-done .meta { opacity: .82; }
+    .item.is-done .cat { opacity: .72; }
+    .item h4 { margin: 0; font-size: 15.5px; font-weight: 700; line-height: 1.45; }
+    .meta { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--c-loc); line-height: 1.5;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .desc { margin: 0; font-size: 12.5px; color: var(--c-fa); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 2px; }
+    .cat { padding: 2px 7px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+      color: var(--cc); background: color-mix(in srgb, var(--cc) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--cc) 34%, transparent); }
+    .t-0 { --cc: #f4bd6a; } .t-1 { --cc: #4fd1bd; } .t-2 { --cc: #b39ddb; }
+    .t-3 { --cc: #7cc4f4; } .t-4 { --cc: #9fb3cc; }
+    :host([data-theme="light"]) .t-0 { --cc: #a56809; }
+    :host([data-theme="light"]) .t-1 { --cc: #0f8c72; }
+    :host([data-theme="light"]) .t-2 { --cc: #7351a8; }
+    :host([data-theme="light"]) .t-3 { --cc: #2b6f9e; }
+    :host([data-theme="light"]) .t-4 { --cc: #5b6f8c; }
+    .more { display: block; width: 100%; margin-top: 13px; padding: 10px;
+      border-radius: 10px; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 700;
+      color: var(--c-ac); background: var(--c-glass);
+      border: 1px solid color-mix(in srgb, var(--c-ac) 34%, var(--c-bd)); }
+    .more:hover { border-color: var(--c-ac); }
+    :host([data-theme="light"]) .more { color: #0a6b56; }
+    .notice { margin-top: 12px; padding: 9px 12px; border-radius: 10px; font-size: 12.5px;
+      line-height: 1.6; color: var(--c-mu); background: var(--c-bg2); border: 1px solid var(--c-bd); }
+    .notice button { margin-left: 8px; padding: 3px 9px; border-radius: 7px; cursor: pointer;
+      font: inherit; font-size: 12px; color: var(--c-ac); background: transparent;
+      border: 1px solid color-mix(in srgb, var(--c-ac) 40%, var(--c-bd)); }
+    .empty { padding: 22px 10px; text-align: center; font-size: 13.5px; color: var(--c-mu); }
+    @container (max-width: 760px) {
+      /* 欄寬收窄時改直排：名稱在上、數量在下，七枚仍維持同一列 */
+      .chips { gap: 5px; max-width: none; }
+      .chip { flex-direction: column; gap: 1px; padding: 5px 2px; border-radius: 10px; font-size: 14px; }
+      .chip .cn { display: block; }
+    }
+    @container (max-width: 560px) {
+      .card { padding: 12px; border-radius: 15px; }
+      .hd h2 { font-size: 18px; }
+      .hd p { font-size: 12px; }
+      .badge { font-size: 11.5px; padding: 4px 9px; }
+      .focus { padding: 12px; }
+      .focus h3 { font-size: 15.5px; }
+      .focus p { font-size: 12.5px; }
+      .list { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+      .item { padding: 10px 11px; }
+      .item h4 { font-size: 14.5px; }
+      .date { font-size: 11.5px; }
+      /* 七枚固定一列：縮減間距與內距，並給四字名稱較寬欄位，名稱一律不折行 */
+      .chips { grid-template-columns: minmax(0, 1fr) minmax(0, 1.32fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 1px; max-width: none; }
+      .chip { width: 100%; min-width: 0; flex-direction: column; gap: 0;
+        padding: 2px 0; border-radius: 9px; font-size: clamp(10px, 3.45cqw, 13px); line-height: 1.05;
+        text-align: center; white-space: nowrap; overflow: hidden; }
+      .chip .cn { display: block; white-space: nowrap; line-height: 1.05;
+        max-width: 100%; letter-spacing: -.02em; }
+      .chip small { font-size: .85em; line-height: 1.05; font-weight: 700; }
+      .focus-more { font-size: 12px; }
+    }
+    @container (max-width: 300px) {
+      .chips { gap: 1px; }
+      .chip { font-size: 10px; padding: 2px 0; }
+      .chip small { font-size: 8.5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .item, .chip, .more { transition-duration: .001ms; }
+    }
+  `;
+
+  var SEARCH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+    'stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>';
+
+  class MacauTourWidget extends HTMLElement {
+    static get observedAttributes() { return ['refresh', 'theme', 'title', 'limit']; }
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this._data = [];
+      this._intro = null;
+      this._updatedAt = null;
+      this._offline = true;
+      this._loading = false;
+      this._notice = '';
+      this._query = '';
+      this._type = '全部';
+      this._limit = PAGE_SIZE;
+      this._timer = null;
+      this._ro = null;
+      this._catalogName = '旅遊快訊';
+      var self = this;
+      this.shadowRoot.addEventListener('click', function (e) { self._onClick(e); });
+      this.shadowRoot.addEventListener('input', function (e) { self._onInput(e); });
+    }
+
+    get cfg() {
+      var a = this.getAttribute.bind(this);
+      return {
+        title: a('title') || '澳門旅遊快訊',
+        theme: a('theme') || 'light',
+        refresh: clampInt(a('refresh'), 30, 3600, 300),
+        limit: clampInt(a('limit'), 3, 60, PAGE_SIZE)
+      };
+    }
+
+    connectedCallback() {
+      this._cfg = this.cfg;
+      this.setAttribute('data-theme', this._cfg.theme);
+      this._limit = this._cfg.limit;
+      this._data = sortRows(SNAPSHOT.map(normalize).filter(Boolean));
+      this._intro = SNAPSHOT_INTRO;
+      this._offline = true;
+      this._shell();
+      this._paint();
+      this._startTimer();
+      this._loadCatalog();
+      this.refresh();
+    }
+
+    disconnectedCallback() {
+      clearInterval(this._timer);
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (oldVal === newVal || !this.isConnected) return;
+      this._cfg = this.cfg;
+      if (name === 'theme') this.setAttribute('data-theme', this._cfg.theme);
+      else if (name === 'refresh') this._startTimer();
+      else if (name === 'title') { this._shell(); this._paint(); }
+      else if (name === 'limit') { this._limit = this._cfg.limit; this._paintList(); }
+    }
+
+    _startTimer() {
+      clearInterval(this._timer);
+      /* no-auto：只在進入網頁時讀取一次，不啟動每 5 分鐘的自動重整。 */
+      if (this.hasAttribute('no-auto')) return;
+      var self = this;
+      this._timer = setInterval(function () { self.refresh(); }, this._cfg.refresh * 1000);
+    }
+
+    /** 目錄 API 僅供資料集描述（非阻塞）；舊 RSS 已失效，不作為資料來源 */
+    _loadCatalog() {
+      var self = this;
+      grab(CATALOG_API, 6000).then(function (txt) {
+        try {
+          var j = JSON.parse(txt);
+          var d = j && j.dataDir && j.dataDir[0];
+          if (d && clean(d.name)) {
+            self._catalogName = clean(d.name);
+            var badge = self.shadowRoot.querySelector('[data-badge]');
+            if (badge) badge.title = self._catalogName;
+          }
+        } catch (e) { /* 目錄 API 偶發「內部錯誤」，忽略即可 */ }
+      }).catch(function () {});
+    }
+
+    _shell() {
+      this.shadowRoot.innerHTML = '<style>' + STYLE + '</style>' +
+        '<div class="card">' +
+          '<div class="hd"><div><h2><i aria-hidden="true"></i><span data-title></span></h2>' +
+          '<p data-sub>節慶盛事、表演展覽與體育活動 · 依日期與性質瀏覽</p></div>' +
+          '<span class="badge" data-badge>載入中…</span></div>' +
+          '<div class="focus" data-focus><span class="k">本月焦點</span><h3 data-focus-title></h3>' +
+          '<p data-focus-desc></p>' +
+          '<div class="focus-ft" data-focus-ft hidden>' +
+            '<button class="focus-more" type="button" data-focus-more aria-expanded="false">更多</button>' +
+          '</div></div>' +
+          '<div class="tools"><label class="search">' + SEARCH_SVG +
+            '<input type="search" data-search placeholder="搜尋活動名稱／地點／內容" aria-label="搜尋旅遊快訊">' +
+          '</label></div>' +
+          '<div class="chips" data-chips></div>' +
+          '<div class="result" data-result></div>' +
+          '<div class="list" data-list></div>' +
+          '<button class="more" type="button" data-more hidden></button>' +
+          '<div class="notice" data-notice hidden></div>' +
+        '</div>';
+      var t = this.shadowRoot.querySelector('[data-title]');
+      if (t) t.textContent = this._cfg.title;
+      var input = this.shadowRoot.querySelector('[data-search]');
+      if (input) input.value = this._query;
+      var focusEl = this.shadowRoot.querySelector('[data-focus]');
+      var self = this;
+      if (focusEl && typeof ResizeObserver !== 'undefined') {
+        if (this._ro) this._ro.disconnect();
+        this._ro = new ResizeObserver(function () { self._syncFocusMore(); });
+        this._ro.observe(focusEl);
+      }
+    }
+
+    refresh() {
+      if (this._loading) return;
+      var self = this;
+      this._loading = true;
+      var badge = this.shadowRoot.querySelector('[data-badge]');
+      if (badge) badge.textContent = '更新中…';
+
+      grab(PROXY_API, 16000)
+        .then(parsePayload)
+        .catch(function () { return grab(OFFICIAL_API, 9000).then(parsePayload); })
+        .then(function (payload) {
+          var rows = sortRows((payload.results || []).map(normalize).filter(Boolean));
+          if (!rows.length) throw new Error('官方回應沒有活動資料');
+          var intro = payload.top && payload.top.introduction;
+          self._data = rows;
+          if (intro) self._intro = { t: plain(intro.title), d: plain(intro.description) };
+          self._updatedAt = Date.now();
+          self._offline = false;
+          self._notice = '';
+          self._paint();
+          self.dispatchEvent(new CustomEvent('macau-tour:update', {
+            bubbles: true, composed: true,
+            detail: { count: rows.length, updatedAt: self._updatedAt, source: 'live' }
+          }));
+        })
+        .catch(function (err) {
+          if (!self._data || !self._data.length) {
+            self._data = sortRows(SNAPSHOT.map(normalize).filter(Boolean));
+            self._intro = SNAPSHOT_INTRO;
+          }
+          self._offline = true;
+          self._notice = '目前顯示 ' + SNAPSHOT_DATE + ' 取得的活動快照' +
+            '<button type="button" data-retry>重試</button>';
+          self._paint();
+          self.dispatchEvent(new CustomEvent('macau-tour:error', {
+            bubbles: true, composed: true, detail: { message: err.message }
+          }));
+        })
+        .then(function () { self._loading = false; });
+    }
+
+    _filtered() {
+      var q = this._query.toLowerCase(), t = this._type, ended = t === '已結束';
+      return this._data.filter(function (r) {
+        /* 「已結束」只看狀態，其餘為類別篩選 */
+        if (ended) {
+          if (r.status.cls !== 'done') return false;
+        } else if (t !== '全部' && r.types.indexOf(t) < 0) {
+          return false;
+        }
+        if (!q) return true;
+        return [r.name, r.locs.join(' '), r.types.join(' '), r.desc, r.date]
+          .join(' ').toLowerCase().indexOf(q) >= 0;
+      });
+    }
+
+    _paint() {
+      var sr = this.shadowRoot;
+      var badge = sr.querySelector('[data-badge]');
+      if (badge) {
+        badge.textContent = this._data.length + ' 則活動';
+        badge.title = this._catalogName;
+      }
+      var focus = sr.querySelector('[data-focus]');
+      var ft = sr.querySelector('[data-focus-title]');
+      var fd = sr.querySelector('[data-focus-desc]');
+      if (focus && this._intro && clean(this._intro.t)) {
+        focus.hidden = false;
+        if (ft) ft.textContent = this._intro.t;
+        if (fd) fd.textContent = this._intro.d || '';
+      } else if (focus) focus.hidden = true;
+
+      var chips = sr.querySelector('[data-chips]');
+      if (chips) {
+        /* 類別篩選之後，最右再加一個「已結束」狀態篩選 */
+        var names = ['全部'].concat(TYPES).concat(['已結束']);
+        chips.innerHTML = names.map(function (n) {
+          var ended = n === '已結束';
+          /* 已結束的活動已包含在「全部」與各類別中，故不重複顯示總數 */
+          var c = ended ? 0
+            : n === '全部' ? this._data.length
+            : this._data.filter(function (r) { return r.types.indexOf(n) >= 0; }).length;
+          return '<button class="chip' + (this._type === n ? ' on' : '') + (ended ? ' ended' : '') +
+            '" type="button" data-chip="' + esc(n) + '" aria-pressed="' + (this._type === n ? 'true' : 'false') + '">' +
+            '<span class="cn">' + esc(n) + '</span>' + (ended ? '' : '<small>' + c + '</small>') + '</button>';
+        }, this).join('');
+      }
+      var notice = sr.querySelector('[data-notice]');
+      if (notice) {
+        notice.hidden = !this._notice;
+        notice.innerHTML = this._notice || '';
+      }
+      this._paintList();
+      var self = this;
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(function () { self._syncFocusMore(); });
+      } else this._syncFocusMore();
+    }
+
+    /** 依實際排版判斷內文是否被 3 行截斷，決定「更多／收起」是否出現。
+        面板由 hidden 切為顯示時，ResizeObserver 會再觸發一次重新量測。 */
+    _syncFocusMore() {
+      var sr = this.shadowRoot;
+      var focus = sr.querySelector('[data-focus]');
+      var p = sr.querySelector('[data-focus-desc]');
+      var ft = sr.querySelector('[data-focus-ft]');
+      var btn = sr.querySelector('[data-focus-more]');
+      if (!focus || !p || !ft || !btn) return;
+      if (focus.hidden || !focus.getClientRects().length) { ft.hidden = true; return; }
+      var open = focus.classList.contains('is-open');
+      var need = open || p.scrollHeight > p.clientHeight + 1;
+      ft.hidden = !need;
+      btn.textContent = open ? '收起' : '更多';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    _paintList() {
+      var sr = this.shadowRoot;
+      var rows = this._filtered();
+      var shown = rows.slice(0, this._limit);
+      var list = sr.querySelector('[data-list]');
+      if (list) {
+        list.innerHTML = shown.length ? shown.map(function (r) {
+          var href = /^\d+$/.test(r.id) ? DETAIL_BASE + r.id : '';
+          var tags = r.types.slice(0, 2).map(function (t) {
+            return '<span class="cat ' + typeClass(t) + '">' + esc(t) + '</span>';
+          }).join('');
+          var body = '<div class="row"><span class="date">' + esc(r.date) + '</span>' +
+            '<span class="st ' + r.status.cls + '">' + esc(r.status.text) + '</span></div>' +
+            '<h4>' + esc(r.name) + '</h4>' +
+            (r.locs.length ? '<p class="meta">' + esc(r.locs.join('、')) + '</p>' : '') +
+            (r.desc ? '<p class="desc">' + esc(r.desc) + '</p>' : '') +
+            '<div class="cats">' + tags + '</div>';
+          var cls = 'item' + (r.status.cls === 'done' ? ' is-done' : '');
+          return href
+            ? '<a class="' + cls + '" href="' + href + '" target="_blank" rel="noopener noreferrer">' + body + '</a>'
+            : '<div class="' + cls + '">' + body + '</div>';
+        }).join('') : '<div class="empty">沒有符合條件的活動</div>';
+      }
+      var result = sr.querySelector('[data-result]');
+      if (result) {
+        result.textContent = '顯示 ' + shown.length + ' / ' + rows.length + ' 則' +
+          (this._type !== '全部' ? ' · ' + this._type : '');
+      }
+      var more = sr.querySelector('[data-more]');
+      if (more) {
+        var left = rows.length - shown.length;
+        more.hidden = left <= 0;
+        more.textContent = left > 0 ? '載入更多（尚有 ' + left + ' 則）' : '';
+      }
+    }
+
+    _onClick(e) {
+      var t = e.target && e.target.closest
+        ? e.target.closest('[data-chip], [data-more], [data-retry], [data-focus-more]') : null;
+      if (!t) return;
+      if (t.hasAttribute('data-focus-more')) {
+        var focus = this.shadowRoot.querySelector('[data-focus]');
+        if (focus) focus.classList.toggle('is-open');
+        this._syncFocusMore();
+        return;
+      }
+      if (t.hasAttribute('data-chip')) {
+        this._type = t.getAttribute('data-chip');
+        this._limit = this._cfg.limit;
+        this._paint();
+      } else if (t.hasAttribute('data-more')) {
+        this._limit += PAGE_SIZE;
+        this._paintList();
+      } else if (t.hasAttribute('data-retry')) {
+        this.refresh();
+      }
+    }
+
+    _onInput(e) {
+      if (!e.target || !e.target.hasAttribute || !e.target.hasAttribute('data-search')) return;
+      this._query = clean(e.target.value).toLowerCase();
+      this._limit = this._cfg.limit;
+      this._paintList();
+    }
+  }
+
+  if (window.customElements) window.customElements.define('macau-tour-widget', MacauTourWidget);
+})();
+
+</script>
+<script>
+/**
+ * macau-registry-widget.js
+ * 旅遊局｜市政署牌照場所 —— 合併搜尋（單一搜尋框）
+ *
+ * 資料來源（標頭皆為 Authorization: APPCODE <鍵>）
+ *   市政署 IAM 飲食飲料場所（JSON）
+ *     https://iam.apigateway.data.gov.mo/LFBPricelist_PROD
+ *   旅遊局 DST 五類牌照場所（XML）
+ *     https://dst.apigateway.data.gov.mo/dst_bars
+ *     https://dst.apigateway.data.gov.mo/dst_restaurant
+ *     https://dst.apigateway.data.gov.mo/dst_saunasandmassages
+ *     https://dst.apigateway.data.gov.mo/dst_karaokes
+ *     https://dst.apigateway.data.gov.mo/dst_nightclub
+ *
+ * 行為：未輸入關鍵字時不顯示任何場所，只顯示資料庫總筆數；
+ *       輸入後於兩個來源合併的清單中搜尋並顯示符合項目。
+ * 可用屬性：refresh（秒，預設 300）／theme／title／limit
+ * 公開方法：element.refresh()
+ * 對外事件：macau-registry:update、macau-registry:error（bubbles + composed）
+ */
+(function () {
+  'use strict';
+
+  if (window.customElements && window.customElements.get('macau-registry-widget')) return;
+
+  var DINING_API = 'https://iam.apigateway.data.gov.mo/LFBPricelist_PROD';
+  var DST_BASE = 'https://dst.apigateway.data.gov.mo/';
+  var APPCODE = '09d43a591fba407fb862412970667de4';
+  var PAGE_SIZE = 20;
+
+  var DST_SOURCES = [
+    { cat: '酒吧', api: DST_BASE + 'dst_bars' },
+    { cat: '餐廳', api: DST_BASE + 'dst_restaurant' },
+    { cat: '蒸氣浴室', api: DST_BASE + 'dst_saunasandmassages' },
+    { cat: '卡拉OK', api: DST_BASE + 'dst_karaokes' },
+    { cat: '舞廳', api: DST_BASE + 'dst_nightclub' }
+  ];
+
+  /* 頁尾官方目錄鏈結（順序：旅遊局、市政署） */
+  var LINKS = [
+    { key: 'dst', name: '旅遊局已領有准照之實體',
+      href: 'https://www.dst.gov.mo/zh-hant/public-services/licensed-entities.html' },
+    /* 市政署准照場所查詢頁：一般瀏覽器可直達（Spring Web Flow 先 302 設 Cookie）；
+       自動化工具若被 WAF 攔截，可改用開放數據平台同一數據集
+       https://data.gov.mo/Detail?id=9725f212-2fac-4f04-9d28-95ea97463a77 */
+    { key: 'iam', name: '市政署已領有准照／登記證明的飲食飲料場所',
+      href: 'https://app.iam.gov.mo/LFBPriceEnquiry/spring/main' }
+  ];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  function clampInt(n, min, max, fallback) {
+    n = parseInt(n, 10);
+    return isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  }
+  function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function safeSite(s) {
+    s = clean(s);
+    if (!s) return '';
+    if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+    return /^https?:\/\/[^\s]+$/i.test(s) ? s : '';
+  }
+  function telUrl(t) {
+    var d = String(t || '').replace(/[^\d+]/g, '');
+    return d ? 'tel:' + d : '';
+  }
+  /* Google 地圖查詢字串：門牌優先；無門牌時改用引號內的酒店／建築名定位 */
+  function mapQuery(r) {
+    var a = clean(r.addr || '');
+    if (!a) return clean(r.zh || r.en || r.pt);
+    /* 引號內且緊接「酒店／娛樂場」等字樣的建築名，才是要定位的目標 */
+    var raw = String(r.addr || '');
+    var mre = /[「“"]([^」”"]{2,40})[」”"]\s*(?:酒店|娛樂場|渡假|度假|旅館|旅馆|大廈|商場|中心|別墅|廣場|广场)/g;
+    var mm, mark = '';
+    while ((mm = mre.exec(raw))) mark = mm[1];
+    if (!mark) {
+      var qs = raw.match(/[「“"]([^」”"]{2,40})[」”"]/g);
+      if (qs && qs.length) mark = qs[qs.length - 1].replace(/[「」“”"]/g, '');
+    }
+    mark = clean(mark);
+    a = a.replace(/[「」“”"]/g, '');
+    var out, street = '';
+    if (/號/.test(a)) {
+      var m = a.match(/^.*?號/);
+      out = m ? m[0] : a;
+    } else {
+      var c = a.search(/[，,]/);
+      if (c > 2) {
+        street = a.slice(0, c);
+      } else {
+        var k = a.search(/(地下|閣樓|樓上|樓|舖|室|層|座)/);
+        street = k > 2 ? a.slice(0, k).replace(/[一二三四五六七八九十百\d]+\s*$/, '') : a;
+      }
+      /* 無門牌：只搜街道會落在整條街的任意點，改用建築名；名稱太短時補街道 */
+      out = mark || street;
+      if (mark && mark.length <= 4 && street.length <= 16 &&
+          /(街|馬路|大道|巷|圓形地|前地|廣場|广场)/.test(street)) {
+        out = mark + ' ' + street;
+      }
+    }
+    a = clean(out).replace(/[，,]+/g, ' ').replace(/[、;；\/]+$/, '').replace(/[（(\s]+$/, '');
+    if (a && !/澳門|氹仔|路環|Macau/i.test(a)) a = '澳門 ' + a;
+    return a;
+  }
+  function mapUrl(r) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapQuery(r));
+  }
+
+  function normalizeIam(x, i) {
+    if (!x) return null;
+    var zh = clean(x.placeNameCN), pt = clean(x.placeNamePT);
+    if (!zh && !pt) return null;
+    return {
+      src: 'iam', cat: '餐飲場所',
+      zh: zh || pt, en: '', pt: pt,
+      addr: clean(x.addressCN), addrAlt: clean(x.addressPT),
+      area: clean(x.areaCN), tel: '', hours: '', site: '', cuisine: '', email: '',
+      i: i || 0
+    };
+  }
+  function normalizeDst(x, cat, i) {
+    if (!x) return null;
+    var zh = clean(x.com_name_cn || x.name_cn || x.name_zh);
+    var gb = clean(x.com_name_gb || x.name_gb);
+    var en = clean(x.com_name_en || x.name_en);
+    var pt = clean(x.com_name_pt || x.name_pt);
+    var name = zh || en || pt || gb;
+    if (!name) return null;
+    return {
+      src: 'dst', cat: cat,
+      zh: name, en: en, pt: pt,
+      addr: clean(x.com_ads_cn || x.address_cn || x.address_zn),
+      addrAlt: clean(x.com_ads_en || x.address_en),
+      area: '', tel: clean(x.com_tel || x.tel),
+      hours: clean(x.hours_cn || x.hour_cn),
+      site: safeSite(x.website),
+      cuisine: clean(x.dish_name_zh || x.dish_name_en),
+      email: clean(x.email),
+      i: i || 0
+    };
+  }
+
+  function parseDstXml(text, cat) {
+    var doc = new DOMParser().parseFromString(String(text || ''), 'application/xml');
+    if (!doc.documentElement || doc.querySelector('parsererror')) throw new Error('XML 解析失敗');
+    var nodes = doc.documentElement.children, rows = [];
+    for (var i = 0; i < nodes.length; i++) {
+      var o = {}, kids = nodes[i].children;
+      for (var j = 0; j < kids.length; j++) o[kids[j].tagName] = clean(kids[j].textContent);
+      var r = normalizeDst(o, cat, i);
+      if (r) rows.push(r);
+    }
+    if (!rows.length) throw new Error('官方回應沒有場所資料');
+    return rows;
+  }
+
+  function searchIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>';
+  }
+  function pinIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/></svg>';
+  }
+
+  function itemHtml(r) {
+    var from = r.src === 'iam' ? '市政署' : '旅遊局';
+    var meta = [];
+    if (r.tel) meta.push('<a href="' + esc(telUrl(r.tel)) + '">☎ ' + esc(r.tel) + '</a>');
+    if (r.hours) meta.push('<span>營業 ' + esc(r.hours) + '</span>');
+    if (r.email) meta.push('<span>' + esc(r.email) + '</span>');
+    var tags = [];
+    if (r.area) tags.push('<span class="tag">' + esc(r.area) + '</span>');
+    if (r.cuisine) tags.push('<span class="tag">' + esc(r.cuisine) + '</span>');
+    var en = [r.en, r.pt].filter(function (v, i, a) { return v && v !== r.zh && a.indexOf(v) === i; }).join(' · ');
+    return '<article class="place" data-from="' + r.src + '">' +
+      '<div class="cat"><b>' + esc(r.cat) + '</b><span>' + from + '</span></div>' +
+      '<div class="body">' +
+        '<div class="line"><h3>' + esc(r.zh) + '</h3>' + tags.join('') + '</div>' +
+        (en ? '<div class="en">' + esc(en) + '</div>' : '') +
+        (r.addr ? '<div class="addr">' + pinIcon() + '<span>' + esc(r.addr) + '</span></div>' : '') +
+        (meta.length ? '<div class="meta">' + meta.join('<i>·</i>') + '</div>' : '') +
+        '<div class="foot">' +
+          '<span class="addr-en" title="' + esc(r.addrAlt) + '">' + esc(r.addrAlt) + '</span>' +
+          '<span class="links">' +
+            (r.addr ? '<a href="' + esc(mapUrl(r)) + '" target="_blank" rel="noopener noreferrer">地圖 ↗</a>' : '') +
+            (r.site ? '<a href="' + esc(r.site) + '" target="_blank" rel="noopener noreferrer">網站 ↗</a>' : '') +
+          '</span>' +
+        '</div>' +
+      '</div></article>';
+  }
+
+  var STYLE = `
+    :host {
+      --c-text: #eaf6f1; --c-muted: #a9c9bd; --c-faint: #7fa89a;
+      --c-line: rgba(120, 214, 178, .20); --c-tile: rgba(9, 46, 38, .48);
+      --c-tile-2: rgba(13, 58, 48, .62); --c-accent: #63e0b0; --c-accent-2: #8fd8e8;
+      /* 搜尋框：比卡片底色再淺一層的膠囊底 */
+      --c-field: rgba(255, 255, 255, .12); --c-field-2: rgba(255, 255, 255, .19);
+      --c-field-line: rgba(220, 255, 240, .26);
+      --c-warn: #ffcf70;
+      display: block; color: var(--c-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "Noto Sans TC", "PingFang TC", sans-serif;
+      font-size: 16px; line-height: 1.55; contain: layout style;
+    }
+    :host([data-theme="light"]) {
+      --c-text: #12352c; --c-muted: #3d6b5d; --c-faint: #5f8b7d;
+      --c-line: rgba(15, 110, 85, .18); --c-tile: rgba(225, 244, 235, .78);
+      --c-tile-2: rgba(210, 238, 226, .88); --c-accent: #0a7d5c; --c-accent-2: #176b86;
+      --c-field: rgba(255, 255, 255, .96); --c-field-2: #ffffff;
+      --c-field-line: rgba(15, 110, 85, .22);
+    }
+    * { box-sizing: border-box; }
+    /* 外層：標題、搜索框、場所間數在框外；卡片外框由下方 .panel 呈現 */
+    .card {
+      position: relative;
+      --pad: clamp(16px, 2.2vw, 24px);
+      padding-top: var(--pad);
+      container-type: inline-size;
+    }
+    /* 資料框：位置由搜索框下方開始 */
+    .panel {
+      position: relative; overflow: hidden; border-radius: 20px; padding: var(--pad);
+      border: 1px solid var(--c-line);
+      background:
+        radial-gradient(460px 280px at 100% -12%, rgba(255, 207, 112, .14), transparent 72%),
+        radial-gradient(420px 260px at 0% 108%, rgba(70, 200, 155, .14), transparent 74%),
+        linear-gradient(135deg, rgba(11, 58, 48, .62), rgba(7, 38, 34, .46) 55%, rgba(12, 62, 52, .56));
+      box-shadow: 0 20px 52px rgba(2, 20, 16, .34), inset 0 1px 0 rgba(190, 255, 228, .13);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+    }
+    :host([data-theme="light"]) .panel {
+      background:
+        radial-gradient(420px 260px at 100% -12%, rgba(190, 140, 40, .14), transparent 72%),
+        radial-gradient(420px 260px at 0% 108%, rgba(70, 190, 150, .16), transparent 74%),
+        linear-gradient(135deg, rgba(220, 244, 234, .80), rgba(238, 250, 244, .66) 55%, rgba(214, 240, 230, .78));
+      box-shadow: 0 18px 44px rgba(12, 70, 56, .12), inset 0 1px 0 rgba(255, 255, 255, .85);
+    }
+    .panel::before {
+      content: ""; position: absolute; top: 0; left: 6%; right: 6%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 207, 112, .5), transparent); pointer-events: none;
+    }
+    .hd { position: relative; z-index: 1; padding: 0 var(--pad);
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .hd h2 { margin: 0; font-size: clamp(18px, 2.4cqw, 22px); letter-spacing: .02em; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+    .hd h2 .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--c-warn); box-shadow: 0 0 10px var(--c-warn); flex: none; }
+    .badge { flex: none; border: 1px solid var(--c-line); border-radius: 999px; padding: 4px 11px;
+      font-size: 12px; color: var(--c-warn); background: var(--c-tile); font-variant-numeric: tabular-nums; }
+    .notice { position: relative; z-index: 1; margin-top: 12px; padding: 8px 12px; border-radius: 12px;
+      font-size: 12.5px; color: var(--c-warn); background: rgba(255, 207, 112, .10); border: 1px solid rgba(255, 207, 112, .35); }
+    .notice button { margin-left: 8px; border: 1px solid currentColor; border-radius: 999px; padding: 1px 9px;
+      background: transparent; color: inherit; font: inherit; cursor: pointer; }
+    .tools { position: relative; z-index: 1; margin-top: 16px; display: flex; justify-content: center; }
+    /* 搜尋框：Google 首頁式圓角膠囊，底色比卡片淺一層，載入前即可辨識 */
+    .search { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px;
+      padding: 11px 20px; border-radius: 999px;
+      background: var(--c-field); border: 1px solid var(--c-field-line);
+      box-shadow: 0 2px 10px rgba(2, 20, 16, .10), inset 0 1px 0 rgba(255, 255, 255, .10);
+      transition: background .18s, border-color .18s, box-shadow .18s; }
+    .search:hover { background: var(--c-field-2); box-shadow: 0 4px 18px rgba(2, 20, 16, .18); }
+    .search:focus-within { background: var(--c-field-2); border-color: var(--c-accent);
+      box-shadow: 0 6px 24px rgba(2, 20, 16, .22); }
+    .search svg { width: 18px; height: 18px; flex: none; color: var(--c-faint); }
+    .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--c-text); font: inherit; font-size: 15px; }
+    .search input::placeholder { color: var(--c-faint); }
+    .result { position: relative; z-index: 1; margin: 14px 0 8px; font-size: 12.5px; color: var(--c-muted); }
+    .result:empty { display: none; }
+    .list { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .place { display: flex; gap: 12px; min-width: 0; padding: 12px; border-radius: 14px;
+      background: var(--c-tile); border: 1px solid var(--c-line); }
+    .cat { flex: none; width: 62px; text-align: center; padding: 7px 3px; border-radius: 11px; background: var(--c-tile-2); }
+    .cat b { display: block; font-size: 12.5px; white-space: nowrap; }
+    /* 依來源上色：旅遊局＝紅、市政署＝藍；框內文字改白以確保對比 */
+    .place[data-from="dst"] { background: rgb(191, 42, 42); border-color: rgba(255, 255, 255, .20); }
+    .place[data-from="iam"] { background: rgb(33, 150, 243); border-color: rgba(255, 255, 255, .20); }
+    .place[data-from] { color: #fff; }
+    .place[data-from] .cat { background: rgba(0, 0, 0, .18); }
+    .place[data-from] .cat b { color: #fff; }
+    .place[data-from] .cat span { color: rgba(255, 255, 255, .78); }
+    .place[data-from] .en { color: rgba(255, 255, 255, .82); }
+    .place[data-from] .addr { color: rgba(255, 255, 255, .92); }
+    .place[data-from] .addr svg { color: rgba(255, 255, 255, .72); }
+    .place[data-from] .meta { color: rgba(255, 255, 255, .80); }
+    .place[data-from] .meta a { color: #fff; text-decoration: underline; }
+    .place[data-from] .addr-en { color: rgba(255, 255, 255, .70); }
+    .place[data-from] .tag { color: #fff; border-color: rgba(255, 255, 255, .50); }
+    .place[data-from] .links a { color: #fff; text-decoration: underline; }
+    .cat span { display: block; margin-top: 2px; font-size: 9.5px; color: var(--c-faint); letter-spacing: .04em; }
+    .body { min-width: 0; flex: 1; }
+    .line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .line h3 { margin: 0; font-size: 15px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .tag { flex: none; font-size: 10.5px; color: var(--c-warn); border: 1px solid rgba(255, 207, 112, .4);
+      border-radius: 999px; padding: 1px 7px; }
+    .en { margin-top: 2px; font-size: 11.5px; color: var(--c-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .addr { margin-top: 5px; display: flex; align-items: flex-start; gap: 5px; font-size: 12px; color: var(--c-muted); }
+    .addr svg { width: 13px; height: 13px; flex: none; margin-top: 2px; color: var(--c-faint); }
+    .addr span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+    .meta { margin-top: 5px; font-size: 11px; color: var(--c-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta a { color: var(--c-accent-2); text-decoration: none; }
+    .meta a:hover { text-decoration: underline; }
+    .meta i { margin: 0 6px; font-style: normal; opacity: .6; }
+    .foot { margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .addr-en { min-width: 0; font-size: 10.5px; color: var(--c-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .links { flex: none; display: flex; gap: 9px; }
+    .links a { font-size: 11.5px; color: var(--c-accent-2); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+    /* 初始提示只是文字，不加外框，避免與搜尋框連成一體 */
+    .hint { grid-column: 1 / -1; padding: 4px 4px 6px; text-align: center; color: var(--c-faint);
+      font-size: 13px; border: 0; background: none; }
+    .empty { grid-column: 1 / -1; padding: 26px 12px; text-align: center; color: var(--c-muted);
+      font-size: 13.5px; border: 1px dashed var(--c-line); border-radius: 14px; }
+    .more { position: relative; z-index: 1; display: block; margin: 14px auto 0; padding: 8px 18px;
+      border: 1px solid var(--c-line); border-radius: 999px; background: var(--c-tile-2);
+      color: var(--c-text); font: inherit; font-size: 13px; cursor: pointer; }
+    .more:hover { border-color: var(--c-accent); color: var(--c-accent); }
+    /* 搜尋框吸附：頁面捲動時只有下方資料移動；僅在吸附時鋪底，平時不顯示色塊 */
+    .tools { position: sticky; top: var(--sticky-top, 124px); z-index: 3; padding: 12px var(--pad) 10px; }
+    .tools.is-pinned {
+      background: linear-gradient(180deg, rgba(9, 45, 38, .97) 0%, rgba(9, 45, 38, .97) 84%, rgba(9, 45, 38, 0) 100%); }
+    :host([data-theme="light"]) .tools.is-pinned {
+      background: linear-gradient(180deg, rgba(233, 249, 241, .97) 0%, rgba(233, 249, 241, .97) 84%, rgba(233, 249, 241, 0) 100%); }
+    /* 框外元素沿用原本的水平內縮，維持相對位置 */
+    .notice { margin-left: var(--pad); margin-right: var(--pad); }
+    .result { margin-top: 0; }
+    /* 作者樣式的 display:block 會蓋過 hidden 屬性，需收回來 */
+    .more[hidden] { display: none !important; }
+    /* 整組往右延伸到距卡片右邊線 8px，讓最長一行（市政署）貼近邊線 */
+    .srcs { position: relative; z-index: 1; margin-top: 18px; padding-top: 12px;
+      margin-right: calc(8px - clamp(16px, 2.2vw, 24px));
+      border-top: 1px solid var(--c-line);
+      display: grid; grid-template-columns: minmax(0, 1fr) auto; row-gap: 10px; }
+    /* 名稱與間數同一行，整組自右側 1/4 處起排 */
+    .src-row { grid-column: 2; display: flex; align-items: baseline; gap: 10px;
+      text-decoration: none; white-space: nowrap; }
+    .src-name { font-size: 12.5px; color: var(--c-muted); border-bottom: 1px dotted currentColor; }
+    .src-row:hover .src-name { color: var(--c-accent); }
+    .src-meta { font-size: 12.5px; color: var(--c-faint); font-variant-numeric: tabular-nums; }
+    .src-meta b { color: var(--c-muted); }
+    /* 手機：置中且不換行 */
+    @container (max-width: 560px) {
+      .srcs { grid-template-columns: minmax(0, 1fr); margin-right: 0; }
+      .src-row { grid-column: 1; justify-content: center; }
+      .src-name, .src-meta { font-size: 11.5px; }
+    }
+    @container (max-width: 620px) { .list { grid-template-columns: minmax(0, 1fr); } }
+    @container (max-width: 360px) {
+      .cat { width: 54px; }
+      .place { gap: 9px; padding: 10px; }
+      .line h3 { font-size: 14px; }
+    }
+  `;
+
+  class MacauRegistryWidget extends HTMLElement {
+    static get observedAttributes() { return ['refresh', 'theme', 'title', 'limit']; }
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this._iam = [];
+      this._dst = [];
+      this._all = [];
+      this._q = '';
+      this._qRaw = '';
+      this._limit = PAGE_SIZE;
+      this._updatedAt = null;
+      this._loaded = false;
+      this._notice = '';
+      this._loading = false;
+      this._timer = null;
+      this._shelled = false;
+      this._tools = null;
+      this._onWinScroll = null;
+      var self = this;
+      this.shadowRoot.addEventListener('click', function (e) { self._onClick(e); });
+      this.shadowRoot.addEventListener('input', function (e) { self._onInput(e); });
+    }
+
+    get cfg() {
+      var a = this.getAttribute.bind(this);
+      return {
+        title: a('title') || '旅遊局｜市政署牌照場所',
+        theme: a('theme') || 'light',
+        refresh: clampInt(a('refresh'), 30, 3600, 300),
+        limit: clampInt(a('limit'), 4, 60, PAGE_SIZE)
+      };
+    }
+
+    connectedCallback() {
+      if (this._shelled) return;
+      this._shelled = true;
+      this._cfg = this.cfg;
+      if (this.getAttribute('data-theme') !== this._cfg.theme) this.setAttribute('data-theme', this._cfg.theme);
+      this._limit = this._cfg.limit;
+      this._shell();
+      this._paint();
+      this._startTimer();
+      this.refresh();
+    }
+
+    disconnectedCallback() {
+      clearInterval(this._timer);
+      if (this._onWinScroll) {
+        window.removeEventListener('scroll', this._onWinScroll);
+        window.removeEventListener('resize', this._onWinScroll);
+        this._onWinScroll = null;
+      }
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (oldVal === newVal || !this._shelled) return;
+      this._cfg = this.cfg;
+      if (name === 'theme') {
+        if (this.getAttribute('data-theme') !== this._cfg.theme) this.setAttribute('data-theme', this._cfg.theme);
+      } else if (name === 'refresh') {
+        this._startTimer();
+      } else if (name === 'title') {
+        var t = this.shadowRoot.querySelector('[data-title]');
+        if (t) t.textContent = this._cfg.title;
+      } else if (name === 'limit') {
+        this._limit = this._cfg.limit;
+        this._paintList();
+      }
+    }
+
+    _startTimer() {
+      clearInterval(this._timer);
+      /* no-auto：只在進入網頁時讀取一次，不啟動每 5 分鐘的自動重整。 */
+      if (this.hasAttribute('no-auto')) return;
+      var self = this;
+      this._timer = setInterval(function () { self.refresh(); }, this._cfg.refresh * 1000);
+    }
+
+    _shell() {
+      this.shadowRoot.innerHTML = '<style>' + STYLE + '</style>' +
+        '<div class="card">' +
+          '<div class="hd"><div><h2><i class="pip"></i><span data-title></span></h2></div>' +
+          '<span class="badge" data-badge>載入中…</span></div>' +
+          '<div class="notice" data-notice hidden></div>' +
+          '<div class="tools"><label class="search">' + searchIcon() +
+            '<input type="search" data-search placeholder="搜尋場所名稱／地址／電話／類別" aria-label="搜尋旅遊局及市政署牌照場所">' +
+            '</label></div>' +
+          '<div class="panel">' +
+            '<div class="result" data-result></div>' +
+            '<div class="list" data-list></div>' +
+            '<button class="more" type="button" data-more hidden></button>' +
+            '<div class="srcs" data-sources></div>' +
+          '</div>' +
+        '</div>';
+      this._tools = this.shadowRoot.querySelector('.tools');
+      if (this._tools && !this._onWinScroll) {
+        var self = this;
+        this._onWinScroll = function () { self._updatePin(); };
+        window.addEventListener('scroll', this._onWinScroll, { passive: true });
+        window.addEventListener('resize', this._onWinScroll);
+      }
+      var t = this.shadowRoot.querySelector('[data-title]');
+      if (t) t.textContent = this._cfg.title;
+      var input = this.shadowRoot.querySelector('[data-search]');
+      if (input) input.value = this._qRaw;
+    }
+
+    refresh() {
+      if (this._loading) return;
+      var self = this;
+      this._loading = true;
+
+      var iamTask = fetch(DINING_API, {
+        headers: { 'Authorization': 'APPCODE ' + APPCODE, 'Accept': 'application/json' }
+      }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (j) {
+        var arr = Array.isArray(j) ? j : (j && Array.isArray(j.data) ? j.data : []);
+        var rows = arr.map(normalizeIam).filter(Boolean);
+        if (!rows.length) throw new Error('沒有資料');
+        return rows;
+      }).then(function (rows) { return { ok: true, rows: rows }; },
+              function (err) { return { ok: false, err: err.message }; });
+
+      var dstTask = Promise.all(DST_SOURCES.map(function (s) {
+        return fetch(s.api, {
+          headers: { 'Authorization': 'APPCODE ' + APPCODE, 'Accept': 'application/xml' }
+        }).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        }).then(function (text) { return parseDstXml(text, s.cat); })
+          .then(function (rows) { return { id: s.cat, ok: true, rows: rows }; },
+                function (err) { return { id: s.cat, ok: false, err: err.message }; });
+      })).then(function (res) {
+        var merged = [], failed = [], anyOk = false;
+        res.forEach(function (r) {
+          if (r.ok) { anyOk = true; merged = merged.concat(r.rows); }
+          else failed.push(r.id + '（' + r.err + '）');
+        });
+        return { ok: anyOk, rows: merged, failed: failed };
+      });
+
+      Promise.all([iamTask, dstTask]).then(function (res) {
+        var iamRes = res[0], dstRes = res[1];
+        if (iamRes.ok) self._iam = iamRes.rows;
+        if (dstRes.ok) self._dst = dstRes.rows;
+        self._all = self._iam.concat(self._dst);
+        self._all.forEach(function (r, i) { r._k = i; });
+        self._loaded = true;
+
+        var fails = [];
+        if (!iamRes.ok) fails.push('市政署（' + iamRes.err + '）');
+        if (dstRes.failed.length) fails.push('旅遊局 ' + dstRes.failed.join('、'));
+
+        if (fails.length && !self._all.length) {
+          self._notice = '無法連接官方資料來源（' + esc(fails.join('；')) + '）。' +
+            '<button type="button" data-retry>重試</button>';
+        } else if (fails.length) {
+          self._notice = '部分來源暫時無法連接（' + esc(fails.join('；')) + '），顯示上次成功取得的資料。' +
+            '<button type="button" data-retry>重試</button>';
+        } else {
+          self._notice = '';
+        }
+
+        if (iamRes.ok || dstRes.ok) self._updatedAt = Date.now();
+        self._paint();
+
+        self.dispatchEvent(new CustomEvent('macau-registry:update', {
+          bubbles: true, composed: true,
+          detail: {
+            count: self._all.length,
+            iam: self._iam.length,
+            dst: self._dst.length,
+            updatedAt: self._updatedAt
+          }
+        }));
+        if (fails.length) {
+          self.dispatchEvent(new CustomEvent('macau-registry:error', {
+            bubbles: true, composed: true, detail: { message: fails.join('；') }
+          }));
+        }
+      }).catch(function (err) {
+        self._notice = '讀取資料時發生錯誤（' + esc(err.message) + '）。' +
+          '<button type="button" data-retry>重試</button>';
+        self._paint();
+        self.dispatchEvent(new CustomEvent('macau-registry:error', {
+          bubbles: true, composed: true, detail: { message: err.message }
+        }));
+      }).then(function () {
+        self._loading = false;
+      });
+    }
+
+    _filtered() {
+      var q = this._q;
+      if (!q) return [];
+      function score(r) {
+        var names = [r.zh, r.en, r.pt];
+        if (names.some(function (v) { return String(v || '').toLowerCase() === q; })) return 0;
+        if (names.some(function (v) { return String(v || '').toLowerCase().indexOf(q) === 0; })) return 1;
+        if (names.some(function (v) { return String(v || '').toLowerCase().indexOf(q) >= 0; })) return 2;
+        return 3;
+      }
+      return this._all.filter(function (r) {
+        return [r.cat, r.zh, r.en, r.pt, r.addr, r.addrAlt, r.area, r.tel, r.site,
+          r.cuisine, r.hours, r.email].some(function (v) {
+          return String(v || '').toLowerCase().indexOf(q) >= 0;
+        });
+      }).sort(function (a, b) {
+        return (score(a) - score(b)) || ((a._k || 0) - (b._k || 0));
+      });
+    }
+
+    _paint() {
+      var total = this._all.length;
+      var badge = this.shadowRoot.querySelector('[data-badge]');
+      if (badge) badge.textContent = this._loaded ? num(total) + ' 間場所' : '載入中…';
+      var notice = this.shadowRoot.querySelector('[data-notice]');
+      if (notice) { notice.innerHTML = this._notice || ''; notice.hidden = !this._notice; }
+      this._paintList();
+      this._paintSources();
+      this._updatePin();
+    }
+
+    _paintList() {
+      var list = this.shadowRoot.querySelector('[data-list]');
+      var result = this.shadowRoot.querySelector('[data-result]');
+      var more = this.shadowRoot.querySelector('[data-more]');
+      if (!this._q) {
+        if (list) list.innerHTML = '<div class="hint">輸入場所名稱、地址、電話或類別，開始搜尋…</div>';
+        if (result) result.textContent = '';
+        if (more) more.hidden = true;
+        return;
+      }
+      var rows = this._filtered();
+      var shown = Math.min(this._limit, rows.length);
+      if (list) {
+        list.innerHTML = rows.length
+          ? rows.slice(0, shown).map(itemHtml).join('')
+          : '<div class="empty">找不到符合「' + esc(this._qRaw) + '」的場所，試試其他關鍵字。</div>';
+      }
+      if (result) {
+        result.textContent = rows.length
+          ? '符合「' + this._qRaw + '」的場所共 ' + num(rows.length) + ' 間 · 顯示 ' + num(shown)
+          : '沒有符合條件的場所';
+      }
+      if (more) {
+        more.hidden = shown >= rows.length;
+        more.textContent = '顯示更多（尚有 ' + num(rows.length - shown) + ' 間）';
+      }
+    }
+
+    /* 搜尋框吸附到頁首／分類列下方時才鋪底，未吸附時保持透明 */
+    _updatePin() {
+      var t = this._tools;
+      if (!t) return;
+      var top = parseFloat(getComputedStyle(t).top) || 0;
+      var r = t.getBoundingClientRect();
+      t.classList.toggle('is-pinned', r.top <= top + 1 && r.bottom > 0);
+    }
+
+    /* 連結名稱與間數同一行，整組自右側 1/4 處起排 */
+    _paintSources() {
+      var box = this.shadowRoot.querySelector('[data-sources]');
+      if (!box) return;
+      var self = this;
+      box.innerHTML = LINKS.map(function (l) {
+        var n = l.key === 'iam' ? self._iam.length : self._dst.length;
+        var cnt = self._loaded ? '共 <b>' + num(n) + '</b> 間' : '載入中…';
+        return '<a class="src-row" href="' + esc(l.href) + '" target="_blank" rel="noopener noreferrer"' +
+          ' title="' + esc(l.href) + '">' +
+          '<span class="src-name">' + esc(l.name) + ' ↗</span>' +
+          '<span class="src-meta">' + cnt + '</span></a>';
+      }).join('');
+    }
+
+    _onClick(e) {
+      var t = e.target && e.target.closest ? e.target.closest('[data-more],[data-retry]') : null;
+      if (!t) return;
+      if (t.hasAttribute('data-more')) {
+        this._limit += this._cfg.limit;
+        this._paintList();
+      } else if (t.hasAttribute('data-retry')) {
+        this.refresh();
+      }
+    }
+
+    _onInput(e) {
+      if (!e.target || !e.target.matches || !e.target.matches('[data-search]')) return;
+      this._qRaw = clean(e.target.value);
+      this._q = this._qRaw.toLowerCase();
+      this._limit = this._cfg.limit;
+      this._paintList();
+    }
+  }
+
+  window.customElements.define('macau-registry-widget', MacauRegistryWidget);
+})();
+</script>
+
+
+<script>
+/**
+ * macau-busstops-widget.js
+ * 交通事務局｜巴士路線資料 BUS_POLE.SHP —— 全澳巴士站查詢（無內建資料）
+ *
+ * 官方資料來源：澳門政府數據開放平台「巴士路線資料」
+ *   https://data.gov.mo/Detail?id=e7b2e84d-3333-42f0-b676-64ce95306f0d
+ *   目錄中繼資料 https://api.data.gov.mo/document/download/<id>?isNeedFile=0&lang=TC
+ *   官方資料檔案 https://api.data.gov.mo/document/download/<id>?isNeedFile=1&lang=TC
+ *
+ * 官方資料集沒有 JSON API（url 為空陣列），只提供 Shapefile 壓縮檔；但上述兩個
+ * 官方端點會回應 Access-Control-Allow-Origin，且不需要 token，因此瀏覽器可以直接
+ * 取得「當下」的官方檔案，不必內建快照、不必架後端、不必用第三方代理。
+ *
+ * 負擔控制：
+ *   1. 只有切到「巴士站」分類才開始連線（IntersectionObserver + 分頁按鈕）；
+ *   2. 每次先只抓約 0.6KB 的目錄中繼資料，比對官方版本（updateTime）；
+ *   3. 版本相同就讀 localStorage 快取，完全不下載壓縮檔；
+ *   4. 版本變動才下載一次官方 ZIP，在瀏覽器內解出 BUS_POLE.dbf 並解析；
+ *   5. 不輪詢、不設計時器、不自動更新；全站重整按鈕才會重新核對官方版本。
+ *   6. 連線失敗時降級：有快取就標註後顯示，沒有快取就顯示錯誤與官方連結。
+ *
+ * 站牌彙整為站點，可用「依站點／逐站牌」切換；皆支援站名、站號、站牌編號、
+ * 葡英名與路線搜尋。實際筆數一律以官方當下檔案為準，不在程式內寫死。
+ *
+ * 可用屬性：theme／title／limit／no-auto
+ * 公開方法：element.refresh()
+ * 對外事件：macau-bus:update、macau-bus:error（bubbles + composed）
+ */
+(function () {
+  'use strict';
+
+  if (window.customElements && window.customElements.get('macau-busstops-widget')) return;
+
+  var DATASET_ID = 'e7b2e84d-3333-42f0-b676-64ce95306f0d';
+  var CATALOG_URL = 'https://data.gov.mo/Detail?id=' + DATASET_ID;
+  var API_BASE = 'https://api.data.gov.mo/document/download/' + DATASET_ID;
+  var META_URL = API_BASE + '?isNeedFile=0&lang=TC';
+  var FILE_URL = API_BASE + '?isNeedFile=1&lang=TC';
+  var CACHE_KEY = 'macau-bus:official:v4';
+
+  var GOOGLE_MAP = 'https://www.google.com/maps/search/';
+  var DSAT_HOME = 'https://www.dsat.gov.mo/';
+  var BUS_HOME = 'https://www.dsat.gov.mo/bus';
+  var BUS_ARRIVAL = 'https://www.dsat.gov.mo/dsat/redirect.aspx?a_id=700022';
+  var BUS_POINT = 'https://www.dsat.gov.mo/dsat/redirect.aspx?a_id=700023';
+  var BUS_ZONE = 'https://www.dsat.gov.mo/dsat/redirect.aspx?a_id=700024';
+
+  /* 交通事務局 H5 巴士站地圖，可用 busCode 直接定位站點。
+     實測（2026-11）：參數必須寫在 hash 內（#/busMapSearch?busCode=…）；若寫成
+     ?busCode=… 會被 getUrlParams 連同 #/… 讀成同一個值而失效。站號比對是字串
+     完全相等、區分大小寫，比對不到就只顯示全澳地圖，不會報錯。 */
+  var BUS_H5 = 'https://dis.dsat.gov.mo:8017/stc/h5dsat/';
+  /* H5 認的是「站點／車道」編號（如 M1/2），但 BUS_POLE 的 ALIAS 對多車道站點
+     只給主站號（M1），兩者對不上就無法定位。下表是 ALIAS 與官方站號不一致的
+     站號對照（2026-11 以 listBusStation.htm 逐筆核對，79 個站號涵蓋 80 個站點
+     分組；457 組中 456 組可定位，僅 TEMP_17 臨時站官方無對應站號，故不提供
+     連結）。未列出的站點直接以 ALIAS 查詢。日後 H5 改號只需刪去失效項，其餘
+     站點仍可正常定位。 */
+  var CODE_FIX = (function () {
+    var map = {};
+    ('C654:C654/1,C669:C669/1,C688:C688/1,C689:C689/1,C690:C690/2,M1:M1/2,M108:M108/1,' +
+      'M120:M120/2,M132:M132/1,M135:M135/2,M136:M136/1,M137:M137/1,M139:M139/1,M140:M140/1,' +
+      'M144:M144/1,M145:M145/1,M158:M158/1,M16:M16/2,M160:M160/1,M170:M170/1,M171:M171/1,' +
+      'M172:M172/1,M18:M18/7,M182:M182/1,M183:M183/2,M185:M185/2,M186:M186/2,M2:M2/1,' +
+      'M20:M20/2,M203:M203/1,M209:M209/1,M21:M21/1,M222:M222/1,M235:M235/1,M239:M239/1,' +
+      'M26:M26/1,M270:M270/1,M28:M28/1,M3:M3/1,M32:M32/2,M35:M35/1,M4:M4/1,M46:M46/1,' +
+      'M61:M61/1,M62:M62/1,M69:M69/1,M7:M7/1,M73:M73/2,M76:M76/1,M800:M800/8,M84:M84/1,' +
+      'M9:M9/1,M95:M95/2,T308:T308/1,T310:T310/1,T311:T311/1,T314:T314/2,T321:T321/2,' +
+      'T324:T324/1,T325:T325/2,T326:T326/1,T330:T330/1,T332:T332/1,T336:T336/1,T339:T339/2,' +
+      'T345:T345/1,T355:T355/2,T356:T356/1,T363:T363/1,T364:T364/1,T365:T365/2,T373:T373/1,' +
+      'T376:T376/1,T408:T408/1,T432:T432/2,T550:T550/1,T551:T551/1,T555:T555/2,T560:T560/1')
+      .split(',').forEach(function (pair) {
+        var i = pair.indexOf(':');
+        if (i > 0) map[pair.slice(0, i)] = pair.slice(i + 1);
+      });
+    return map;
+  })();
+
+  /* 目前顯示中的官方資料；程式本身不含任何站點資料 */
+  var DATA = {
+    stops: [], version: '', fileDate: '', department: '交通事務局',
+    fetchedAt: '', fromCache: false, stale: false, reason: ''
+  };
+
+  var LINKS = [
+    { name: '交通事務局｜巴士', desc: '官方巴士資訊總覽', href: BUS_HOME },
+    { name: '巴士報站', desc: '即時到站資訊', href: BUS_ARRIVAL },
+    { name: '點對點查詢', desc: '規劃乘車路線', href: BUS_POINT },
+    { name: '巴士站分區資料', desc: '依分區查閱站點', href: BUS_ZONE },
+    { name: '巴士路線資料', desc: '政府開放數據集', href: CATALOG_URL },
+    { name: '交通事務局', desc: '部門首頁', href: DSAT_HOME }
+  ];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function clean(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+  function trim(s) { return String(s == null ? '' : s).replace(/^\s+|\s+$/g, ''); }
+  /* 官方資料有 1 個臨時站號特別長，卡片內只顯示前綴，完整值放在 title 與搜尋索引 */
+  function shortCode(v) {
+    var t = clean(v);
+    var m = /^([A-Za-z]+\d+)/.exec(t);
+    return (m && t.length > 7) ? m[1] + '…' : t;
+  }
+  function clampInt(n, min, max, fallback) {
+    n = parseInt(n, 10);
+    return isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  }
+  function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  /* BUS_POLE.SHP 的點座標是 Macau Grid（見官方 BUS_POLE.prj：D_Macau、
+     International 1924、橫軸墨卡托，中央經線 113.5364694、原點緯度 22.21239722、
+     假東假北各 20000 公尺），Google 地圖要的是 WGS84 經緯度，因此先在頁面內反算
+     投影，再加上 D_Macau → WGS84 的平移量（以交通事務局 217 個站點的官方經緯度
+     回歸，殘差中位數約 5 公尺、九成在 18 公尺內，足以對準站牌）。 */
+  var GRID_A = 6378388, GRID_F = 297, GRID_FE = 20000, GRID_FN = 20000;
+  var GRID_E2 = 2 / GRID_F - 1 / (GRID_F * GRID_F);
+  var GRID_LAT0 = 22.21239722 * Math.PI / 180;
+  var GRID_LON0 = 113.5364694 * Math.PI / 180;
+  var GRID_DLAT = -0.001196, GRID_DLNG = 0.003001;
+
+  /* Macau Grid → [經度, 緯度]；帶入的是 WGS84 座標，可直接給 Google 地圖 */
+  function gridToLngLat(x, y) {
+    var e2 = GRID_E2, e4 = e2 * e2, e6 = e4 * e2;
+    var M = y - GRID_FN + GRID_A * (
+      (1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * GRID_LAT0
+      - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * GRID_LAT0)
+      + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * GRID_LAT0)
+      - (35 * e6 / 3072) * Math.sin(6 * GRID_LAT0));
+    var mu = M / (GRID_A * (1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256));
+    var e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    var p1 = mu
+      + (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu)
+      + (21 * e1 * e1 / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu)
+      + (151 * Math.pow(e1, 3) / 96) * Math.sin(6 * mu);
+    var sinp = Math.sin(p1), cosp = Math.cos(p1), tanp = Math.tan(p1);
+    var C1 = e2 * cosp * cosp / (1 - e2), T1 = tanp * tanp;
+    var N1 = GRID_A / Math.sqrt(1 - e2 * sinp * sinp);
+    var R1 = GRID_A * (1 - e2) / Math.pow(1 - e2 * sinp * sinp, 1.5);
+    var D = (x - GRID_FE) / N1;
+    var lat = p1 - (N1 * tanp / R1) * (D * D / 2
+      - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * e2) * Math.pow(D, 4) / 24
+      + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * e2 - 3 * C1 * C1) * Math.pow(D, 6) / 720);
+    var lng = GRID_LON0 + (D
+      - (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6
+      + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * e2 + 24 * T1 * T1) * Math.pow(D, 5) / 120) / cosp;
+    return [lng * 180 / Math.PI + GRID_DLNG, lat * 180 / Math.PI + GRID_DLAT];
+  }
+
+  function mapUrl(o) {
+    var x = Number(o && o.x), y = Number(o && o.y);
+    var q = '';
+    if (isFinite(x) && isFinite(y) && x && y) {
+      var ll = gridToLngLat(x, y);
+      q = ll[1].toFixed(6) + ',' + ll[0].toFixed(6);
+    } else {
+      q = clean(o && o.n) ? '澳門 ' + clean(o.n) : '';
+    }
+    return GOOGLE_MAP + (q ? '?api=1&query=' + encodeURIComponent(q) : '');
+  }
+  function searchIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>';
+  }
+
+  /* 官方 H5 用的站號：先去掉官方資料附加的括號註記，再套用站號對照表。
+     沒有對照項就沿用 ALIAS（H5 查不到時只會停在全澳地圖，不會出錯）；
+     帶底線的是臨時站編號（如 TEMP_17），H5 沒有這種站號，直接不提供連結。 */
+  function stationCode(v) {
+    var c = clean(v).replace(/[（(].*$/, '').trim();
+    if (!c) return '';
+    if (CODE_FIX[c]) return CODE_FIX[c];
+    return c.indexOf('_') >= 0 ? '' : c;
+  }
+
+  /* 站號前綴分區：M＝澳門半島、T＝氹仔、C＝路環，其餘（如 TEMP）置於最後；
+     同區內再比數字，避免 M100 排在 M11 之前 */
+  var ZONE = { M: 0, T: 1, C: 2 };
+  function natKey(v) {
+    var m = /^([A-Za-z]*)(\d+)(.*)$/.exec(clean(v).toUpperCase());
+    return m ? [m[1], parseInt(m[2], 10), m[3]] : [clean(v).toUpperCase(), 0, ''];
+  }
+  function zone(v) {
+    var k = natKey(v)[0];
+    return Object.prototype.hasOwnProperty.call(ZONE, k) ? ZONE[k] : 3;
+  }
+  function natCmp(a, b) {
+    var x = natKey(a), y = natKey(b);
+    var z = zone(a) - zone(b);
+    if (z) return z;
+    if (x[0] !== y[0]) return x[0] < y[0] ? -1 : 1;
+    if (x[1] !== y[1]) return x[1] - y[1];
+    if (x[2] !== y[2]) return x[2] < y[2] ? -1 : 1;
+    return 0;
+  }
+
+  var STOPS = [], GROUPS = [], SITES = 0;
+
+  /* 由官方檔案解析出的站牌陣列重建搜尋索引；筆數完全跟著官方資料走 */
+  function applyData(raw) {
+    var rows = (raw || []).map(function (s, i) {
+      var routes = String(s.r || '').split(/[,，]/).map(trim).filter(Boolean);
+      var n = clean(s.n), e = clean(s.e), p = clean(s.p), a = clean(s.a), c = clean(s.c);
+      return {
+        k: i, id: clean(s.i), n: n, e: e, p: p, a: a, c: c, routes: routes,
+        dc: stationCode(a || c),
+        x: Number(s.x) || 0, y: Number(s.y) || 0,
+        ln: n.toLowerCase(), la: a.toLowerCase(), lc: c.toLowerCase(),
+        key: [n, e, p, a, c, String(s.r || '')].join(' ').toLowerCase()
+      };
+    }).sort(function (a, b) {
+      return natCmp(a.a, b.a) || natCmp(a.c, b.c) || (a.k - b.k);
+    });
+
+    var siteSet = {}, groups = [], groupMap = {};
+    rows.forEach(function (s) {
+      if (s.a) siteSet[s.a] = 1;
+      var key = s.a || s.c;
+      var g = groupMap[key];
+      if (!g) {
+        g = {
+          k: groups.length, a: s.a, c: key, n: s.n, e: s.e, p: s.p,
+          dc: s.dc, poles: [], routes: [], parts: [],
+          ln: s.ln, la: s.la, lc: key.toLowerCase(), id: '',
+          x: s.x || 0, y: s.y || 0
+        };
+        groupMap[key] = g; groups.push(g);
+      }
+      if ((!g.x || !g.y) && s.x && s.y) { g.x = s.x; g.y = s.y; }
+      g.poles.push({ c: s.c, id: s.id, routes: s.routes });
+      g.parts.push([s.n, s.e, s.p, s.a, s.c, s.routes.join(',')].join(' '));
+      s.routes.forEach(function (r) { if (g.routes.indexOf(r) < 0) g.routes.push(r); });
+    });
+    groups.forEach(function (g) {
+      g.key = [g.n, g.e, g.p, g.a, g.parts.join(' ')].join(' ').toLowerCase();
+    });
+    groups.sort(function (a, b) { return natCmp(a.a, b.a) || (a.k - b.k); });
+
+    STOPS = rows;
+    GROUPS = groups;
+    SITES = Object.keys(siteSet).length;
+  }
+
+  function score(s, q) {
+    if (s.la === q || s.lc === q || s.ln === q) return 0;
+    if (s.ln.indexOf(q) === 0 || s.la.indexOf(q) === 0 || s.lc.indexOf(q) === 0) return 1;
+    for (var i = 0; i < s.routes.length; i++) {
+      if (s.routes[i].toLowerCase() === q) return 1;
+    }
+    return s.key.indexOf(q) >= 0 ? 2 : -1;
+  }
+
+  function altName(s) {
+    return [s.e, s.p].filter(function (v, i, a) {
+      return v && v !== s.n && a.indexOf(v) === i;
+    }).join(' · ');
+  }
+  function chips(list, cls, attr, title) {
+    return list.map(function (v) {
+      return '<button type="button" class="' + cls + '" ' + attr + '="' + esc(v) +
+        '" title="' + esc(title + v) + '">' + esc(v) + '</button>';
+    }).join('');
+  }
+  function linksHtml(o) {
+    var code = o.dc || stationCode(o.a || o.c);
+    return '<div class="foot">' +
+      '<span class="links">' +
+        '<a href="' + esc(mapUrl(o)) + '" target="_blank" rel="noopener noreferrer"' +
+          ' title="在 Google 地圖查看「' + esc(o.n) + '」的位置">Google 地圖 ↗</a>' +
+        (code
+          ? '<a href="' + esc(BUS_H5 + '#/busMapSearch?busCode=' + encodeURIComponent(code)) + '"' +
+            ' target="_blank" rel="noopener noreferrer"' +
+            ' title="在交通事務局巴士站地圖定位「' + esc(o.n) + '」（站號 ' + esc(code) + '）">' +
+            '巴士站地圖 ↗</a>'
+          : '') +
+      '</span>' +
+    '</div>';
+  }
+
+  /* 逐站牌模式：一支站牌一張卡，完整呈現站牌編號、ID 與該站牌的路線 */
+  function poleHtml(s) {
+    var alt = altName(s);
+    var routes = chips(s.routes, 'rt', 'data-route', '搜尋所有行經 ');
+    return '<article class="stop">' +
+      '<div class="code" title="' + esc(s.a) + '"><b>' + esc(shortCode(s.a)) + '</b><span>站點</span></div>' +
+      '<div class="body">' +
+        '<div class="line"><h3 title="' + esc(s.n) + '">' + esc(s.n) + '</h3>' +
+          '<span class="pole" title="' + esc(s.c) + '">' + esc(shortCode(s.c)) + '</span></div>' +
+        (alt ? '<div class="alt" title="' + esc(alt) + '">' + esc(alt) + '</div>' : '') +
+        '<div class="meta" title="站牌編號 ' + esc(s.c) + ' · 站牌 ID ' + esc(s.id) +
+          ' · 行經 ' + s.routes.length + ' 條路線">站牌編號 <b>' + esc(shortCode(s.c)) +
+          '</b> · 站牌 ID <b>' + esc(s.id) + '</b> · 行經 <b>' + s.routes.length +
+          '</b> 條路線</div>' +
+        (routes ? '<div class="routes"><span class="rl">路線</span>' + routes + '</div>' : '') +
+        linksHtml(s) +
+      '</div></article>';
+  }
+
+  /* 依站點模式：一個站點一張卡，列出所有站牌編號與聯集後的路線 */
+  function siteHtml(g) {
+    var alt = altName(g);
+    var routes = chips(g.routes, 'rt', 'data-route', '搜尋所有行經 ');
+    var poles = g.poles.map(function (pp) {
+      return '<button type="button" class="pc" data-query="' + esc(pp.c) +
+        '" title="站牌 ' + esc(pp.c) + ' · ID ' + esc(pp.id) + '">' + esc(shortCode(pp.c)) + '</button>';
+    }).join('');
+    return '<article class="stop">' +
+      '<div class="code" title="' + esc(g.a) + '"><b>' + esc(shortCode(g.a)) + '</b><span>站點</span></div>' +
+      '<div class="body">' +
+        '<div class="line"><h3 title="' + esc(g.n) + '">' + esc(g.n) + '</h3>' +
+          '<span class="pole">' + g.poles.length + ' 個站牌</span></div>' +
+        (alt ? '<div class="alt" title="' + esc(alt) + '">' + esc(alt) + '</div>' : '') +
+        '<div class="meta" title="站點編號 ' + esc(g.a) + ' · 行經 ' + g.routes.length +
+          ' 條路線">站點編號 <b>' + esc(shortCode(g.a)) + '</b> · 行經 <b>' + g.routes.length +
+          '</b> 條路線</div>' +
+        (poles ? '<div class="routes"><span class="rl">站牌</span>' + poles + '</div>' : '') +
+        (routes ? '<div class="routes"><span class="rl">路線</span>' + routes + '</div>' : '') +
+        linksHtml(g) +
+      '</div></article>';
+  }
+
+  /* ================= 官方資料管線（零內建資料） ================= */
+  var DEC = (typeof TextDecoder !== 'undefined') ? new TextDecoder('utf-8') : null;
+
+  function utf8(bytes, a, b) {
+    if (DEC) return DEC.decode(bytes.subarray(a, b));
+    var out = '';
+    for (var i = a; i < b; i++) out += String.fromCharCode(bytes[i]);
+    try { return decodeURIComponent(escape(out)); } catch (e) { return out; }
+  }
+  function strip(v) {
+    return String(v == null ? '' : v).replace(/\0/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function retry(task, times, delay) {
+    return task().catch(function (err) {
+      if (times <= 1) throw err;
+      return new Promise(function (resolve) { setTimeout(resolve, delay || 400); })
+        .then(function () { return retry(task, times - 1, delay); });
+    });
+  }
+  /* 官方端點偶爾回 31 bytes 的「內部錯誤」，每次換一個網址避免拿到同一份錯誤回應 */
+  var reqSeq = 0;
+  function bust(url) { return url + '&_=' + Date.now() + '_' + (++reqSeq); }
+
+  /* 用瀏覽器內建 DecompressionStream 解 ZIP 的 deflate 項目，不載入任何外部函式庫 */
+  function inflateRaw(bytes) {
+    if (typeof DecompressionStream === 'undefined' || typeof Response === 'undefined' || typeof Blob === 'undefined') {
+      return Promise.reject(new Error('此瀏覽器不支援內建解壓縮（DecompressionStream），請改用新版 Chrome／Edge／Firefox'));
+    }
+    var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Response(stream).arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+  }
+
+  function zipEntries(bytes) {
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    var eocd = -1, i;
+    for (i = bytes.length - 22; i >= Math.max(0, bytes.length - 66000); i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error('官方壓縮檔格式無法辨識');
+    var n = dv.getUint16(eocd + 10, true), p = dv.getUint32(eocd + 16, true), out = [];
+    for (var k = 0; k < n && p + 46 <= bytes.length; k++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      var method = dv.getUint16(p + 10, true);
+      var csize = dv.getUint32(p + 20, true);
+      var nl2 = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true);
+      var lh = dv.getUint32(p + 42, true);
+      var name = utf8(bytes, p + 46, p + 46 + nl2);
+      var off = lh + 30 + dv.getUint16(lh + 26, true) + dv.getUint16(lh + 28, true);
+      out.push({ name: name, method: method, size: csize, off: off });
+      p += 46 + nl2 + xl + cl;
+    }
+    return out;
+  }
+  function findEntry(list, re) {
+    for (var i = 0; i < list.length; i++) if (re.test(list[i].name)) return list[i];
+    return null;
+  }
+  function readEntry(bytes, e) {
+    var part = bytes.subarray(e.off, e.off + e.size);
+    if (e.method === 0) return Promise.resolve(part);
+    if (e.method === 8) return inflateRaw(part);
+    return Promise.reject(new Error('官方壓縮檔使用不支援的壓縮方式'));
+  }
+
+  /* BUS_POLE.dbf（UTF-8，見 BUS_POLE.cpg）→ 緊湊站牌陣列 */
+  function parseDbf(bytes) {
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    var n = dv.getUint32(4, true), hl = dv.getUint16(8, true), rl = dv.getUint16(10, true);
+    if (!n || !hl || !rl || hl + n * rl > bytes.length) throw new Error('官方 DBF 格式異常');
+    var fields = {}, p = 32, off = 1;
+    while (p < hl && bytes[p] !== 0x0d) {
+      var name = strip(utf8(bytes, p, p + 11));
+      fields[name] = { off: off, len: bytes[p + 16] };
+      off += bytes[p + 16];
+      p += 32;
+    }
+    function val(rec, key) {
+      var f = fields[key];
+      return f ? strip(utf8(rec, f.off, Math.min(f.off + f.len, rec.length))) : '';
+    }
+    var stops = [];
+    for (var i = 0; i < n; i++) {
+      var base = hl + i * rl;
+      if (bytes[base] === 0x2a) continue;
+      var rec = bytes.subarray(base, Math.min(base + rl, bytes.length));
+      var row = {
+        i: val(rec, 'POLE_ID'), c: val(rec, 'P_ALIAS'), a: val(rec, 'ALIAS'),
+        n: val(rec, 'P_NAME'), p: val(rec, 'P_NAME_POR'), e: val(rec, 'P_NAME_EN'),
+        r: val(rec, 'ROUTE_NOS'), _rec: i
+      };
+      if (row.n && row.c) stops.push(row);
+    }
+    if (!stops.length) throw new Error('官方 DBF 沒有可用的站牌資料');
+    return stops;
+  }
+
+  /* BUS_POLE.SHP：點圖徵（shape type 1），逐筆取出 Macau Grid 的 x / y */
+  function parseShp(bytes, expected) {
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (bytes.length < 100 || dv.getInt32(32, true) !== 1) return null;
+    var out = [], p = 100, i = 0;
+    while (p + 28 <= bytes.length && i < expected) {
+      var len = dv.getUint32(p + 4, false) * 2;
+      if (len < 20 || p + 8 + len > bytes.length) break;
+      out.push(dv.getInt32(p + 8, true) === 1
+        ? { x: dv.getFloat64(p + 12, true), y: dv.getFloat64(p + 20, true) }
+        : null);
+      p += 8 + len; i++;
+    }
+    return out;
+  }
+
+  function fetchMeta() {
+    return retry(function () {
+      return fetch(bust(META_URL), { cache: 'no-store', credentials: 'omit', mode: 'cors' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('官方目錄回應 HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (j) {
+          var d = (j && j.dataDir && j.dataDir[0]) || {};
+          var f = (j && j.file && j.file[0]) || {};
+          if (!d.updateTime && !f.lastUpdateTime) throw new Error('官方目錄中繼資料暫時無法取得');
+          return {
+            version: String(d.updateTime || f.lastUpdateTime),
+            fileDate: String(f.lastUpdateTime || ''),
+            department: String(d.department || '交通事務局')
+          };
+        });
+    }, 4, 500);
+  }
+
+  function fetchOfficialFile() {
+    return retry(function () {
+      return fetch(bust(FILE_URL), { cache: 'no-store', credentials: 'omit', mode: 'cors' })
+        .then(function (r) {
+          if (!r.ok) throw new Error('官方檔案回應 HTTP ' + r.status);
+          var ct = r.headers.get('content-type') || '';
+          if (ct.indexOf('json') >= 0) throw new Error('官方檔案端點暫時回傳錯誤');
+          return r.arrayBuffer();
+        })
+        .then(function (buf) {
+          var bytes = new Uint8Array(buf);
+          if (bytes.length < 100000) throw new Error('官方檔案回應不完整');
+          return bytes;
+        });
+    }, 8, 700);
+  }
+
+  function extractStops(bytes) {
+    var outer = zipEntries(bytes);
+    var innerEntry = findEntry(outer, /ExportShapeFile\.zip$/i);
+    if (!innerEntry) throw new Error('官方檔案缺少 Shapefile 壓縮檔');
+    return readEntry(bytes, innerEntry).then(function (inner) {
+      var list = zipEntries(inner);
+      var dbf = findEntry(list, /BUS_POLE\.DBF$/i);
+      var shp = findEntry(list, /BUS_POLE\.SHP$/i);
+      if (!dbf) throw new Error('官方檔案缺少 BUS_POLE.dbf');
+      return Promise.all([
+        readEntry(inner, dbf),
+        shp ? readEntry(inner, shp) : Promise.resolve(null)
+      ]);
+    }).then(function (parts) {
+      var stops = parseDbf(parts[0]);
+      var coords = parts[1] ? parseShp(parts[1], stops.length) : null;
+      if (coords) {
+        stops.forEach(function (s) {
+          var c = coords[s._rec];
+          if (c) { s.x = c.x; s.y = c.y; }
+          delete s._rec;
+        });
+      }
+      return stops;
+    });
+  }
+
+  function cacheGet() {
+    try {
+      var o = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+      if (o && Array.isArray(o.stops) && o.stops.length && o.version) return o;
+    } catch (e) {}
+    return null;
+  }
+  function cacheSet(o) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(o)); } catch (e) {}
+  }
+
+  /* 連線失敗但有快取時，標註為舊資料後繼續顯示，不讓整個分頁空白 */
+  function staleFrom(cached, err) {
+    return {
+      stops: cached.stops, version: cached.version, fileDate: cached.fileDate || '',
+      department: cached.department || '交通事務局', fetchedAt: cached.fetchedAt || '',
+      fromCache: true, stale: true, reason: (err && err.message) || String(err)
+    };
+  }
+
+  /* 只比對目錄版本；版本相同就不下載官方 ZIP，直接讀本機快取 */
+  function loadOfficial(force) {
+    var cached = cacheGet();
+    return fetchMeta().then(function (meta) {
+      if (!force && cached && cached.version === meta.version) {
+        return {
+          stops: cached.stops, version: meta.version, fileDate: meta.fileDate,
+          department: meta.department, fetchedAt: cached.fetchedAt || '',
+          fromCache: true, stale: false, reason: ''
+        };
+      }
+      return fetchOfficialFile().then(extractStops).then(function (stops) {
+        var fresh = {
+          stops: stops, version: meta.version, fileDate: meta.fileDate,
+          department: meta.department, fetchedAt: new Date().toISOString(),
+          fromCache: false, stale: false, reason: ''
+        };
+        cacheSet(fresh);
+        return fresh;
+      }).catch(function (err) {
+        if (cached) return staleFrom(cached, err);
+        throw err;
+      });
+    }).catch(function (err) {
+      if (cached) return staleFrom(cached, err);
+      throw err;
+    });
+  }
+
+  var STYLE = `
+    :host {
+      --c-text: #eaf6f1; --c-muted: #a9c9bd; --c-faint: #7fa89a;
+      --c-line: rgba(120, 214, 178, .20); --c-tile: rgba(9, 46, 38, .48);
+      --c-tile-2: rgba(13, 58, 48, .62); --c-accent: #63e0b0; --c-accent-2: #8fd8e8;
+      --c-field: rgba(255, 255, 255, .12); --c-field-2: rgba(255, 255, 255, .19);
+      --c-field-line: rgba(220, 255, 240, .26); --c-warn: #ffcf70;
+      display: block; color: var(--c-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "Noto Sans TC", "PingFang TC", sans-serif;
+      font-size: 16px; line-height: 1.55; contain: layout style;
+    }
+    :host([data-theme="light"]) {
+      --c-text: #12352c; --c-muted: #3d6b5d; --c-faint: #5f8b7d;
+      --c-line: rgba(15, 110, 85, .18); --c-tile: rgba(225, 244, 235, .78);
+      --c-tile-2: rgba(210, 238, 226, .88); --c-accent: #0a7d5c; --c-accent-2: #176b86;
+      --c-field: rgba(255, 255, 255, .96); --c-field-2: #ffffff;
+      --c-field-line: rgba(15, 110, 85, .22); --c-warn: #9a5c00;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    .card { position: relative; --pad: clamp(16px, 2.2vw, 24px); padding-top: var(--pad); container-type: inline-size; }
+    .panel {
+      position: relative; overflow: hidden; border-radius: 20px; padding: var(--pad);
+      border: 1px solid var(--c-line);
+      background:
+        radial-gradient(460px 280px at 100% -12%, rgba(255, 207, 112, .14), transparent 72%),
+        radial-gradient(420px 260px at 0% 108%, rgba(70, 200, 155, .14), transparent 74%),
+        linear-gradient(135deg, rgba(11, 58, 48, .62), rgba(7, 38, 34, .46) 55%, rgba(12, 62, 52, .56));
+      box-shadow: 0 20px 52px rgba(2, 20, 16, .34), inset 0 1px 0 rgba(190, 255, 228, .13);
+      backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
+    }
+    :host([data-theme="light"]) .panel {
+      background:
+        radial-gradient(420px 260px at 100% -12%, rgba(190, 140, 40, .14), transparent 72%),
+        radial-gradient(420px 260px at 0% 108%, rgba(70, 190, 150, .16), transparent 74%),
+        linear-gradient(135deg, rgba(220, 244, 234, .80), rgba(238, 250, 244, .66) 55%, rgba(214, 240, 230, .78));
+      box-shadow: 0 18px 44px rgba(12, 70, 56, .12), inset 0 1px 0 rgba(255, 255, 255, .85);
+    }
+    .hd { position: relative; z-index: 1; padding: 0 var(--pad);
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .hd h2 { margin: 0; font-size: clamp(18px, 2.4cqw, 22px); letter-spacing: .02em;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+    .hd h2 .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--c-warn);
+      box-shadow: 0 0 10px var(--c-warn); flex: none; }
+    .badge { flex: none; border: 1px solid var(--c-line); border-radius: 999px; padding: 4px 11px;
+      font-size: 12px; color: var(--c-warn); background: var(--c-tile); font-variant-numeric: tabular-nums; }
+    .tools { position: sticky; top: var(--sticky-top, 124px); z-index: 3;
+      display: flex; justify-content: center; margin-top: 16px; padding: 12px var(--pad) 10px; }
+    .tools.is-pinned {
+      background: linear-gradient(180deg, rgba(9, 45, 38, .97) 0%, rgba(9, 45, 38, .97) 84%, rgba(9, 45, 38, 0) 100%); }
+    :host([data-theme="light"]) .tools.is-pinned {
+      background: linear-gradient(180deg, rgba(233, 247, 240, .97) 0%, rgba(233, 247, 240, .97) 84%, rgba(233, 247, 240, 0) 100%); }
+    .toolwrap { width: 100%; max-width: 620px; }
+    .search { display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 11px 20px; border-radius: 999px; background: var(--c-field);
+      border: 1px solid var(--c-field-line);
+      box-shadow: 0 2px 10px rgba(2, 20, 16, .10), inset 0 1px 0 rgba(255, 255, 255, .10);
+      transition: background .18s, border-color .18s, box-shadow .18s; }
+    .search:hover { background: var(--c-field-2); }
+    .search:focus-within { background: var(--c-field-2); border-color: var(--c-accent);
+      box-shadow: 0 6px 24px rgba(2, 20, 16, .22); }
+    .search svg { width: 18px; height: 18px; flex: none; color: var(--c-faint); }
+    .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+      color: var(--c-text); font: inherit; font-size: 15px; }
+    .search input::placeholder { color: var(--c-faint); }
+    .clr { flex: none; width: 24px; height: 24px; border: 0; border-radius: 50%; cursor: pointer;
+      background: var(--c-tile-2); color: var(--c-muted); font: inherit; font-size: 16px; line-height: 1; }
+    .clr:hover { color: var(--c-accent); }
+    .mode { display: flex; justify-content: center; gap: 8px; margin-top: 9px; }
+    .mb { border: 1px solid var(--c-line); border-radius: 999px; padding: 4px 13px; cursor: pointer;
+      background: var(--c-field); color: var(--c-muted); font: inherit; font-size: 12px; }
+    .mb:hover { border-color: var(--c-accent); }
+    .mb.on { border-color: var(--c-accent); background: var(--c-tile-2);
+      color: var(--c-accent); font-weight: 600; }
+    .result { position: relative; z-index: 1; margin: 14px 0 8px; font-size: 12.5px; color: var(--c-muted); }
+    .result:empty { display: none; }
+    .list { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    @container (max-width: 760px) { .list { grid-template-columns: minmax(0, 1fr); } }
+    .stop { display: flex; gap: 12px; min-width: 0; padding: 12px; border-radius: 14px;
+      background: var(--c-tile); border: 1px solid var(--c-line); }
+    .code { flex: none; width: 62px; text-align: center; padding: 7px 3px; border-radius: 11px;
+      background: var(--c-tile-2); }
+    .code b { display: block; font-size: 13px; letter-spacing: .01em; color: var(--c-accent);
+      overflow-wrap: anywhere; }
+    .code span { display: block; margin-top: 2px; font-size: 9.5px; color: var(--c-faint); }
+    .body { min-width: 0; flex: 1; }
+    .line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .line h3 { margin: 0; font-size: 15px; font-weight: 650; flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pole { flex: none; font-size: 10.5px; color: var(--c-warn); border: 1px solid currentColor;
+      border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+    .alt { margin-top: 2px; font-size: 11.5px; color: var(--c-faint);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta { margin-top: 5px; font-size: 11px; color: var(--c-muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta b { color: var(--c-text); font-weight: 600; }
+    .routes { margin-top: 7px; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+    .rl { flex: none; font-size: 10.5px; color: var(--c-faint); margin-right: 2px; }
+    .rt, .pc { border: 1px solid var(--c-line); border-radius: 7px; padding: 2px 7px; cursor: pointer;
+      font: inherit; font-size: 11px; font-variant-numeric: tabular-nums; line-height: 1.4; }
+    .rt { background: var(--c-tile-2); color: var(--c-accent-2); }
+    .pc { background: transparent; color: var(--c-muted); }
+    .rt:hover, .pc:hover { border-color: var(--c-accent); color: var(--c-accent); }
+    .foot { margin-top: 8px; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+    .links { flex: none; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px 9px; }
+    .links a { font-size: 11.5px; color: var(--c-accent-2); text-decoration: none; white-space: nowrap; }
+    .links a:hover { text-decoration: underline; }
+    .empty { grid-column: 1 / -1; padding: 26px 12px; text-align: center; color: var(--c-muted);
+      font-size: 13.5px; border: 1px dashed var(--c-line); border-radius: 14px; }
+    .actions { position: relative; z-index: 1; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .more { padding: 8px 18px; border: 1px solid var(--c-line); border-radius: 999px;
+      background: var(--c-tile-2); color: var(--c-text); font: inherit; font-size: 13px; cursor: pointer; }
+    .more:hover { border-color: var(--c-accent); color: var(--c-accent); }
+    .srcs { position: relative; z-index: 1; margin-top: 18px; padding-top: 14px;
+      border-top: 1px solid var(--c-line); }
+    .srcs h3 { margin: 0 0 10px; font-size: 13px; font-weight: 650; color: var(--c-muted); }
+    /* 相關連結固定 3 欄：6 個連結在桌面與手機皆為 3 × 2 */
+    .src-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+    .src-row { display: block; min-width: 0; padding: 9px 12px; border-radius: 12px; text-decoration: none;
+      background: var(--c-tile); border: 1px solid var(--c-line); color: var(--c-text); }
+    .src-row:hover { border-color: var(--c-accent); }
+    .src-name { display: block; font-size: 12.5px; font-weight: 600; color: var(--c-accent-2);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .src-desc { display: block; margin-top: 2px; font-size: 11px; color: var(--c-faint);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .credit { margin-top: 12px; font-size: 11px; color: var(--c-faint); }
+    @container (max-width: 760px) { .src-grid { gap: 7px; } }
+    @container (max-width: 460px) {
+      .src-grid { gap: 6px; }
+      .src-row { padding: 8px 6px; }
+      .src-name { font-size: 11.5px; white-space: normal; overflow: visible;
+        text-overflow: clip; overflow-wrap: anywhere; line-height: 1.35; }
+      .src-desc { font-size: 10px; white-space: normal; overflow: visible;
+        text-overflow: clip; overflow-wrap: anywhere; line-height: 1.3; }
+    }
+  `;
+
+  class MacauBusstopsWidget extends HTMLElement {
+    static get observedAttributes() { return ['theme', 'title', 'limit']; }
+
+    constructor() {
+      super();
+      this.attachShadow({ mode: 'open' });
+      this._qRaw = '';
+      this._q = '';
+      this._shelled = false;
+      this._showAll = false;
+      this._mode = 'site';
+      this._limit = 24;
+      this._cfg = null;
+      this._state = 'idle';
+      this._activated = false;
+      this._loading = false;
+      this._io = null;
+      this._err = '';
+      this._onTabClick = null;
+      this._justActivated = false;
+    }
+
+    get cfg() {
+      return {
+        theme: this.getAttribute('theme') === 'dark' ? 'dark' : 'light',
+        title: clean(this.getAttribute('title')) || '澳門巴士站｜全澳站牌查詢',
+        limit: clampInt(this.getAttribute('limit'), 6, 120, 24)
+      };
+    }
+
+    connectedCallback() {
+      if (this._shelled) return;
+      this._shelled = true;
+      this._cfg = this.cfg;
+      this.setAttribute('data-theme', this._cfg.theme);
+      this._limit = this._cfg.limit;
+      this._shell();
+      this._paint();
+      this._watch();
+    }
+
+    disconnectedCallback() {
+      if (this._onWinScroll) {
+        window.removeEventListener('scroll', this._onWinScroll);
+        window.removeEventListener('resize', this._onWinScroll);
+        this._onWinScroll = null;
+      }
+      if (this._io) { this._io.disconnect(); this._io = null; }
+      if (this._onTabClick) {
+        document.removeEventListener('click', this._onTabClick);
+        this._onTabClick = null;
+      }
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (oldVal === newVal || !this._shelled) return;
+      this._cfg = this.cfg;
+      if (name === 'theme') {
+        this.setAttribute('data-theme', this._cfg.theme);
+      } else if (name === 'title') {
+        var t = this.shadowRoot.querySelector('[data-title]');
+        if (t) t.textContent = this._cfg.title;
+      } else if (name === 'limit') {
+        this._limit = this._cfg.limit;
+        this._paint();
+      }
+    }
+
+    /* 只有進入「巴士站」分類才連線；其餘分類與首次載入都不發資料請求 */
+    _isVisible() {
+      var panel = this.closest ? this.closest('[data-view-panel]') : null;
+      if (panel && panel.hasAttribute('hidden')) return false;
+      return this.offsetParent !== null ||
+        (this.getClientRects && this.getClientRects().length > 0);
+    }
+
+    _watch() {
+      var self = this;
+      function activate() {
+        if (self._activated) return;
+        self._activated = true;
+        self._justActivated = true;
+        if (self._io) { self._io.disconnect(); self._io = null; }
+        self.refresh();
+      }
+      if (this._isVisible()) {
+        activate();
+        self._justActivated = false;
+      } else if (window.IntersectionObserver) {
+        this._io = new IntersectionObserver(function (entries) {
+          for (var i = 0; i < entries.length; i++) {
+            if (entries[i].isIntersecting) { activate(); break; }
+          }
+        }, { threshold: 0.01 });
+        this._io.observe(this);
+      }
+      /* 每次進入「巴士站」分頁都重新核對官方版本；其餘分頁完全不連線 */
+      this._onTabClick = function (e) {
+        var t = e.target && e.target.closest
+          ? e.target.closest('.view-tab[data-view="bus"]') : null;
+        if (!t) return;
+        setTimeout(function () {
+          if (!self._activated) activate();
+          else if (!self._justActivated) self.refresh();
+          self._justActivated = false;
+        }, 0);
+      };
+      document.addEventListener('click', this._onTabClick);
+    }
+
+    _emitUpdate(detail) {
+      this.dispatchEvent(new CustomEvent('macau-bus:update', {
+        bubbles: true, composed: true, detail: detail
+      }));
+    }
+    _emitError(message) {
+      this.dispatchEvent(new CustomEvent('macau-bus:error', {
+        bubbles: true, composed: true, detail: { message: message }
+      }));
+    }
+
+    /* 只在巴士站分頁顯示時連線；重整先只抓約 0.6KB 官方目錄比對版本 */
+    refresh(force) {
+      var self = this;
+      if (!this._isVisible()) {
+        this._paint();
+        this._emitUpdate({ idle: true, count: STOPS.length, sites: SITES });
+        return;
+      }
+      this._activated = true;
+      if (this._loading) {
+        this._emitUpdate({ pending: true, count: STOPS.length, sites: SITES });
+        return;
+      }
+      this._loading = true;
+      this._state = 'loading';
+      this._paint();
+      loadOfficial(!!force).then(function (d) {
+        self._loading = false;
+        DATA = d;
+        applyData(d.stops);
+        self._state = d.stale ? 'stale' : 'ready';
+        self._err = d.reason || '';
+        self._paint();
+        self._emitUpdate({
+          count: STOPS.length, sites: SITES, version: d.version,
+          fromCache: d.fromCache, snapshot: false
+        });
+        if (d.stale) self._emitError(d.reason || '官方檔案暫時無法取得');
+      }).catch(function (err) {
+        self._loading = false;
+        self._state = 'error';
+        self._err = err && err.message ? err.message : String(err);
+        self._paint();
+        self._emitError(self._err);
+      });
+    }
+
+    _shell() {
+      this.shadowRoot.innerHTML = '<style>' + STYLE + '</style>' +
+        '<div class="card">' +
+          '<div class="hd"><h2><i class="pip"></i><span data-title></span></h2>' +
+          '<span class="badge" data-badge></span></div>' +
+          '<div class="tools"><div class="toolwrap"><label class="search">' + searchIcon() +
+            '<input type="search" data-search placeholder="搜尋站名／站號／站牌編號／路線（例：M11、亞馬喇前地、3A）" aria-label="搜尋澳門巴士站">' +
+            '<button class="clr" type="button" data-clear hidden aria-label="清除搜尋">×</button>' +
+            '</label>' +
+            '<div class="mode" data-mode>' +
+              '<button class="mb on" type="button" data-set-mode="site">依站點</button>' +
+              '<button class="mb" type="button" data-set-mode="pole">逐站牌</button>' +
+            '</div></div></div>' +
+          '<div class="panel">' +
+            '<div class="result" data-result></div>' +
+            '<div class="list" data-list></div>' +
+            '<div class="actions">' +
+              '<button class="more" type="button" data-more hidden></button>' +
+              '<button class="more" type="button" data-all hidden></button>' +
+            '</div>' +
+            '<div class="srcs" data-sources></div>' +
+          '</div>' +
+        '</div>';
+
+      var self = this;
+      this.shadowRoot.addEventListener('click', function (e) { self._onClick(e); });
+      this.shadowRoot.addEventListener('input', function (e) { self._onInput(e); });
+      this._tools = this.shadowRoot.querySelector('.tools');
+      if (this._tools && !this._onWinScroll) {
+        this._onWinScroll = function () { self._updatePin(); };
+        window.addEventListener('scroll', this._onWinScroll, { passive: true });
+        window.addEventListener('resize', this._onWinScroll);
+      }
+      var t = this.shadowRoot.querySelector('[data-title]');
+      if (t) t.textContent = this._cfg.title;
+      this._paintLinks();
+    }
+
+    _items() { return this._mode === 'pole' ? STOPS : GROUPS; }
+
+    _filtered() {
+      var q = this._q, all = this._items();
+      if (!q) return all;
+      var hit = [];
+      for (var i = 0; i < all.length; i++) {
+        var sc = score(all[i], q);
+        if (sc >= 0) hit.push({ s: all[i], sc: sc, k: i });
+      }
+      hit.sort(function (a, b) { return (a.sc - b.sc) || (a.k - b.k); });
+      return hit.map(function (x) { return x.s; });
+    }
+
+    _paint() {
+      this._paintModeCounts();
+      var badge = this.shadowRoot.querySelector('[data-badge]');
+      var ready = (this._state === 'ready' || this._state === 'stale') && STOPS.length;
+
+      if (badge) badge.textContent = ready
+        ? num(STOPS.length) + ' 個站牌 · ' + num(SITES) + ' 個站點'
+        : '官方即時資料';
+
+      if (!ready) { this._paintState(); return; }
+      this._paintList();
+      this._updatePin();
+    }
+
+    _paintState() {
+      var list = this.shadowRoot.querySelector('[data-list]');
+      var result = this.shadowRoot.querySelector('[data-result]');
+      var more = this.shadowRoot.querySelector('[data-more]');
+      var all = this.shadowRoot.querySelector('[data-all]');
+      var clr = this.shadowRoot.querySelector('[data-clear]');
+      var msg = {
+        idle: '切到「巴士站」分類時才會向官方取得資料；其餘頁面完全不連線。',
+        loading: '正在向澳門政府數據開放平台核對官方資料版本…',
+        error: '無法取得官方資料：' + this._err
+      }[this._state] || '';
+      if (result) result.textContent = msg;
+      if (list) {
+        list.innerHTML = '<div class="empty">' + (this._state === 'error'
+          ? '官方資料暫時無法載入。請重新載入本頁再試，或使用下方交通事務局的官方連結查詢。'
+          : this._state === 'loading'
+            ? '正在取得官方資料…首次載入需下載一次官方檔案，之後會由快取讀取。'
+            : '尚未載入官方資料。') + '</div>';
+      }
+      if (more) more.hidden = true;
+      if (all) all.hidden = true;
+      if (clr) clr.hidden = true;
+    }
+
+    _paintModeCounts() {
+      var box = this.shadowRoot.querySelector('[data-mode]');
+      if (!box) return;
+      var has = (this._state === 'ready' || this._state === 'stale') && STOPS.length;
+      var site = box.querySelector('[data-set-mode="site"]');
+      var pole = box.querySelector('[data-set-mode="pole"]');
+      if (site) site.textContent = '依站點' + (has ? ' ' + num(SITES) : '');
+      if (pole) pole.textContent = '逐站牌' + (has ? ' ' + num(STOPS.length) : '');
+    }
+
+    _paintList() {
+      var list = this.shadowRoot.querySelector('[data-list]');
+      var result = this.shadowRoot.querySelector('[data-result]');
+      var more = this.shadowRoot.querySelector('[data-more]');
+      var all = this.shadowRoot.querySelector('[data-all]');
+      var clr = this.shadowRoot.querySelector('[data-clear]');
+      var rows = this._filtered();
+      var total = rows.length;
+      var shown = this._showAll ? total : Math.min(this._limit, total);
+      var unit = this._mode === 'pole' ? '個站牌' : '個站點';
+      var overview = this._mode === 'pole'
+        ? '全澳共 ' + num(STOPS.length) + ' 個站牌（' + num(SITES) + ' 個站點）· 顯示 ' + num(shown)
+        : '全澳共 ' + num(SITES) + ' 個站點（' + num(STOPS.length) + ' 個站牌）· 顯示 ' + num(shown);
+
+      if (clr) clr.hidden = !this._qRaw;
+      if (list) {
+        var render = this._mode === 'pole' ? poleHtml : siteHtml;
+        list.innerHTML = total
+          ? rows.slice(0, shown).map(render).join('')
+          : '<div class="empty">找不到符合「' + esc(this._qRaw) + '」的巴士站，試試站名、站號（如 M11）或路線（如 3A）。</div>';
+      }
+      if (result) {
+        result.textContent = total
+          ? (this._qRaw ? '符合「' + this._qRaw + '」共 ' + num(total) + ' ' + unit + ' · 顯示 ' + num(shown)
+                       : overview)
+          : '沒有符合條件的巴士站';
+      }
+      if (more) {
+        more.hidden = this._showAll || shown >= total;
+        more.textContent = '顯示更多（尚有 ' + num(total - shown) + ' 個）';
+      }
+      if (all) {
+        all.hidden = this._showAll || shown >= total;
+        all.textContent = '一次顯示全部 ' + num(total) + ' 個';
+      }
+    }
+
+    _paintLinks() {
+      var box = this.shadowRoot.querySelector('[data-sources]');
+      if (!box) return;
+      box.innerHTML = '<h3>相關連結｜官方巴士資訊</h3><div class="src-grid">' +
+        LINKS.map(function (l) {
+          return '<a class="src-row" href="' + esc(l.href) + '" target="_blank" rel="noopener noreferrer"' +
+            ' title="' + esc(l.href) + '">' +
+            '<span class="src-name">' + esc(l.name) + ' ↗</span>' +
+            '<span class="src-desc">' + esc(l.desc) + '</span></a>';
+        }).join('') + '</div>' +
+        '<div class="credit">資料提供：' + esc(DATA.department || '交通事務局') +
+        '　·　本頁不內建站點資料</div>';
+    }
+
+    _setQuery(raw) {
+      this._qRaw = clean(raw);
+      this._q = this._qRaw.toLowerCase();
+      this._limit = this._cfg.limit;
+      this._showAll = false;
+      var input = this.shadowRoot.querySelector('[data-search]');
+      if (input) input.value = this._qRaw;
+      this._paintList();
+    }
+
+    _setMode(mode) {
+      this._mode = mode === 'pole' ? 'pole' : 'site';
+      this._limit = this._cfg.limit;
+      this._showAll = false;
+      var self = this;
+      var box = this.shadowRoot.querySelector('[data-mode]');
+      if (box) Array.prototype.forEach.call(box.querySelectorAll('[data-set-mode]'), function (b) {
+        b.classList.toggle('on', b.getAttribute('data-set-mode') === self._mode);
+      });
+      this._paintList();
+    }
+
+    _onClick(e) {
+      var t = e.target && e.target.closest
+        ? e.target.closest('[data-more],[data-all],[data-route],[data-query],[data-clear],[data-set-mode]')
+        : null;
+      if (!t) return;
+      if (t.hasAttribute('data-set-mode')) {
+        this._setMode(t.getAttribute('data-set-mode'));
+      } else if (t.hasAttribute('data-more')) {
+        this._limit += this._cfg.limit;
+        this._paintList();
+      } else if (t.hasAttribute('data-all')) {
+        this._showAll = true;
+        this._paintList();
+      } else if (t.hasAttribute('data-route')) {
+        this._setQuery(t.getAttribute('data-route'));
+      } else if (t.hasAttribute('data-query')) {
+        this._setQuery(t.getAttribute('data-query'));
+      } else if (t.hasAttribute('data-clear')) {
+        this._setQuery('');
+      }
+    }
+
+    _onInput(e) {
+      if (!e.target || !e.target.matches || !e.target.matches('[data-search]')) return;
+      this._qRaw = clean(e.target.value);
+      this._q = this._qRaw.toLowerCase();
+      this._limit = this._cfg.limit;
+      this._showAll = false;
+      this._paintList();
+    }
+
+    _updatePin() {
+      var t = this._tools;
+      if (!t) return;
+      var top = parseFloat(getComputedStyle(t).top) || 0;
+      var r = t.getBoundingClientRect();
+      t.classList.toggle('is-pinned', r.top <= top + 1 && r.bottom > 0);
+    }
+  }
+
+  window.customElements.define('macau-busstops-widget', MacauBusstopsWidget);
+})();
+</script>
+
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  var widgets = document.querySelectorAll('macau-tour-widget, macau-registry-widget, macau-busstops-widget');
+  /* 主題不記憶：每次載入一律淺色，深色僅能由按鈕手動切換。 */
+
+
+  /* ---------- 全站唯一的重新整理按鈕 ----------
+     一次觸發所有元件同時重整（手動）。兩個分類在 HTML 上標記 no-auto，
+     只在進入網頁時讀取一次，不會自動定時更新。 */
+  var refreshBtn = document.getElementById('global-refresh');
+  var refreshLabel = refreshBtn.querySelector('[data-refresh-label]');
+  var SETTLE_EVENTS = [
+    'macau-tour:update', 'macau-tour:error',
+    'macau-registry:update', 'macau-registry:error',
+    'macau-bus:update', 'macau-bus:error'
+  ];
+  var refreshing = false;
+
+  function refreshAll() {
+    if (refreshing) return;
+    refreshing = true;
+    var started = Date.now();
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('is-busy');
+    refreshBtn.setAttribute('aria-busy', 'true');
+    refreshLabel.textContent = '更新中…';
+
+    var pending = widgets.length, seen = {}, finished = false, guard = null;
+
+    function onSettle(e) {
+      var key = e.type.replace(/:(update|error)$/, '');
+      if (seen[key]) return;
+      seen[key] = true;
+      if (--pending <= 0) finish();
+    }
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      clearTimeout(guard);
+      SETTLE_EVENTS.forEach(function (n) { document.removeEventListener(n, onSettle); });
+      /* 至少轉動 0.7 秒，讓使用者看得到更新回饋 */
+      var wait = Math.max(0, 700 - (Date.now() - started));
+      setTimeout(function () {
+        refreshBtn.disabled = false;
+        refreshBtn.classList.remove('is-busy');
+        refreshBtn.removeAttribute('aria-busy');
+        refreshLabel.textContent = '重新整理';
+        try {
+          var f = new Intl.DateTimeFormat('zh-Hant', {
+            timeZone: 'Asia/Macau', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+          });
+          refreshBtn.title = '上次更新：' + f.format(new Date()) + '（澳門時間）· 重新整理全部資訊';
+        } catch (e) {
+          refreshBtn.title = '重新整理全部資訊';
+        }
+        refreshing = false;
+      }, wait);
+    }
+
+    SETTLE_EVENTS.forEach(function (n) { document.addEventListener(n, onSettle); });
+    /* 若某元件正在載入而提前返回（不發事件），最多 5 秒後仍解除鎖定 */
+    guard = setTimeout(finish, 5000);
+
+    Array.prototype.forEach.call(widgets, function (w) {
+      if (typeof w.refresh === 'function') w.refresh();
+    });
+  }
+
+  refreshBtn.addEventListener('click', refreshAll);
+
+  /* ---------- 主題 ---------- */
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#eef3fa' : '#080e19');
+    Array.prototype.forEach.call(widgets, function (w) { w.setAttribute('theme', theme); });
+    var t = document.getElementById('theme-toggle');
+    if (t) t.setAttribute('aria-label', theme === 'light' ? '切換為深色模式' : '切換為淺色模式');
+  }
+
+  /* 預設主題跟隨系統的深色／淺色偏好（prefers-color-scheme）；
+     使用者按下主題按鈕後，本次瀏覽以手動選擇為準，系統偏好再變也不覆寫。 */
+  var themeLocked = false;
+  function systemTheme() {
+    return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ? 'dark' : 'light';
+  }
+  applyTheme(systemTheme());
+  if (window.matchMedia) {
+    var mqTheme = window.matchMedia('(prefers-color-scheme: dark)');
+    var onSystemTheme = function () { if (!themeLocked) applyTheme(mqTheme.matches ? 'dark' : 'light'); };
+    if (mqTheme.addEventListener) mqTheme.addEventListener('change', onSystemTheme);
+    else if (mqTheme.addListener) mqTheme.addListener(onSystemTheme);
+  }
+
+  document.getElementById('theme-toggle').addEventListener('click', function () {
+    themeLocked = true;
+    var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+  });
+
+  /* ---------- 分類切換（預設只顯示「牌照場所」） ----------
+     另一分類的資料必須按下對應按鈕才會出現。 */
+  var VIEWS = ['bus', 'registry', 'tour'];
+  var viewButtons = document.querySelectorAll('.view-tab');
+  var viewPanels = document.querySelectorAll('[data-view-panel]');
+
+  function setView(name) {
+    if (VIEWS.indexOf(name) < 0) name = 'registry';
+    Array.prototype.forEach.call(viewButtons, function (b) {
+      var on = b.getAttribute('data-view') === name;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    Array.prototype.forEach.call(viewPanels, function (p) {
+      p.hidden = p.getAttribute('data-view-panel') !== name;
+    });
+    /* 手機按鈕列可橫向捲動時，讓目前分類的按鈕保持在可視範圍 */
+    var tabs = document.querySelector('.view-tabs');
+    var active = document.querySelector('.view-tab.is-active');
+    if (tabs && active && tabs.scrollWidth > tabs.clientWidth && active.scrollIntoView) {
+      active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }
+
+  Array.prototype.forEach.call(viewButtons, function (b) {
+    b.addEventListener('click', function () { setView(b.getAttribute('data-view')); });
+  });
+
+  var initialView = 'registry';
+  var viewHash = (location.hash || '').replace(/^#/, '');
+  if (VIEWS.indexOf(viewHash) >= 0) {
+    initialView = viewHash;
+  } else {
+    var hashTarget = viewHash && document.getElementById(viewHash);
+    var owner = hashTarget && hashTarget.closest ? hashTarget.closest('[data-view-panel]') : null;
+    if (owner) initialView = owner.getAttribute('data-view-panel');
+  }
+  setView(initialView);
+
+  /* ---------- 澳門時鐘 ---------- */
+  var clockEl = document.getElementById('header-clock');
+  var fmt = null;
+  try {
+    fmt = new Intl.DateTimeFormat('zh-Hant', {
+      timeZone: 'Asia/Macau', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+  } catch (e) {}
+
+  function tick() {
+    var now = new Date();
+    if (fmt) {
+      clockEl.textContent = fmt.format(now);
+    } else {
+      var d = new Date(now.getTime() + 8 * 3600 * 1000);
+      function p(n) { return String(n).padStart(2, '0'); }
+      clockEl.textContent = p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds());
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  /* ---------- 小工具狀態（無障礙提示） ---------- */
+  ['macau-tour:error', 'macau-registry:error'].forEach(function (name) {
+    document.addEventListener(name, function (e) {
+      if (window.console) console.warn('[' + name + '] 資料更新失敗：', e.detail && e.detail.message);
+    });
+  });
+
+  /* ---------- 展開資料時維持捲動位置 ----------
+     各清單按「顯示更多／顯示全部／更多」時會重建列表 DOM，部分瀏覽器
+     （尤其手機）會在內容高度變動後把捲動位置重算回頁首。此處於捕獲
+     階段記下點按當下的位置，待元件重繪完成後分三個時間點還原，讓新
+     資料在使用者原本停留的位置往下展開，而不是跳回上方。 */
+  (function () {
+    var EXPAND = '[data-more],[data-focus-more]';
+    var userMoved = false;
+
+    /* 還原期間若使用者自己捲動，就放棄鎖定，不與使用者搶捲動控制權 */
+    ['wheel', 'touchmove', 'keydown'].forEach(function (n) {
+      window.addEventListener(n, function () { userMoved = true; }, { passive: true });
+    });
+
+    function isExpand(node) {
+      return !!(node && node.nodeType === 1 && node.matches && node.matches(EXPAND));
+    }
+    function findExpand(e) {
+      var path = e.composedPath ? e.composedPath() : [];
+      for (var i = 0; i < path.length; i++) {
+        if (isExpand(path[i])) return path[i];
+      }
+      return isExpand(e.target) ? e.target : null;
+    }
+    function restore(y) {
+      if (userMoved) return;
+      /* 已在同一位置就不干預，避免影響使用者當下的捲動操作 */
+      if (Math.abs(window.pageYOffset - y) < 1) return;
+      window.scrollTo(0, y);
+    }
+
+    document.addEventListener('click', function (e) {
+      if (!findExpand(e)) return;
+      userMoved = false;
+      var y = window.pageYOffset;
+      /* 捕獲階段只登記；元件自己的重繪會在冒泡階段接續執行 */
+      requestAnimationFrame(function () {
+        restore(y);
+        requestAnimationFrame(function () { restore(y); });
+      });
+      setTimeout(function () { restore(y); }, 80);
+    }, true);
+  })();
+})();
+</script>
+<script>
+/* ---------- 卡片內搜尋框的吸附位置 ----------
+   頁首與分類列都是 sticky，分類列會隨視窗寬度換行而改變高度，
+   因此量測兩者實際高度後寫入 --sticky-top，供各元件 .tools 使用。 */
+(function () {
+  var root = document.documentElement;
+  var header = document.querySelector('.site-header');
+  var tabs = document.querySelector('.view-tabs');
+  if (!root || !tabs) return;
+
+  function sync() {
+    var h = (header ? header.getBoundingClientRect().height : 0) +
+            tabs.getBoundingClientRect().height;
+    root.style.setProperty('--sticky-top', Math.round(h) + 'px');
+  }
+
+  sync();
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(sync);
+    if (header) ro.observe(header);
+    ro.observe(tabs);
+  }
+  window.addEventListener('resize', sync);
+  window.addEventListener('orientationchange', sync);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(sync);
+})();
+</script>
+</body>
+</html>
