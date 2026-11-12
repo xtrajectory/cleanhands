@@ -454,6 +454,10 @@
             display: none;
             width: 100%;
             animation: slideUp 0.3s ease-out;
+            /* 只剩「地籍地圖」「學校」兩顆，各 105px（與第一列同寬）+ 尾欄 30px；
+               整列靠右收攏，右緣與第一列「地圖」對齊 */
+            grid-template-columns: minmax(0, 105px) minmax(0, 105px) 30px;
+            justify-content: end;
         }
 
         .map-button {
@@ -480,13 +484,43 @@
         .map-button-row a { text-decoration: none; display: flex; min-width: 0; }
         .map-button-row a button { width: 100%; }
 
-        /* 跨兩個按鈕寬度（對齊 2 格） */
-        .map-button-row a.map-button-double { grid-column: span 2; }
-        .map-button-icon { margin-right: 6px; font-size: 15px; line-height: 1; }
+        /* === 「💡Hub」浮動圓鈕 ===
+           直徑 70px ＝ 其他按鈕寬度 104.5px 的 2/3；絕對定位於導航列右上外側，
+           即收合三角箭頭的正上方，不佔用底部兩列的格線 */
+        .map-button.map-button-hub-fab {
+            position: absolute;
+            right: 20px;
+            bottom: calc(100% + 10px);
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            line-height: 1;
+            text-decoration: none;
+            isolation: isolate;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+        }
 
-        /* 左紅右綠 + 中央白色波浪分隔（背景以 SVG 繪製，隨寬度自適應） */
+        /* 圓心加暗：保留圓邊的三色條紋，中央確保白字可讀 */
+        .map-button.map-button-hub-fab::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%,
+                rgba(0, 0, 0, 0.5) 0%,
+                rgba(0, 0, 0, 0.34) 46%,
+                rgba(0, 0, 0, 0) 74%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 紅／綠／黃三等分 + 兩條白色波浪分隔（末端為黃；背景以 SVG 繪製，隨寬度自適應） */
         .map-button.map-button-wave {
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect width='100' height='100' fill='%231f7a4d'/%3E%3Cpath d='M0,0 H50 C55,8 55,17 50,25 C45,33 45,42 50,50 C55,58 55,67 50,75 C45,83 45,92 50,100 H0 Z' fill='%23c0273a'/%3E%3Cpath d='M50.9,0 C55.9,8 55.9,17 50.9,25 C45.9,33 45.9,42 50.9,50 C55.9,58 55.9,67 50.9,75 C45.9,83 45.9,92 50.9,100 L49.1,100 C44.1,92 44.1,83 49.1,75 C54.1,67 54.1,58 49.1,50 C44.1,42 44.1,33 49.1,25 C54.1,17 54.1,8 49.1,0 Z' fill='%23ffffff' fill-opacity='0.9'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect width='100' height='100' fill='%23e8b400'/%3E%3Cpath d='M0,0 H66.7 C71.7,8 71.7,17 66.7,25 C61.7,33 61.7,42 66.7,50 C71.7,58 71.7,67 66.7,75 C61.7,83 61.7,92 66.7,100 H0 Z' fill='%231f7a4d'/%3E%3Cpath d='M0,0 H33.3 C38.3,8 38.3,17 33.3,25 C28.3,33 28.3,42 33.3,50 C38.3,58 38.3,67 33.3,75 C28.3,83 28.3,92 33.3,100 H0 Z' fill='%23c0273a'/%3E%3Cpath d='M34.2,0 C39.2,8 39.2,17 34.2,25 C29.2,33 29.2,42 34.2,50 C39.2,58 39.2,67 34.2,75 C29.2,83 29.2,92 34.2,100 L32.4,100 C27.4,92 27.4,83 32.4,75 C37.4,67 37.4,58 32.4,50 C27.4,42 27.4,33 32.4,25 C37.4,17 37.4,8 32.4,0 Z' fill='%23ffffff' fill-opacity='0.9'/%3E%3Cpath d='M67.6,0 C72.6,8 72.6,17 67.6,25 C62.6,33 62.6,42 67.6,50 C72.6,58 72.6,67 67.6,75 C62.6,83 62.6,92 67.6,100 L65.8,100 C60.8,92 60.8,83 65.8,75 C70.8,67 70.8,58 65.8,50 C60.8,42 60.8,33 65.8,25 C70.8,17 70.8,8 65.8,0 Z' fill='%23ffffff' fill-opacity='0.9'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
         }
 
         /* === 收合鈕：立體深灰 ▼（7 秒一次反光；展開時先反轉、再漸變為棕色） === */
@@ -709,10 +743,11 @@
         </div>
         
         <div class="map-button-row" id="hiddenRow" data-page-node-id="h39iqYL4eFtpJCpieCVV2Z">
-            <a href="food-travel_hub.html" class="map-button-double" data-page-node-id="UG8mdGPIbbeDYZW6MjxS4t"><button class="map-button map-button-wave" data-page-node-id="bBcSS3N4AvQ0sbBMlj97vb"><span class="map-button-icon">🍽️</span>DST | IAM 餐飲及活動</button></a>
             <a href="https://webmap.gis.gov.mo/InetGIS/chn/index.html" target="_blank" rel="noopener noreferrer" data-page-node-id="ve8QPVd8jQi84BElaEcwgB"><button class="map-button" data-page-node-id="Ug8IMM4upVGq97flAQKMTY">地籍地圖</button></a>
             <a href="school_map.html" data-page-node-id="EqTqXECq2micHcvLGCtBWP"><button class="map-button" data-page-node-id="CMcRcNRs1U9ztz1AmZuNA6">🏫 學校</button></a>
         </div>
+        <!-- 浮動圓鈕：固定於導航列右上外側（收合箭頭上方），不隨展開列移動 -->
+        <a href="cleanhands_hub.html" class="map-button map-button-wave map-button-hub-fab" data-page-node-id="UG8mdGPIbbeDYZW6MjxS4t" aria-label="Hub：牌照場所、旅遊快訊、巴士站資訊" title="Hub｜牌照場所、旅遊快訊、巴士站資訊">💡Hub</a>
     </div>
 
     <script>
