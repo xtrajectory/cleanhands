@@ -129,8 +129,73 @@
     display: flex; align-items: center; gap: 4px;
     background: rgba(255,255,255,0.18); border-radius: 20px;
     padding: 3px 9px; font-size: 11px; color: rgba(255,255,255,0.95);
+    /* 三個膠囊同時是類型篩選器 */
+    border: 1px solid transparent;
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.5; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
   }
-  .stat-pill strong { font-weight: 600; }
+  .stat-pill strong { font-weight: 600; color: inherit; }
+  .stat-pill:hover { background: rgba(255,255,255,0.32); }
+  .stat-pill:active { transform: scale(0.96); }
+  .stat-pill:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+  /* 目前生效的篩選：白底綠字，與其餘膠囊明確區隔 */
+  .stat-pill.active {
+    background: #fff; color: var(--green-dark);
+    border-color: rgba(255,255,255,0.9);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .stat-pill.active:hover { background: #fff; }
+  .drawer-stats .stat-hint {
+    width: 100%; font-size: 10px; line-height: 1.4;
+    color: rgba(255,255,255,0.75); margin-top: 1px; display: none;
+  }
+  .drawer-stats .stat-hint.visible { display: block; }
+
+  /* ── SEARCH BAR ── */
+  #search-wrap {
+    flex-shrink: 0;
+    padding: 10px 12px 8px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  #search-box {
+    display: flex; align-items: center; gap: 7px;
+    height: 36px; padding: 0 9px;
+    background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  #search-box:focus-within {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(26,122,74,0.12);
+  }
+  #search-box > i {
+    font-size: 16px; color: var(--text-secondary); flex-shrink: 0;
+  }
+  #search-input {
+    flex: 1; min-width: 0; height: 100%;
+    border: none; outline: none; background: transparent;
+    font-size: 13px; color: var(--text-primary);
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text;
+    user-select: text;
+  }
+  #search-input::placeholder { color: #93a39b; }
+  #search-clear {
+    display: none; align-items: center; justify-content: center;
+    width: 22px; height: 22px; flex-shrink: 0;
+    border: none; border-radius: 50%; background: rgba(0,0,0,0.07);
+    color: var(--text-secondary); font-size: 14px; cursor: pointer;
+  }
+  #search-wrap.has-query #search-clear { display: flex; }
+  #search-clear:hover { background: rgba(0,0,0,0.13); color: var(--text-primary); }
+  #search-status {
+    font-size: 11px; color: var(--text-secondary);
+    margin-top: 6px; min-height: 14px; line-height: 1.3;
+  }
+  #search-status.no-result { color: var(--rose); }
 
   /* ── PHASE PANELS ── */
   #school-list {
@@ -139,6 +204,13 @@
   }
   #school-list::-webkit-scrollbar { width: 4px; }
   #school-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  #empty-state {
+    display: none; padding: 30px 18px; text-align: center;
+    font-size: 12px; line-height: 1.6; color: var(--text-secondary);
+    font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  #school-list.no-result #empty-state { display: block; }
 
   .phase-group {
     display: flex; flex-direction: column;
@@ -291,7 +363,7 @@
   gtag('config', 'G-EZTW98Q8GK');
 </script> 
 
-<body oncontextmenu="return false;" onselectstart="return false;" oncopy="return false;">
+<body>
 
 <div id="topbar">
   <button id="menu-btn" onclick="toggleDrawer()" aria-label="選單">
@@ -311,14 +383,69 @@
   <div id="drawer-header">
     <h2>📍 澳門學校及托兒所</h2>
     <div class="drawer-stats">
-      <div class="stat-pill"><i class="ti ti-school"></i> 學校 <strong>10</strong></div>
-      <div class="stat-pill"><i class="ti ti-building"></i> 托兒所 <strong>5</strong></div>
-      <div class="stat-pill"><i class="ti ti-map-pin"></i> 合計 <strong>16</strong></div>
+      <button type="button" class="stat-pill" data-filter="school" aria-pressed="false" title="只顯示學校（排除托兒所）">
+        <i class="ti ti-school"></i> 學校 <strong>25</strong>
+      </button>
+      <button type="button" class="stat-pill" data-filter="nursery" aria-pressed="false" title="只顯示托兒所">
+        <i class="ti ti-building"></i> 托兒所 <strong>12</strong>
+      </button>
+      <button type="button" class="stat-pill active" data-filter="all" aria-pressed="true" title="顯示全部（學校＋托兒所）">
+        <i class="ti ti-map-pin"></i> 合計 <strong>37</strong>
+      </button>
+      <span class="stat-hint" id="stat-hint">目前：顯示全部</span>
     </div>
   </div>
-  <div id="school-list"></div>
+
+  <!-- 搜尋欄：固定於導覽最上方，不隨清單捲動 -->
+  <div id="search-wrap">
+    <div id="search-box">
+      <i class="ti ti-search"></i>
+      <input id="search-input" type="text" placeholder="搜尋學校／托兒所或地址…"
+             autocomplete="off" spellcheck="false" aria-label="搜尋學校或托兒所">
+      <button id="search-clear" type="button" aria-label="清除搜尋"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="search-status" aria-live="polite"></div>
+  </div>
+
+  <div id="school-list">
+    <div id="empty-state">查無符合的學校或托兒所<br>請試試其他關鍵字</div>
+  </div>
 </div>
 
+<!--
+  地圖供應商備註：本頁沿用既有的 Google Maps embed（q=關鍵字）定位方式。
+  若日後需符合中國大陸地圖服務資質規範，應改用具資質供應商（建議騰訊地圖 GL JS），
+  並把 locateOnMap() 的 iframe 換圖邏輯改為 TMap.service.Search／MultiMarker；
+  公開網站部署時須自行申請騰訊位置服務 key，建議設定 Referer 白名單。
+  本次僅更新地點資料，未擅自更換地圖服務，以免影響既有上線功能。
+
+  資料校對（2026-11-16）：
+  1. 機構名稱一律以衛生局新聞稿為準（gov.mo 1195628 / 1238511 / 1281936），
+     三處原先與新聞稿不符者已改正：氹仔坊眾學校（分校）、培道中學小學部分教處、
+     澳門街坊總會孟智豪夫人托兒所；括號統一為全角。
+  2. 海星中學（附屬小學）地址原誤作「燒灰爨巷」，依校方官網更正為「澳門燒灰爐巷10-12號」。
+  3. 氹仔坊眾學校（第三階段）地址「氹仔沙維斯街220號」經教青局《學校清單 2026/2027 學年》
+     確認為登記地址，地圖搜尋關鍵字同步改為該址（原用佛山街137號為中學部位置）。
+     同校幼稚園部即第二階段「氹仔坊眾學校（分校）」，地址為「氹仔律政司街」，
+     地圖搜尋只鍵入街道名，避免 Google 匹配到沙維斯街的主校舍 POI 而定位錯誤。
+  4. 未設官方網站者（沙梨頭浸信學校、啟迪波波托兒所2）改以 linkType:"info" 標示，
+     按鈕顯示「資料」而非「網站」，避免誤導；工聯童真托兒所改連工聯屬下托兒所官網。
+  5. 全部 37 筆均附 WGS84 座標（coord 欄），座標取自 OpenStreetMap 圖徵並以地址反查核對街道。
+     地圖定位分兩級：
+     (a) place 欄＝機構在 Google 地圖的地點名稱（27 筆）。經實測 Google 確有該機構的獨立地點，
+         且其位置與本表座標相距 70 公尺以內，以名稱定位會顯示機構本身的資訊卡，
+         而不是所在樓宇（例如孟智豪托兒所不再釘在「澳門大廈」上）。
+     (b) 其餘 10 筆改以 coord 座標釘點，原因分兩類：
+         甲、Google 地點缺漏或位置有誤：培道中學氹仔分校（誤標於羅理基博士大馬路）、
+             澳門工聯職業技術中學（座標落在栢威停車場）、鏡平學校（小學部）（Google 只有中學部）、
+             氹仔坊眾學校（分校）（會匹配到沙維斯街主校舍）、啟迪波波托兒所2（誤標於田畔街）、
+             濠江中學（與本表座標相距約 140 公尺）、沙梨頭浸信學校（地點落在後方福安街）。
+         乙、Google 搜尋可找到該機構，但嵌入地圖以名稱定位時未能落點（畫面停在原地、無標記）：
+             協同特殊教育學校、仁慈堂李愛禮西灣托兒所、培華中學附屬小學暨幼稚園。
+             三筆改用 Google 自身的地點座標，反查結果分別為青洲石仔堆巷校舍、民國大馬路58-60號、
+             米尼奧街93號，與本表地址一致。
+     聖瑪沙利羅學校與慈惠托兒所位於同一建築群，兩筆座標相同。
+-->
 <div id="map-wrap" onclick="closeDrawer()">
   <iframe id="gis-map"
     src="https://maps.google.com/maps?q=澳門&z=13&output=embed&hl=zh-TW"
@@ -333,30 +460,77 @@
 
 <script>
 // Phase 1 names (must match exactly)
-const phase1Names = ["澳門工聯職業技術中學", "海星中學(附屬小學)", "澳門教區梁文燕托兒所親子館", "氹仔中葡學校"];
+const phase1Names = ["澳門工聯職業技術中學", "海星中學（附屬小學）", "澳門教區梁文燕托兒所親子館", "氹仔中葡學校"];
+
+// Phase 3 names (2026年11月16日起生效，must match exactly)
+const phase3Names = [
+  "二龍喉公立學校", "陳瑞祺永援中學", "粵華中學", "魯彌士主教幼稚園", "鮑思高粵華小學",
+  "濠江中學", "氹仔坊眾學校", "濠江中學附屬英才學校", "培華中學附屬小學暨幼稚園",
+  "培道中學氹仔分校", "沙梨頭坊眾學校", "沙梨頭浸信學校", "聖瑪沙利羅學校", "聖若瑟教區中學第六校",
+  "工聯童真托兒所", "婦聯小白兔托兒所", "聖瑪沙利羅慈惠托兒所", "啟迪波波托兒所2",
+  "小海燕托兒所", "聖若瑟國際托兒所", "澳門仁慈堂托兒所"
+];
 
 const allSchools = [
-  { name: "澳門工聯職業技術中學", search: "工聯職業技術培訓中心 澳門台山", addr: "澳門台山李寶椿街", url: "https://www.kljc.edu.mo/", type: "school" },
-  { name: "海星中學(附屬小學)", search: "海星中學 澳門燒灰爐街32-34號32-34號", addr: "澳門燒灰爨巷10-12號", url: "https://edm.edu.mo/", type: "school" },
-  { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery" },
-  { name: "氹仔中葡學校", search: "氹仔中葡學校 氹仔巴波沙總督前地", addr: "氹仔巴波沙總督前地", url: "https://www.lct.k12.edu.mo/lct/", type: "school" },
-  { name: "孟智豪托兒所", search: "澳門街坊會聯合總會孟智豪托兒所 澳門菜園涌巷70號", addr: "澳門菜園涌巷70號澳門大廈地下", url: "https://www.ugamm.org.mo/portal/ctr/cms/info/goToInfoView?info_id=9d917c2cf88449f482fbe8c9eaa0e891", type: "nursery" },
-  { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special" },
-  { name: "同善堂第五托兒所", search: "同善堂第五托兒所", addr: "黑沙環1A號同善堂崔德祺主席紀念樓", url: "https://www.tst.org.mo/index.php/our-services/our-services-4", type: "nursery" },
-  { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school" },
-  { name: "鏡平學校(小學部)", search: "鏡平學校小學 澳門俾利喇街", addr: "澳門俾利喇街126-128A號", url: "http://www.keangpeng.edu.mo/introduction/primary", type: "school" },
-  { name: "庇道學校", search: "庇道學校 澳門高地烏街118號", addr: "澳門高地烏街118號", url: "https://www.brito.edu.mo/", type: "school" },
-  { name: "培道中學小學部", search: "培道中學 美麗街高小部 澳門美麗街11號", addr: "澳門美麗街11號", url: "https://primary.pooito.edu.mo/html5/", type: "school" },
-  { name: "聖羅撒托兒所", search: "聖羅撒托兒所 東望洋新街348號 澳門", addr: "東望洋新街348號地下", url: "https://infantariodesantarosa.org.mo/", type: "nursery" },
-  { name: "下環浸會學校", search: "下環浸信會學校 澳門下環街46號", addr: "澳門下環街46-48號地下", url: "https://school.hwbs.edu.mo/", type: "school" },
-  { name: "仁慈堂李愛禮西灣托兒所", search: "仁慈堂李愛禮西灣托兒所 Creche Lara Reis nºs, 58-60 民國大馬路澳門", addr: "澳門民國大馬路58-60號", url: "http://www.scmm.mo/frontend/content/index.php?id=34&hl=cn", type: "nursery" },
-  { name: "氹仔坊眾學校幼稚園", search: "氹仔坊眾學校幼稚園 澳門律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school" },
-  { name: "明愛學校", search: "明愛學校 氹仔里斯本街387號 澳門", addr: "氹仔里斯本街387號", url: "https://www.caritas.org.mo/education-service/199", type: "school" },
+  { name: "澳門工聯職業技術中學", search: "工聯職業技術培訓中心 澳門台山", addr: "澳門台山李寶椿街", url: "https://www.kljc.edu.mo/", type: "school", coord: "22.2117314,113.5468978" },
+  { name: "海星中學（附屬小學）", search: "海星中學 附屬小學 澳門燒灰爐巷10-12號", addr: "澳門燒灰爐巷10-12號", url: "https://edm.edu.mo/", type: "school", place: "海星中學（附屬小學）", coord: "22.1868635,113.5368359" },
+  { name: "澳門教區梁文燕托兒所親子館", search: "梁文燕托兒所 澳門公園街", addr: "澳門公園街", url: "https://www.cdhl.mo/", type: "nursery", place: "澳門教區梁文燕托兒所親子館", coord: "22.1871256,113.5369469" },
+  { name: "氹仔中葡學校", search: "氹仔中葡學校 氹仔巴波沙總督前地", addr: "氹仔巴波沙總督前地", url: "https://www.lct.k12.edu.mo/lct/", type: "school", place: "氹仔中葡學校", coord: "22.1517192,113.5552395" },
+  { name: "澳門街坊總會孟智豪夫人托兒所", search: "澳門街坊總會孟智豪夫人托兒所 澳門菜園涌巷70號", addr: "澳門菜園涌巷70號澳門大廈地下", url: "https://www.ugamm.org.mo/portal/ctr/cms/info/goToInfoView?info_id=9d917c2cf88449f482fbe8c9eaa0e891", type: "nursery", place: "澳門街坊總會孟智豪夫人托兒所", coord: "22.2145011,113.5459917" },
+  { name: "協同特殊教育學校", search: "協同特殊教育學校 澳門青洲收容所街35號", addr: "澳門青洲收容所街35號", url: "https://csse.k12.edu.mo/", type: "special", coord: "22.2101977,113.5422056" },
+  { name: "同善堂第五托兒所", search: "同善堂第五托兒所", addr: "黑沙環1A號同善堂崔德祺主席紀念樓", url: "https://www.tst.org.mo/index.php/our-services/our-services-4", type: "nursery", place: "同善堂第五托兒所", coord: "22.2084471,113.5493868" },
+  { name: "婦聯學校", search: "婦聯學校 澳門馬揸度博士大馬路362號", addr: "澳門馬揸度博士大馬路362號", url: "https://fuluen.edu.mo/pages/433", type: "school", place: "婦聯學校", coord: "22.2056367,113.5572442" },
+  { name: "鏡平學校（小學部）", search: "鏡平學校小學 澳門俾利喇街", addr: "澳門俾利喇街126-128A號", url: "http://www.keangpeng.edu.mo/introduction/primary", type: "school", coord: "22.2051591,113.5496145" },
+  { name: "庇道學校", search: "庇道學校 澳門高地烏街118號", addr: "澳門高地烏街118號", url: "https://www.brito.edu.mo/", type: "school", place: "庇道學校", coord: "22.2040763,113.5488885" },
+  { name: "培道中學小學部分教處", search: "培道中學 小學部分教處 澳門美麗街11號", addr: "澳門美麗街11號", url: "https://primary.pooito.edu.mo/html5/", type: "school", place: "培道中學小學部分教處", coord: "22.1932938,113.5419892" },
+  { name: "聖羅撒托兒所", search: "聖羅撒托兒所 東望洋新街348號 澳門", addr: "東望洋新街348號地下", url: "https://infantariodesantarosa.org.mo/", type: "nursery", place: "聖羅撒托兒所", coord: "22.1931984,113.5449472" },
+  { name: "下環浸會學校", search: "下環浸會學校 澳門下環街46號", addr: "澳門下環街46-48號地下", url: "https://school.hwbs.edu.mo/", type: "school", place: "下環浸會學校", coord: "22.1893303,113.5340925" },
+  { name: "仁慈堂李愛禮西灣托兒所", search: "仁慈堂李愛禮西灣托兒所 澳門民國大馬路58-60號", addr: "澳門民國大馬路58-60號", url: "http://www.scmm.mo/frontend/content/index.php?id=34&hl=cn", type: "nursery", coord: "22.1815713,113.5323232" },
+  { name: "氹仔坊眾學校（分校）", search: "氹仔律政司街", addr: "氹仔律政司街", url: "https://fctweb.org/2024/index.php", type: "school", coord: "22.1541046,113.5573056" },
+  { name: "明愛學校", search: "明愛學校 氹仔里斯本街387號 澳門", addr: "氹仔里斯本街387號", url: "https://www.caritas.org.mo/education-service/199", type: "school", place: "明愛學校", coord: "22.1591425,113.5466083" },
+
+  // ── 第三階段（2026年11月16日起）：14 間學校 + 7 間托兒所 ──
+  // 名單依據：衛生局／澳門特區政府入口網站公告（2026-11-16 生效，累計 37 間）
+  // 地址及網址依據：教青局《學校清單 2026/2027 學年》、社工局托兒服務設施頁、各校／機構官網
+  { name: "二龍喉公立學校", search: "二龍喉公立學校 澳門山洞巷二龍喉公園", addr: "澳門山洞巷二龍喉公園", url: "https://eof.k12.edu.mo/", type: "school", place: "二龍喉公立學校", coord: "22.1998721,113.5508153" },
+  { name: "陳瑞祺永援中學", search: "陳瑞祺永援中學 澳門得勝馬路28號", addr: "澳門得勝馬路28號", url: "https://www.cskphc.edu.mo/", type: "school", place: "陳瑞祺永援中學", coord: "22.1981595,113.5495724" },
+  { name: "粵華中學", search: "粵華中學 澳門得勝馬路18號", addr: "澳門得勝馬路18號", url: "https://www.yuetwah.edu.mo", type: "school", place: "粵華中學", coord: "22.1970999,113.5478177" },
+  { name: "魯彌士主教幼稚園", search: "魯彌士主教幼稚園 澳門士多鳥拜斯大馬路", addr: "澳門士多鳥拜斯大馬路", url: "https://jidjcn.com/", type: "school", place: "魯彌士主教幼稚園", coord: "22.1998520,113.5500806" },
+  { name: "鮑思高粵華小學", search: "鮑思高粵華小學 澳門亞馬喇馬路6號", addr: "澳門亞馬喇馬路6號", url: "https://www.dbyw.edu.mo", type: "school", place: "鮑思高粵華小學", coord: "22.2032011,113.5524916" },
+  { name: "濠江中學", search: "濠江中學 澳門亞馬喇馬路3號", addr: "澳門亞馬喇馬路3號", url: "https://www.houkong.edu.mo", type: "school", coord: "22.2029992,113.5540199" },
+  { name: "氹仔坊眾學校", search: "氹仔坊眾學校 氹仔沙維斯街220號", addr: "氹仔沙維斯街220號", url: "https://www.fctweb.org", type: "school", place: "氹仔坊眾學校", coord: "22.1584520,113.5524852" },
+  { name: "濠江中學附屬英才學校", search: "濠江中學附屬英才學校 氹仔成都街113號 澳門", addr: "氹仔成都街113號", url: "http://www.houkong.edu.mo/psa/", type: "school", place: "濠江中學附屬英才學校", coord: "22.1563667,113.5556319" },
+  { name: "培華中學附屬小學暨幼稚園", search: "培華中學附屬小學暨幼稚園 氹仔米尼奧街93號 澳門", addr: "氹仔米尼奧街93號", url: "http://www.puiva.edu.mo", type: "school", coord: "22.1603609,113.5514366" },
+  { name: "培道中學氹仔分校", search: "培道中學氹仔分校 氹仔永誠街461至483號 澳門", addr: "氹仔永誠街461至483號", url: "http://pooito.edu.mo", type: "school", coord: "22.1608256,113.5513197" },
+  { name: "沙梨頭坊眾學校", search: "沙梨頭坊眾學校 澳門麻子街99號", addr: "澳門沙梨頭麻子街99號", url: "http://www.fcp.edu.mo", type: "school", place: "沙梨頭坊眾學校", coord: "22.2022842,113.5397785" },
+  { name: "沙梨頭浸信學校", search: "沙梨頭浸信學校 澳門沙梨頭海邊街169號S", addr: "澳門沙梨頭海邊街169號S", url: "https://appl.dsej.gov.mo/eduenquiry/edu/eduweb/schinf/schooladdrlist.jsp?lang=c", type: "school", linkType: "info", coord: "22.2033979,113.5395921" },
+  { name: "聖瑪沙利羅學校", search: "聖瑪沙利羅學校 澳門下環街103號", addr: "澳門下環街103號", url: "http://www.esmm.edu.mo", type: "school", place: "聖瑪沙利羅學校", coord: "22.1883166,113.5326460" },
+  { name: "聖若瑟教區中學第六校", search: "聖若瑟教區中學第六校 澳門青洲河邊馬路14-17號", addr: "澳門青洲河邊馬路14-17號", url: "http://www.cdsj6.edu.mo", type: "school", place: "聖若瑟教區中學第六校", coord: "22.2112091,113.538914" },
+  { name: "工聯童真托兒所", search: "工聯童真托兒所 氹仔布拉干薩街濠景花園 澳門", addr: "氹仔布拉干薩街濠景花園第二十至二十二座荷花苑地下及閣樓", url: "https://www.faomnursery.com/", type: "nursery", place: "工聯童真托兒所", coord: "22.1575286,113.5539216" },
+  { name: "婦聯小白兔托兒所", search: "婦聯小白兔托兒所 氹仔南京街濠庭都會 澳門", addr: "氹仔南京街481及501號濠景花園第二期（濠庭都會）第10及12座地下及閣樓", url: "https://www.womenchildcare.com.mo/", type: "nursery", place: "婦聯小白兔托兒所", coord: "22.1598858,113.5553681" },
+  { name: "聖瑪沙利羅慈惠托兒所", search: "聖瑪沙利羅慈惠托兒所 澳門下環街105號", addr: "澳門下環街105號", url: "http://www.esmm.edu.mo", type: "nursery", place: "聖瑪沙利羅慈惠托兒所", coord: "22.1883166,113.5326460" },
+  { name: "啟迪波波托兒所2", search: "啟迪波波托兒所2 澳門沙梨頭海邊大馬路352號", addr: "澳門沙梨頭海邊大馬路352號新都成花園地下C座", url: "https://www.ias.gov.mo/zh/social-service-facilities/social-service-facilities-under-swb-all?first=B0&isSubsidized=all&second=B1&third=6654d369-1d72-fa57-00c0-500e37ef2ab8", type: "nursery", linkType: "info", coord: "22.2036616,113.5412726" },
+  { name: "小海燕托兒所", search: "小海燕托兒所 澳門布魯塞爾街恆基花園", addr: "澳門布魯塞爾街恆基花園第一座三樓", url: "https://www.ugamm.org.mo/", type: "nursery", place: "小海燕托兒所", coord: "22.1902028,113.5533003" },
+  { name: "聖若瑟國際托兒所", search: "聖若瑟國際托兒所 澳門倫敦街16號環宇豪庭", addr: "澳門倫敦街16號環宇豪庭PR/C", url: "https://cisjmacau.com", type: "nursery", place: "聖若瑟國際托兒所", coord: "22.1881273,113.5522847" },
+  { name: "澳門仁慈堂托兒所", search: "澳門仁慈堂托兒所 澳門馬濟時總督大馬路富達花園357號", addr: "新口岸馬濟時總督大馬路富達花園357號地下（另設宋玉生廣場322-362號誠豐商業中心2樓）", url: "http://www.scmm.mo", type: "nursery", place: "澳門仁慈堂托兒所", coord: "22.1901639,113.5515621" },
 ];
 
 // Split into phases
 const phase1Schools = allSchools.filter(s => phase1Names.includes(s.name));
-const phase2Schools = allSchools.filter(s => !phase1Names.includes(s.name));
+const phase3Schools = allSchools.filter(s => phase3Names.includes(s.name));
+const phase2Schools = allSchools.filter(s => !phase1Names.includes(s.name) && !phase3Names.includes(s.name));
+
+// 統計數字由資料自動計算（特殊教育學校計入「學校」），避免日後增刪資料時漏改
+(function () {
+  const schoolCount = allSchools.filter(s => s.type !== 'nursery').length;
+  const nurseryCount = allSchools.filter(s => s.type === 'nursery').length;
+  const pills = document.querySelectorAll('#drawer-header .stat-pill strong');
+  if (pills.length === 3) {
+    pills[0].textContent = schoolCount;
+    pills[1].textContent = nurseryCount;
+    pills[2].textContent = schoolCount + nurseryCount;
+  }
+})();
 
 // Flat list for locateOnMap, keyed by unique id
 const schools = [];
@@ -371,7 +545,54 @@ const infoName = document.getElementById('info-name');
 const infoAddr = document.getElementById('info-addr');
 let activeIdx = null;
 
-let phase1Group, phase2Group;
+// ── 側欄搜尋 ──
+const searchWrap = document.getElementById('search-wrap');
+const searchInput = document.getElementById('search-input');
+const searchClear = document.getElementById('search-clear');
+const searchStatus = document.getElementById('search-status');
+let isSearching = false;
+
+// ── 類型篩選（學校／托兒所／合計）──
+// 與關鍵字搜尋為「交集」關係：先篩類型，再比對關鍵字
+const statPills = Array.from(document.querySelectorAll('#drawer-header .stat-pill[data-filter]'));
+const statHint = document.getElementById('stat-hint');
+let typeFilter = 'all';   // 'all' | 'school' | 'nursery'
+let isFiltering = false;  // 是否處於任何篩選狀態（類型或關鍵字）
+
+// 類型比對：特殊教育學校歸入「學校」（與統計數字一致）
+function matchType(s, f) {
+  if (f === 'nursery') return s.type === 'nursery';
+  if (f === 'school') return s.type !== 'nursery';
+  return true;
+}
+
+// 讓搜尋框可正常選取、複製、貼上；其餘頁面維持既有防護
+function isSearchField(target) {
+  return !!(target && target.closest && target.closest('#search-wrap'));
+}
+
+// 簡體輸入相容：只轉換會出現在校名／地址的字，避免「台山」「里斯本」等被誤轉
+const SIMP_TO_TRAD = {
+  学:'學', 儿:'兒', 粤:'粵', 华:'華', 众:'眾', 马:'馬', 门:'門', 号:'號', 圣:'聖',
+  玛:'瑪', 罗:'羅', 鲍:'鮑', 陈:'陳', 弥:'彌', 联:'聯', 妇:'婦', 启:'啟', 国:'國',
+  际:'際', 园:'園', 楼:'樓', 层:'層', 湾:'灣', 头:'頭', 边:'邊', 广:'廣', 场:'場',
+  诚:'誠', 丰:'豐', 厦:'廈', 阁:'閣', 属:'屬', 树:'樹', 龙:'龍', 凤:'鳳', 体:'體',
+  医:'醫', 会:'會', 总:'總', 区:'區', 职:'職', 业:'業', 术:'術', 协:'協', 镜:'鏡',
+  环:'環', 礼:'禮', 爱:'愛', 济:'濟', 达:'達', 伦:'倫', 尔:'爾', 恒:'恆', 奥:'奧',
+  鸟:'鳥', 亚:'亞', 胜:'勝', 烧:'燒', 乌:'烏', 东:'東', 丽:'麗', 宝:'寶', 鲁:'魯'
+};
+function toTrad(s) {
+  return String(s || '').replace(/[\u4e00-\u9fff]/g, ch => SIMP_TO_TRAD[ch] || ch);
+}
+// 統一字串：轉繁體、轉小寫、去除空白與常見分隔符（讓「海星中學 附屬小學」可命中括號寫法）
+function normalizeText(s) {
+  return toTrad(s).toLowerCase().replace(/[\s\u3000（）()\[\]、，,。.·．\-—_／\/]/g, '');
+}
+
+// 所有階段分組（供互斥開闔與抽屜重置使用）
+const phaseGroups = [];
+// 預設展開的階段索引（最新階段）
+const DEFAULT_PHASE_INDEX = 2;
 
 // Detect touch/mobile device
 const isMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches
@@ -419,8 +640,9 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
         <button class="btn-locate" id="btn-${globalIdx}" onclick="event.stopPropagation(); locateOnMap(${globalIdx})">
           <i class="ti ti-crosshair"></i> 定位
         </button>
-        <a class="btn-web" href="${s.url}" target="_blank" onclick="event.stopPropagation()">
-          <i class="ti ti-external-link"></i> 網站
+        <a class="btn-web" href="${s.url}" target="_blank" onclick="event.stopPropagation()"
+           title="${s.linkType === 'info' ? '未設官方網站，連結為政府部門資料頁' : '開啟機構官方網站'}">
+          <i class="ti ti-${s.linkType === 'info' ? 'info-circle' : 'external-link'}"></i> ${s.linkType === 'info' ? '資料' : '網站'}
         </a>
       </div>
     `;
@@ -431,13 +653,19 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
   // 點擊切換（互斥：同時僅一個展開，確保左側列表始終有可視內容；移除懸停自動開闔以消除開闔打架）
   header.addEventListener('click', (e) => {
     e.stopPropagation();
-    const sibling = phaseId === 1 ? phase2Group : phase1Group;
+    // 篩選模式下（類型或關鍵字）各階段可獨立開闔，避免互斥邏輯把其他階段的結果藏起來
+    if (isFiltering) {
+      if (group.style.display === 'none') return; // 無命中而被隱藏的階段不接受開闔
+      group.classList.toggle('expanded');
+      return;
+    }
     if (group.classList.contains('expanded')) {
       group.classList.remove('expanded');
-      if (sibling) sibling.classList.add('expanded');
+      const next = phaseGroups[(phaseGroups.indexOf(group) + 1) % phaseGroups.length];
+      if (next) next.classList.add('expanded');
     } else {
+      phaseGroups.forEach(g => g.classList.remove('expanded'));
       group.classList.add('expanded');
-      if (sibling) sibling.classList.remove('expanded');
     }
   });
 
@@ -447,12 +675,105 @@ function buildPhaseGroup(phaseSchools, phaseLabel, defaultExpanded, phaseId) {
   return group;
 }
 
-// 建立階段分組
-phase1Group = buildPhaseGroup(phase1Schools, '第一階段 (2025年11月24日)', false, 1);
-phase2Group = buildPhaseGroup(phase2Schools, '第二階段 (2026年5月25日)', true, 2);
+// 建立階段分組（依時序；最新階段預設展開）
+phaseGroups.push(buildPhaseGroup(phase1Schools, '第一階段 (2025年11月24日)', false, 1));
+phaseGroups.push(buildPhaseGroup(phase2Schools, '第二階段 (2026年5月25日)', false, 2));
+phaseGroups.push(buildPhaseGroup(phase3Schools, '第三階段 (2026年11月16日)', true, 3));
 
-list.appendChild(phase1Group);
-list.appendChild(phase2Group);
+phaseGroups.forEach(g => list.appendChild(g));
+
+// 統一篩選：類型（學校／托兒所／合計）＋ 關鍵字，兩者取交集。
+// 有篩選時僅顯示命中項目、自動展開含結果的階段；完全無篩選則還原完整三階段。
+function applyFilters() {
+  const q = String(searchInput.value || '').trim();
+  isSearching = q.length > 0;
+  isFiltering = isSearching || typeFilter !== 'all';
+  searchWrap.classList.toggle('has-query', isSearching);
+
+  // 以空白／逗號分詞，所有詞都須命中（例如「氹仔 托兒所」）
+  const terms = q.split(/[\s\u3000、，,]+/).filter(Boolean)
+    .map(t => normalizeText(t)).filter(Boolean);
+
+  let total = 0;
+  phaseGroups.forEach(g => {
+    const rows = Array.from(g.querySelectorAll('.school-row'));
+    let hits = 0;
+    rows.forEach(r => {
+      const idx = Number(r.id.slice(4)); // 'row-'
+      const s = schools[idx];
+      const text = normalizeText([s.name, s.addr, s.search, typeLabel[s.type]].join(' '));
+      const kwHit = terms.every(t => text.includes(t));
+      const hit = kwHit && matchType(s, typeFilter);
+      r.style.display = hit ? '' : 'none';
+      if (hit) hits++;
+    });
+    g.style.display = (isFiltering && hits === 0) ? 'none' : '';
+    g.querySelector('.phase-count').textContent = (isFiltering ? hits : rows.length) + ' 所';
+    if (isFiltering) g.classList.toggle('expanded', hits > 0);
+    total += hits;
+  });
+
+  if (!isFiltering) {
+    phaseGroups.forEach((g, i) => g.classList.toggle('expanded', i === DEFAULT_PHASE_INDEX));
+  }
+
+  const noResult = isFiltering && total === 0;
+  list.classList.toggle('no-result', noResult);
+  searchStatus.classList.toggle('no-result', noResult);
+
+  const typeLabelText = typeFilter === 'nursery' ? '托兒所' : (typeFilter === 'school' ? '學校' : '');
+  if (!isFiltering) {
+    searchStatus.textContent = '';
+  } else if (noResult) {
+    searchStatus.textContent = q
+      ? `查無符合「${q}」的${typeLabelText || '結果'}`
+      : `查無符合的${typeLabelText || '結果'}`;
+  } else if (isSearching) {
+    searchStatus.textContent = typeLabelText
+      ? `在${typeLabelText}中找到 ${total} 間符合「${q}」`
+      : `找到 ${total} 間符合「${q}」的結果`;
+  } else {
+    searchStatus.textContent = typeFilter === 'school'
+      ? `顯示 ${total} 間學校（已排除托兒所）`
+      : `顯示 ${total} 間托兒所`;
+  }
+}
+
+// 篩選膠囊的視覺狀態與提示文字
+function syncFilterUI() {
+  statPills.forEach(p => {
+    const on = p.dataset.filter === typeFilter;
+    p.classList.toggle('active', on);
+    p.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  if (statHint) {
+    statHint.textContent = typeFilter === 'school' ? '已排除托兒所 · 點「合計」還原'
+      : typeFilter === 'nursery' ? '僅顯示托兒所 · 點「合計」還原'
+      : '點擊可篩選學校／托兒所';
+    statHint.classList.add('visible');
+  }
+}
+
+statPills.forEach(pill => {
+  pill.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const f = pill.dataset.filter;
+    // 再次點擊目前生效的篩選 → 還原為合計
+    typeFilter = (f === typeFilter && f !== 'all') ? 'all' : f;
+    syncFilterUI();
+    applyFilters();
+  });
+});
+
+searchInput.addEventListener('input', () => applyFilters());
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { searchInput.value = ''; applyFilters(); }
+});
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  applyFilters();
+  searchInput.focus();
+});
 
 function locateOnMap(idx) {
   const s = schools[idx];
@@ -472,7 +793,9 @@ function locateOnMap(idx) {
   infoAddr.textContent = s.addr;
   infoBar.classList.add('visible');
 
-  const query = encodeURIComponent(s.search);
+  // place：Google 地圖設有該機構的獨立地點，以名稱定位會顯示機構本身的資訊卡
+  // coord：Google 缺漏或位置有誤者，改用座標釘點；其餘退回搜尋關鍵字
+  const query = encodeURIComponent(s.place || s.coord || s.search);
   mapFrame.src = `https://maps.google.com/maps?q=${query}&z=17&iwloc=B&output=embed&hl=zh-TW`;
 
   mapFrame.onload = () => {
@@ -484,9 +807,9 @@ function locateOnMap(idx) {
 }
 
 // 側邊欄重置為預設狀態的函數
+// （篩選狀態下保留結果並重新展開命中階段；無篩選則還原為最新階段展開）
 function resetDrawerContent() {
-  if (phase1Group) phase1Group.classList.remove('expanded');
-  if (phase2Group) phase2Group.classList.add('expanded');
+  applyFilters();
 }
 
 function toggleDrawer() {
@@ -520,14 +843,21 @@ function closeDrawer() {
 // 初始化開啟遮罩
 document.getElementById('overlay').classList.add('open');
 
+// 初始化篩選器外觀（預設「合計」＝顯示全部）
+syncFilterUI();
+
 (function () {
-  const block = (e) => { e.preventDefault(); return false; };
+  const block = (e) => {
+    if (isSearchField(e.target)) return true;
+    e.preventDefault(); return false;
+  };
   document.addEventListener('contextmenu', block);
   document.addEventListener('selectstart', block);
   document.addEventListener('copy', block);
   document.addEventListener('cut', block);
   document.addEventListener('dragstart', block);
   document.addEventListener('keydown', function (e) {
+    if (isSearchField(e.target)) return; // 搜尋欄保留正常編輯快捷鍵
     if (e.key === 'F12' || e.keyCode === 123) return block(e);
     if (e.ctrlKey && e.shiftKey && [73, 67, 74].includes(e.keyCode)) return block(e);
     if (e.ctrlKey && e.keyCode === 85) return block(e);
